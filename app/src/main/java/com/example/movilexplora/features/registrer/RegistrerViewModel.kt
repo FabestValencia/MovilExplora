@@ -11,8 +11,6 @@ import kotlinx.coroutines.flow.asStateFlow
 class RegisterViewModel : ViewModel() {
 
     val nombre = ValidatedField("") { if (it.isEmpty()) "El nombre es obligatorio" else null }
-    val ciudad = ValidatedField("") { if (it.isEmpty()) "La ciudad es obligatoria" else null }
-    val direccion = ValidatedField("") { if (it.isEmpty()) "La dirección es obligatoria" else null }
 
     val email = ValidatedField("") { value ->
         when {
@@ -25,12 +23,11 @@ class RegisterViewModel : ViewModel() {
     val password = ValidatedField("") { value ->
         when {
             value.isEmpty() -> "La contraseña es obligatoria"
-            value.length < 6 -> "Debe tener al menos 6 caracteres"
+            value.length < 8 -> "Debe tener al menos 8 caracteres"
             else -> null
         }
     }
 
-    // Validación especial para confirmar contraseña
     val confirmPassword = ValidatedField("") { value ->
         when {
             value.isEmpty() -> "Debes confirmar la contraseña"
@@ -40,15 +37,13 @@ class RegisterViewModel : ViewModel() {
     }
 
     val isFormValid: Boolean
-        get() = nombre.isValid && ciudad.isValid && direccion.isValid &&
-                email.isValid && password.isValid && confirmPassword.isValid
+        get() = nombre.isValid && email.isValid && password.isValid && confirmPassword.isValid
 
     private val _registerResult = MutableStateFlow<RequestResult?>(null)
     val registerResult: StateFlow<RequestResult?> = _registerResult.asStateFlow()
 
     fun register() {
         if (isFormValid) {
-            // Simulación del proceso de registro [3]
             _registerResult.value = RequestResult.Success("Usuario registrado exitosamente")
         }
     }

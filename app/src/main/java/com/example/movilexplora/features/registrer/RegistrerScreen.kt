@@ -1,120 +1,149 @@
 package com.example.movilexplora.features.registrer
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Snackbar
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.movilexplora.core.utils.RequestResult
 import com.example.movilexplora.core.utils.ValidatedField
-import kotlinx.coroutines.delay // Fix: removed duplicate "kotlinx.coroutines.time.delay"
+import com.example.movilexplora.ui.theme.DarkBlue
+import com.example.movilexplora.ui.theme.GrayText
+import com.example.movilexplora.ui.theme.Turquoise
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RegisterScreen(
     onNavigateBack: () -> Unit,
+    onNavigateToLogin: () -> Unit,
     viewModel: RegisterViewModel = viewModel()
 ) {
-    val snackbarHostState = remember { SnackbarHostState() }
-    val registerResult by viewModel.registerResult.collectAsState()
-
-    LaunchedEffect(registerResult) {
-        registerResult?.let { result ->
-            val message = when (result) {
-                is RequestResult.Success -> result.message
-                is RequestResult.Failure -> result.errorMessage
-            }
-            snackbarHostState.showSnackbar(message)
-
-            if (result is RequestResult.Success) {
-                delay(1500)
-                onNavigateBack()
-            }
-            viewModel.resetRegisterResult()
-        }
-    }
-
     Scaffold(
-        snackbarHost = {
-            SnackbarHost(snackbarHostState) { data ->
-                val isError = (registerResult is RequestResult.Failure)
-                Snackbar(
-                    containerColor = if (isError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
-                    contentColor = Color.White
-                ) { Text(data.visuals.message) }
-            }
+        topBar = {
+            TopAppBar(
+                title = { },
+                navigationIcon = {
+                    IconButton(onClick = onNavigateBack) {
+                        Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
+            )
         }
     ) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(horizontal = 30.dp)
+                .padding(horizontal = 24.dp)
                 .verticalScroll(rememberScrollState()),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterVertically)
+            horizontalAlignment = Alignment.Start
         ) {
-            Text(text = "Crear Cuenta", style = MaterialTheme.typography.headlineMedium)
+            Text(
+                text = "Crear cuenta",
+                fontSize = 32.sp,
+                fontWeight = FontWeight.Bold,
+                color = DarkBlue
+            )
 
-            CustomTextField(label = "Nombre", field = viewModel.nombre)
-            CustomTextField(label = "Ciudad", field = viewModel.ciudad)
-            CustomTextField(label = "Dirección", field = viewModel.direccion)
-            CustomTextField(label = "Email", field = viewModel.email, keyboardType = KeyboardType.Email)
-            CustomTextField(label = "Contraseña", field = viewModel.password, isPassword = true)
-            CustomTextField(label = "Confirmar Contraseña", field = viewModel.confirmPassword, isPassword = true)
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Text(
+                text = "Conecta con viajeros y locales y descubre sus lugares favoritos.",
+                fontSize = 16.sp,
+                color = GrayText,
+                lineHeight = 22.sp
+            )
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            RegisterField(label = "Nombre completo", placeholder = "Ingrese nombre completo", field = viewModel.nombre)
+            RegisterField(label = "Email", placeholder = "Ingrese su correo electronico", field = viewModel.email, keyboardType = KeyboardType.Email)
+            RegisterField(label = "Contraseña", placeholder = "Min. 8 caracteres", field = viewModel.password, isPassword = true)
+            RegisterField(label = "Confirmar contraseña", placeholder = "Confirme la contraseña", field = viewModel.confirmPassword, isPassword = true)
+
+            Spacer(modifier = Modifier.height(40.dp))
 
             Button(
                 onClick = { viewModel.register() },
-                enabled = viewModel.isFormValid,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 8.dp)
+                    .height(56.dp),
+                shape = RoundedCornerShape(28.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Turquoise)
             ) {
-                Text("Registrarse")
+                Text(text = "Crear cuenta", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color.White)
             }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            TextButton(
+                onClick = onNavigateToLogin,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(text = "Iniciar sesión", color = Turquoise, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+            }
+            
+            Spacer(modifier = Modifier.height(24.dp))
         }
     }
 }
 
 @Composable
-fun CustomTextField(
+fun RegisterField(
     label: String,
+    placeholder: String,
     field: ValidatedField<String>,
     isPassword: Boolean = false,
     keyboardType: KeyboardType = KeyboardType.Text
 ) {
-    OutlinedTextField(
-        modifier = Modifier.fillMaxWidth(),
-        value = field.value,
-        // Fix: wrap in a remembered lambda to ensure stability in recomposition
-        onValueChange = { newValue -> field.onChange(newValue) },
-        label = { Text(label) },
-        isError = field.error != null,
-        supportingText = field.error?.let { errorMsg -> { Text(errorMsg) } },
-        visualTransformation = if (isPassword) PasswordVisualTransformation() else VisualTransformation.None,
-        keyboardOptions = KeyboardOptions(keyboardType = keyboardType)
-    )
+    var passwordVisible by remember { mutableStateOf(false) }
+
+    Column(modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
+        Text(text = label, fontSize = 14.sp, color = GrayText.copy(alpha = 0.8f), modifier = Modifier.padding(start = 4.dp, bottom = 4.dp))
+        
+        OutlinedTextField(
+            value = field.value,
+            onValueChange = { field.onChange(it) },
+            modifier = Modifier.fillMaxWidth(),
+            placeholder = { Text(text = placeholder, color = GrayText.copy(alpha = 0.5f)) },
+            shape = RoundedCornerShape(24.dp),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = Turquoise,
+                unfocusedBorderColor = Color.LightGray.copy(alpha = 0.5f),
+                focusedContainerColor = Color(0xFFF7F8F9),
+                unfocusedContainerColor = Color(0xFFF7F8F9)
+            ),
+            visualTransformation = if (isPassword && !passwordVisible) PasswordVisualTransformation() else VisualTransformation.None,
+            trailingIcon = {
+                if (isPassword) {
+                    val image = if (passwordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
+                    IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                        Icon(imageVector = image, contentDescription = null, tint = GrayText.copy(alpha = 0.6f))
+                    }
+                }
+            },
+            keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
+            singleLine = true,
+            isError = field.error != null
+        )
+        if (field.error != null) {
+            Text(text = field.error!!, color = Color.Red, fontSize = 12.sp, modifier = Modifier.padding(start = 12.dp, top = 2.dp))
+        }
+    }
 }

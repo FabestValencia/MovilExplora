@@ -1,5 +1,8 @@
 package com.example.movilexplora.features.moderator
 
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
+
 import androidx.lifecycle.ViewModel
 import com.example.movilexplora.domain.model.VerificationItem
 import com.example.movilexplora.domain.model.VerificationType
@@ -14,7 +17,8 @@ data class ModeratorFeedState(
     val counts: Map<String, Int> = mapOf("Todo" to 0, "Lugares" to 0, "Reseñas" to 0, "Eventos" to 0)
 )
 
-class ModeratorFeedViewModel : ViewModel() {
+@HiltViewModel
+class ModeratorFeedViewModel @Inject constructor() : ViewModel() {
     private val _state = MutableStateFlow(ModeratorFeedState())
     val state: StateFlow<ModeratorFeedState> = _state.asStateFlow()
     

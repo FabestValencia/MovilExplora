@@ -23,7 +23,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.movilexplora.domain.model.Post
 import com.example.movilexplora.core.component.BottomNavigationBar
 import com.example.movilexplora.ui.theme.DarkBlue
@@ -38,7 +38,7 @@ fun MapScreen(
     onNavigateToCreatePost: () -> Unit,
     onNavigateToFeed: () -> Unit,
     onNavigateToDetail: (String) -> Unit = {},
-    viewModel: MapViewModel = viewModel()
+    viewModel: MapViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
     val barcelona = LatLng(41.3851, 2.1734)

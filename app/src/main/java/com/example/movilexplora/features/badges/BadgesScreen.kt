@@ -27,7 +27,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.movilexplora.domain.model.Achievement
 import com.example.movilexplora.ui.theme.DarkBlue
 import com.example.movilexplora.ui.theme.GrayText
@@ -37,7 +37,7 @@ import com.example.movilexplora.ui.theme.Turquoise
 @Composable
 fun BadgesScreen(
     onNavigateBack: () -> Unit,
-    viewModel: BadgesViewModel = viewModel()
+    viewModel: BadgesViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
 

@@ -20,7 +20,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.movilexplora.domain.model.Notification
 import com.example.movilexplora.domain.model.NotificationType
 import com.example.movilexplora.ui.theme.DarkBlue
@@ -31,7 +31,7 @@ import com.example.movilexplora.ui.theme.Turquoise
 @Composable
 fun NotificationsScreen(
     onNavigateBack: () -> Unit,
-    viewModel: NotificationsViewModel = viewModel()
+    viewModel: NotificationsViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
 

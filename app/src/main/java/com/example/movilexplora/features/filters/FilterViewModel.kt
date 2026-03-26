@@ -1,5 +1,8 @@
 package com.example.movilexplora.features.filters
 
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
+
 import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -13,7 +16,8 @@ data class FilterState(
     val filterCount: Int = 0
 )
 
-class FilterViewModel : ViewModel() {
+@HiltViewModel
+class FilterViewModel @Inject constructor() : ViewModel() {
     private val _state = MutableStateFlow(FilterState())
     val state: StateFlow<FilterState> = _state.asStateFlow()
 

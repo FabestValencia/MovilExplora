@@ -1,5 +1,8 @@
 package com.example.movilexplora.features.reputation
 
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
+
 import androidx.lifecycle.ViewModel
 import com.example.movilexplora.domain.model.ReputationLevel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -28,7 +31,8 @@ data class ReputationState(
     val recentPoints: List<RecentPoint> = emptyList()
 )
 
-class ReputationViewModel : ViewModel() {
+@HiltViewModel
+class ReputationViewModel @Inject constructor() : ViewModel() {
     private val _state = MutableStateFlow(ReputationState())
     val state: StateFlow<ReputationState> = _state.asStateFlow()
 

@@ -21,7 +21,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.movilexplora.R
 import com.example.movilexplora.domain.model.VerificationItem
 import com.example.movilexplora.ui.theme.DarkBlue
@@ -32,7 +32,7 @@ import com.example.movilexplora.ui.theme.Turquoise
 @Composable
 fun ModeratorFeedScreen(
     onLogout: () -> Unit,
-    viewModel: ModeratorFeedViewModel = viewModel()
+    viewModel: ModeratorFeedViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
 

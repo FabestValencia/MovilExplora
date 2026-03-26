@@ -1,5 +1,8 @@
 package com.example.movilexplora.features.notifications
 
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
+
 import androidx.lifecycle.ViewModel
 import com.example.movilexplora.domain.model.Notification
 import com.example.movilexplora.domain.model.NotificationType
@@ -13,7 +16,8 @@ data class NotificationsState(
     val olderNotifications: List<Notification> = emptyList()
 )
 
-class NotificationsViewModel : ViewModel() {
+@HiltViewModel
+class NotificationsViewModel @Inject constructor() : ViewModel() {
     private val _state = MutableStateFlow(NotificationsState())
     val state: StateFlow<NotificationsState> = _state.asStateFlow()
 

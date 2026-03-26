@@ -14,6 +14,9 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
+
 data class MapMarker(
     val post: Post,
     val position: LatLng
@@ -26,9 +29,10 @@ data class MapState(
     val selectedPost: Post? = null
 )
 
-class MapViewModel : ViewModel() {
-    private val repository = PostRepositoryImpl()
-    private val getPostsUseCase = GetPostsUseCase(repository)
+@HiltViewModel
+class MapViewModel @Inject constructor(
+    private val getPostsUseCase: GetPostsUseCase
+) : ViewModel() {
 
     private val _state = MutableStateFlow(MapState())
     val state: StateFlow<MapState> = _state.asStateFlow()

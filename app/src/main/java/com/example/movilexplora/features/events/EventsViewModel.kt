@@ -1,5 +1,8 @@
 package com.example.movilexplora.features.events
 
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
+
 import androidx.lifecycle.ViewModel
 import com.example.movilexplora.domain.model.Event
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -12,7 +15,8 @@ data class EventsState(
     val selectedFilter: String = "Todo"
 )
 
-class EventsViewModel : ViewModel() {
+@HiltViewModel
+class EventsViewModel @Inject constructor() : ViewModel() {
     private val _state = MutableStateFlow(EventsState())
     val state: StateFlow<EventsState> = _state.asStateFlow()
 

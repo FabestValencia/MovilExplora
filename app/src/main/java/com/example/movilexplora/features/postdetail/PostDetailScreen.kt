@@ -23,7 +23,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.movilexplora.ui.theme.DarkBlue
 import com.example.movilexplora.ui.theme.GrayText
 import com.example.movilexplora.ui.theme.Turquoise
@@ -34,7 +34,7 @@ fun PostDetailScreen(
     postId: String,
     isModerator: Boolean = false,
     onNavigateBack: () -> Unit,
-    viewModel: PostDetailViewModel = viewModel()
+    viewModel: PostDetailViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
 

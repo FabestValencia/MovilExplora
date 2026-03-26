@@ -1,5 +1,8 @@
 package com.example.movilexplora.features.forgotpassword
 
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
+
 import android.util.Patterns
 import androidx.lifecycle.ViewModel
 import com.example.movilexplora.core.utils.RequestResult
@@ -8,7 +11,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
-class ForgotPasswordViewModel : ViewModel() {
+@HiltViewModel
+class ForgotPasswordViewModel @Inject constructor() : ViewModel() {
     val email = ValidatedField("") { value ->
         when {
             value.isEmpty() -> "El email es obligatorio"

@@ -1,14 +1,22 @@
 package com.example.movilexplora.features.moderator
 
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
+
 import android.util.Patterns
 import androidx.lifecycle.ViewModel
 import com.example.movilexplora.core.utils.RequestResult
 import com.example.movilexplora.core.utils.ValidatedField
+import com.example.movilexplora.domain.model.UserRole
+import com.example.movilexplora.domain.repository.UserRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
-class ModeratorViewModel : ViewModel() {
+@HiltViewModel
+class ModeratorViewModel @Inject constructor(
+    private val userRepository: UserRepository
+) : ViewModel() {
     val email = ValidatedField("") { value ->
         when {
             value.isEmpty() -> "El email es obligatorio"
@@ -32,8 +40,9 @@ class ModeratorViewModel : ViewModel() {
 
     fun loginAdmin() {
         if (isFormValid) {
-            // Simulación de validación de moderador
-            if (email.value == "admin@explora.com" && password.value == "admin123") {
+            val user = userRepository.login(email.value, password.value)
+            
+            if (user != null && user.role == UserRole.ADMIN) {
                 _accessResult.value = RequestResult.Success("Acceso concedido")
             } else {
                 _accessResult.value = RequestResult.Failure("Credenciales de moderador incorrectas")

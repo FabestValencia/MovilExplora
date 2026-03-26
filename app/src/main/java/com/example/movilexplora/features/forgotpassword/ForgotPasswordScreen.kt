@@ -15,7 +15,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.movilexplora.ui.theme.DarkBlue
 import com.example.movilexplora.ui.theme.GrayText
 import com.example.movilexplora.ui.theme.Turquoise
@@ -25,7 +25,7 @@ import com.example.movilexplora.ui.theme.Turquoise
 fun ForgotPasswordScreen(
     onNavigateBack: () -> Unit,
     onNavigateToVerifyCode: () -> Unit,
-    viewModel: ForgotPasswordViewModel = viewModel()
+    viewModel: ForgotPasswordViewModel = hiltViewModel()
 ) {
     val emailValue = viewModel.email.value
     val requestResult by viewModel.requestResult.collectAsState()

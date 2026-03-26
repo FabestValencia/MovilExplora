@@ -26,14 +26,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.movilexplora.core.utils.RequestResult
 import kotlinx.coroutines.delay
 
 @Composable
 fun PasswordResetScreen(
     onNavigateToLogin: () -> Unit,
-    viewModel: PasswordResetViewModel = viewModel()
+    viewModel: PasswordResetViewModel = hiltViewModel()
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
     val resetResult by viewModel.resetResult.collectAsState()

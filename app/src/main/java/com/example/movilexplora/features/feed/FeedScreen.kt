@@ -21,7 +21,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.movilexplora.core.component.BottomNavigationBar
 import com.example.movilexplora.domain.model.Post
 import com.example.movilexplora.features.filters.FilterBottomSheet
@@ -37,7 +37,7 @@ fun FeedScreen(
     onNavigateToEvents: () -> Unit,
     onNavigateToNotifications: () -> Unit,
     onNavigateToProfile: () -> Unit,
-    viewModel: FeedViewModel = viewModel()
+    viewModel: FeedViewModel = hiltViewModel()
 ) {
     val posts by viewModel.posts.collectAsState()
     var showFilterSheet by remember { mutableStateOf(false) }

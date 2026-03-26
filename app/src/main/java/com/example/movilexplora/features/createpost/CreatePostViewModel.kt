@@ -1,5 +1,8 @@
 package com.example.movilexplora.features.createpost
 
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
+
 import androidx.lifecycle.ViewModel
 import com.example.movilexplora.core.utils.RequestResult
 import com.example.movilexplora.core.utils.ValidatedField
@@ -15,7 +18,8 @@ data class CreatePostState(
     val address: String = ""
 )
 
-class CreatePostViewModel : ViewModel() {
+@HiltViewModel
+class CreatePostViewModel @Inject constructor() : ViewModel() {
     val title = ValidatedField("") { value ->
         if (value.isEmpty()) "El título es obligatorio" else null
     }

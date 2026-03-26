@@ -25,7 +25,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.movilexplora.R
 import com.example.movilexplora.ui.theme.DarkBlue
 import com.example.movilexplora.ui.theme.GrayText
@@ -36,7 +36,7 @@ import com.example.movilexplora.ui.theme.Turquoise
 fun ModeratorScreen(
     onNavigateBack: () -> Unit,
     onAccessGranted: () -> Unit,
-    viewModel: ModeratorViewModel = viewModel()
+    viewModel: ModeratorViewModel = hiltViewModel()
 ) {
     var passwordVisible by remember { mutableStateOf(false) }
     val accessResult by viewModel.accessResult.collectAsState()

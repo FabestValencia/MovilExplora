@@ -18,7 +18,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.movilexplora.ui.theme.DarkBlue
 import com.example.movilexplora.ui.theme.GrayText
 import com.example.movilexplora.ui.theme.Turquoise
@@ -28,7 +28,7 @@ import com.example.movilexplora.ui.theme.Turquoise
 fun VerificationCodeScreen(
     onNavigateBack: () -> Unit,
     onVerifySuccess: () -> Unit,
-    viewModel: VerificationCodeViewModel = viewModel()
+    viewModel: VerificationCodeViewModel = hiltViewModel()
 ) {
     var code by remember { mutableStateOf("") }
     val verificationResult by viewModel.verificationResult.collectAsState()

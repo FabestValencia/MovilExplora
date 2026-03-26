@@ -1,5 +1,8 @@
 package com.example.movilexplora.features.badges
 
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
+
 import androidx.lifecycle.ViewModel
 import com.example.movilexplora.domain.model.Achievement
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -12,7 +15,8 @@ data class BadgesState(
     val achievements: List<Achievement> = emptyList()
 )
 
-class BadgesViewModel : ViewModel() {
+@HiltViewModel
+class BadgesViewModel @Inject constructor() : ViewModel() {
     private val _state = MutableStateFlow(BadgesState())
     val state: StateFlow<BadgesState> = _state.asStateFlow()
 

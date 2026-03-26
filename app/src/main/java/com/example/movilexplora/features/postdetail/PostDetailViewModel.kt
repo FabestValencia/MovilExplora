@@ -1,5 +1,8 @@
 package com.example.movilexplora.features.postdetail
 
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
+
 import androidx.lifecycle.ViewModel
 import com.example.movilexplora.domain.model.Post
 import com.example.movilexplora.domain.model.PostStatus
@@ -21,7 +24,8 @@ data class PostDetailState(
     val comments: List<Comment> = emptyList()
 )
 
-class PostDetailViewModel : ViewModel() {
+@HiltViewModel
+class PostDetailViewModel @Inject constructor() : ViewModel() {
     private val _state = MutableStateFlow(PostDetailState())
     val state: StateFlow<PostDetailState> = _state.asStateFlow()
 

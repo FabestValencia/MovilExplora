@@ -22,7 +22,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.movilexplora.ui.theme.DarkBlue
 import com.example.movilexplora.ui.theme.GrayText
 import com.example.movilexplora.ui.theme.Turquoise
@@ -32,7 +32,7 @@ import com.example.movilexplora.ui.theme.Turquoise
 fun CreatePostScreen(
     onNavigateBack: () -> Unit,
     onPublishSuccess: () -> Unit,
-    viewModel: CreatePostViewModel = viewModel()
+    viewModel: CreatePostViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
     val publishResult by viewModel.publishResult.collectAsState()

@@ -1,12 +1,16 @@
 package com.example.movilexplora.features.verificationcode
 
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
+
 import androidx.lifecycle.ViewModel
 import com.example.movilexplora.core.utils.RequestResult
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
-class VerificationCodeViewModel : ViewModel() {
+@HiltViewModel
+class VerificationCodeViewModel @Inject constructor() : ViewModel() {
     private val _verificationResult = MutableStateFlow<RequestResult?>(null)
     val verificationResult: StateFlow<RequestResult?> = _verificationResult.asStateFlow()
 

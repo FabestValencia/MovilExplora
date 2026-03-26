@@ -4,11 +4,19 @@ import android.util.Patterns
 import androidx.lifecycle.ViewModel
 import com.example.movilexplora.core.utils.RequestResult
 import com.example.movilexplora.core.utils.ValidatedField
+import com.example.movilexplora.domain.model.User
+import com.example.movilexplora.domain.repository.UserRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
+import java.util.UUID
+import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
-class RegisterViewModel : ViewModel() {
+@HiltViewModel
+class RegisterViewModel @Inject constructor(
+    private val userRepository: UserRepository
+) : ViewModel() {
 
     val nombre = ValidatedField("") { if (it.isEmpty()) "El nombre es obligatorio" else null }
 
@@ -44,6 +52,16 @@ class RegisterViewModel : ViewModel() {
 
     fun register() {
         if (isFormValid) {
+            val newUser = User(
+                id = UUID.randomUUID().toString(),
+                name = nombre.value,
+                email = email.value,
+                password = password.value,
+                city = "",
+                address = "",
+                profilePictureUrl = ""
+            )
+            userRepository.save(newUser)
             _registerResult.value = RequestResult.Success("Usuario registrado exitosamente")
         }
     }

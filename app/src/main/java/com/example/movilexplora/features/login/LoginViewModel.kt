@@ -7,11 +7,17 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import com.example.movilexplora.core.utils.RequestResult
 import com.example.movilexplora.core.utils.ValidatedField
+import com.example.movilexplora.domain.repository.UserRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
-class LoginViewModel : ViewModel() {
+@HiltViewModel
+class LoginViewModel @Inject constructor(
+    private val userRepository: UserRepository
+) : ViewModel() {
     val email = ValidatedField("") { value ->
         when {
             value.isEmpty() -> "El email es obligatorio"
@@ -36,11 +42,12 @@ class LoginViewModel : ViewModel() {
 
     fun login() {
         if (isFormValid) {
-            // Simulación de validación con datos estáticos
-            _loginResult.value = if (email.value == "carlos@email.com" && password.value == "123456") {
+            val user = userRepository.login(email.value, password.value)
+            
+            _loginResult.value = if (user != null) {
                 RequestResult.Success("Login exitoso")
             } else {
-                RequestResult.Failure("Credenciales inválidas")
+                RequestResult.Failure("Credenciales invlidas")
             }
         }
     }
@@ -49,5 +56,3 @@ class LoginViewModel : ViewModel() {
         _loginResult.value = null
     }
 }
-
-

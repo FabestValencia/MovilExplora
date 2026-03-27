@@ -27,7 +27,9 @@ import com.example.movilexplora.features.success.SuccessScreen
 import com.example.movilexplora.features.verificationcode.VerificationCodeScreen
 import com.example.movilexplora.ui.theme.MovilExploraTheme
 import com.example.movilexplora.features.events.EventsScreen
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

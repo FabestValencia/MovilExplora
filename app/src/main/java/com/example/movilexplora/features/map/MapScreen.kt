@@ -1,5 +1,7 @@
 package com.example.movilexplora.features.map
 
+import androidx.compose.ui.res.stringResource
+import com.example.movilexplora.R
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -12,6 +14,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material3.*
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -24,11 +27,12 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.example.movilexplora.domain.model.Post
 import com.example.movilexplora.core.component.BottomNavigationBar
-import com.example.movilexplora.ui.theme.DarkBlue
+import com.example.movilexplora.domain.model.Post
 import com.example.movilexplora.ui.theme.GrayText
 import com.example.movilexplora.ui.theme.Turquoise
+import com.example.movilexplora.ui.theme.getCategoryColor
+import com.example.movilexplora.ui.theme.getCategoryIcon
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.*
@@ -86,9 +90,22 @@ fun MapScreen(
                     .padding(16.dp)
             ) {
                 // Search Bar
-                SearchBar(
-                    query = state.searchQuery,
-                    onQueryChange = { viewModel.onSearchQueryChange(it) }
+                OutlinedTextField(
+                    value = "",
+                    onValueChange = {},
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 24.dp, vertical = 16.dp)
+                        .clip(RoundedCornerShape(30.dp))
+                        .background(Color.White),
+                    placeholder = { Text(stringResource(R.string.map_search_placeholder), fontSize = 14.sp, color = GrayText.copy(alpha = 0.6f)) },
+                    leadingIcon = { Icon(imageVector = Icons.Default.Search, contentDescription = "Search", tint = GrayText) },
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedContainerColor = Color.White,
+                        unfocusedContainerColor = Color.White,
+                        focusedBorderColor = Color.Transparent,
+                        unfocusedBorderColor = Color.Transparent
+                    )
                 )
 
                 Spacer(modifier = Modifier.height(12.dp))
@@ -138,8 +155,8 @@ fun MapScreen(
                     Icon(imageVector = Icons.Default.AddCircleOutline, contentDescription = null)
                     Spacer(modifier = Modifier.width(12.dp))
                     Column {
-                        Text(text = "Crear", fontSize = 14.sp, fontWeight = FontWeight.Bold)
-                        Text(text = "Publicación", fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                        Text(text = stringResource(R.string.mapscreen_crear_0), fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                        Text(text = stringResource(R.string.mapscreen_publicaci_n_1), fontSize = 14.sp, fontWeight = FontWeight.Bold)
                     }
                 }
             }
@@ -159,7 +176,7 @@ fun PostPreviewCard(
             .wrapContentHeight()
             .shadow(16.dp, RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp, bottomStart = 32.dp, bottomEnd = 32.dp)),
         shape = RoundedCornerShape(32.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White)
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {
         Column(
             modifier = Modifier.padding(16.dp),
@@ -176,15 +193,30 @@ fun PostPreviewCard(
             Spacer(modifier = Modifier.height(16.dp))
 
             // Post Image with Favorite icon
-            Box(modifier = Modifier
-                .fillMaxWidth()
-                .height(180.dp)
-                .clip(RoundedCornerShape(24.dp))
-                .background(Color.LightGray)
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(200.dp)
+                    .background(Color.LightGray)
             ) {
-                // Placeholder for real image
-                Text("Imagen del lugar", modifier = Modifier.align(Alignment.Center))
+                Text(stringResource(R.string.common_location_image), modifier = Modifier.align(Alignment.Center))
                 
+                // Back Button
+                Surface(
+                    modifier = Modifier
+                        .align(Alignment.TopStart)
+                        .padding(12.dp),
+                    shape = CircleShape,
+                    color = Color.White.copy(alpha = 0.3f)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.ArrowBack,
+                        contentDescription = null,
+                        tint = Color.White,
+                        modifier = Modifier.padding(8.dp).size(20.dp)
+                    )
+                }
+
                 Surface(
                     modifier = Modifier
                         .align(Alignment.TopEnd)
@@ -205,20 +237,21 @@ fun PostPreviewCard(
 
             Column(modifier = Modifier.fillMaxWidth()) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
+                    val categoryColor = getCategoryColor(post.category)
                     Surface(
-                        color = Color(0xFFA5D6A7).copy(alpha = 0.3f),
+                        color = categoryColor.copy(alpha = 0.2f),
                         shape = RoundedCornerShape(8.dp)
                     ) {
                         Text(
                             text = post.category,
-                            color = Color(0xFF43A047),
+                            color = categoryColor,
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Bold,
                             modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
                         )
                     }
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text(text = "•", color = Color.Gray)
+                    Text(text = stringResource(R.string.mapscreen__2), color = Color.Gray)
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(text = post.price, color = GrayText, fontSize = 14.sp)
                 }
@@ -229,7 +262,7 @@ fun PostPreviewCard(
                     text = post.title,
                     fontSize = 24.sp,
                     fontWeight = FontWeight.Bold,
-                    color = DarkBlue
+                    color = MaterialTheme.colorScheme.onBackground
                 )
 
                 Spacer(modifier = Modifier.height(4.dp))
@@ -237,15 +270,15 @@ fun PostPreviewCard(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(imageVector = Icons.Default.Star, contentDescription = null, tint = Color(0xFFFFB300), modifier = Modifier.size(16.dp))
                     Spacer(modifier = Modifier.width(4.dp))
-                    Text(text = post.rating.toString(), fontSize = 14.sp, fontWeight = FontWeight.Bold, color = DarkBlue)
+                    Text(text = post.rating.toString(), fontSize = 14.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
                     Spacer(modifier = Modifier.width(4.dp))
-                    Text(text = "(1.2k reseñas)", fontSize = 14.sp, color = GrayText.copy(alpha = 0.6f))
+                    Text(text = stringResource(R.string.mapscreen_1_2k_rese_as_3), fontSize = 14.sp, color = GrayText.copy(alpha = 0.6f))
                 }
 
                 Spacer(modifier = Modifier.height(8.dp))
 
                 Text(
-                    text = "Disfruta de las mejores vistas panorámicas de la región desde este punto privilegiado. Ideal para...",
+                    text = stringResource(R.string.mapscreen_disfruta_de_las_mejores_vistas_4),
                     fontSize = 14.sp,
                     color = GrayText,
                     maxLines = 2,
@@ -263,7 +296,7 @@ fun PostPreviewCard(
                     colors = ButtonDefaults.buttonColors(containerColor = Turquoise)
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(text = "Ver más", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                        Text(text = stringResource(R.string.mapscreen_ver_m_s_5), fontSize = 16.sp, fontWeight = FontWeight.Bold)
                         Spacer(modifier = Modifier.width(8.dp))
                         Icon(imageVector = Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, modifier = Modifier.size(18.dp))
                     }
@@ -288,7 +321,7 @@ fun SearchBar(query: String, onQueryChange: (String) -> Unit) {
         trailingIcon = {
             Icon(
                 imageVector = Icons.Default.Tune,
-                contentDescription = "Filters",
+                contentDescription = stringResource(R.string.mapscreen_filters_6),
                 tint = Turquoise,
                 modifier = Modifier.padding(end = 8.dp)
             )
@@ -308,11 +341,11 @@ fun FilterChipsRow(selectedFilter: String, onFilterSelected: (String) -> Unit) {
     val filters = listOf(
         Pair("Cercanos", Icons.Default.NearMe),
         Pair("En la ciudad", Icons.Default.LocationCity),
-        Pair("Gastronomía", Icons.Default.Restaurant),
-        Pair("Cultura", Icons.Default.TheaterComedy),
-        Pair("Naturaleza", Icons.Default.Landscape),
-        Pair("Entretenimiento", Icons.Default.MusicNote),
-        Pair("Historia", Icons.Default.History)
+        Pair("Gastronomía", getCategoryIcon("Gastronomía")),
+        Pair("Cultura", getCategoryIcon("Cultura")),
+        Pair("Naturaleza", getCategoryIcon("Naturaleza")),
+        Pair("Entretenimiento", getCategoryIcon("Entretenimiento")),
+        Pair("Historia", getCategoryIcon("Historia"))
     )
 
     LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {

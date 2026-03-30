@@ -9,4 +9,3 @@ interface UserRepository {
     fun findById(id: String): User?
     fun login(email: String, password: String): User?
 }
-

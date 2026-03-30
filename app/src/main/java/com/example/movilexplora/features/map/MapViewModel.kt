@@ -5,7 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.movilexplora.data.repository.PostRepositoryImpl
 import com.example.movilexplora.domain.model.Post
 import com.example.movilexplora.domain.model.PostStatus
-import com.example.movilexplora.domain.usecase.GetPostsUseCase
+import com.example.movilexplora.domain.repository.PostRepository
 import com.google.android.gms.maps.model.LatLng
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -31,13 +31,13 @@ data class MapState(
 
 @HiltViewModel
 class MapViewModel @Inject constructor(
-    private val getPostsUseCase: GetPostsUseCase
+    private val postRepository: PostRepository
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(MapState())
     val state: StateFlow<MapState> = _state.asStateFlow()
 
-    val posts: StateFlow<List<Post>> = getPostsUseCase()
+    val posts: StateFlow<List<Post>> = postRepository.getPosts()
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),

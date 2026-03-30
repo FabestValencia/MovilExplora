@@ -1,8 +1,11 @@
 package com.example.movilexplora.features.profile
 
+import androidx.compose.ui.res.stringResource
+import com.example.movilexplora.R
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -12,6 +15,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -27,7 +31,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.movilexplora.domain.model.Achievement
 import com.example.movilexplora.domain.model.ReputationLevel
 import com.example.movilexplora.domain.model.UserProfile
-import com.example.movilexplora.ui.theme.DarkBlue
 import com.example.movilexplora.ui.theme.GrayText
 import com.example.movilexplora.ui.theme.Turquoise
 
@@ -42,6 +45,9 @@ fun ProfileScreen(
     onNavigateToNotifications: () -> Unit,
     onEditData: () -> Unit,
     onNavigateToEditEvent: (String) -> Unit = {},
+    onNavigateToReputation: () -> Unit = {},
+    onNavigateToBadges: () -> Unit = {},
+    onNavigateToStatistics: () -> Unit = {},
     viewModel: ProfileViewModel = hiltViewModel()
 ) {
     val userProfile by viewModel.userProfile.collectAsState()
@@ -75,10 +81,10 @@ fun ProfileScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Perfil", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = DarkBlue) },
+                title = { Text("Perfil", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground) },
                 actions = {
                     IconButton(onClick = onEditData) {
-                        Icon(imageVector = Icons.Default.Settings, contentDescription = "Edit", tint = DarkBlue)
+                        Icon(imageVector = Icons.Default.Settings, contentDescription = stringResource(R.string.profilescreen_edit_15), tint = MaterialTheme.colorScheme.onBackground)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
@@ -132,7 +138,7 @@ fun ProfileScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                Text(text = profile.name, fontSize = 22.sp, fontWeight = FontWeight.Bold, color = DarkBlue)
+                Text(text = profile.name, fontSize = 22.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
                 Text(text = profile.email, fontSize = 14.sp, color = GrayText)
 
                 Spacer(modifier = Modifier.height(12.dp))
@@ -178,11 +184,23 @@ fun ProfileScreen(
                     // Post Stats Cards
                     Row(
                         modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text("Estadísticas", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
+                        TextButton(onClick = onNavigateToStatistics) {
+                            Text("Detalle estadísticas", color = Turquoise, fontWeight = FontWeight.Bold)
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         StatCard("Activas", profile.activePosts.toString(), Turquoise, Modifier.weight(1f))
-                        StatCard("Finalizadas", profile.finishedPosts.toString(), Turquoise, Modifier.weight(1f))
-                        StatCard("Pendientes", profile.pendingPosts.toString(), Color(0xFFFFB74D), Modifier.weight(1f))
+                        StatCard("Finalizadas", profile.finishedPosts.toString(), Color(0xFF0F9D58), Modifier.weight(1f))
+                        StatCard("Pendientes", profile.pendingPosts.toString(), Color(0xFFF4B400), Modifier.weight(1f))
                     }
     
                     Spacer(modifier = Modifier.height(24.dp))
@@ -193,13 +211,21 @@ fun ProfileScreen(
                     Spacer(modifier = Modifier.height(32.dp))
     
                     // Reputation Levels
-                    Text(
-                        text = "Niveles de reputación",
+                    Row(
                         modifier = Modifier.fillMaxWidth(),
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = DarkBlue
-                    )
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = stringResource(R.string.profilescreen_niveles_de_reputaci_n_0),
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onBackground
+                        )
+                        TextButton(onClick = onNavigateToReputation) {
+                            Text(text = stringResource(R.string.profilescreen_ver_detalles_1), color = Turquoise, fontWeight = FontWeight.Bold)
+                        }
+                    }
                     Spacer(modifier = Modifier.height(24.dp))
                     ReputationTimeline(profile.reputationLevel)
     
@@ -211,9 +237,9 @@ fun ProfileScreen(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text(text = "Logros", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = DarkBlue)
-                        TextButton(onClick = { /* Ver todos */ }) {
-                            Text(text = "Ver todos", color = Turquoise, fontWeight = FontWeight.Bold)
+                        Text(text = stringResource(R.string.profilescreen_logros_2), fontSize = 18.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
+                        TextButton(onClick = onNavigateToBadges) {
+                            Text(text = stringResource(R.string.profilescreen_ver_todos_3), color = Turquoise, fontWeight = FontWeight.Bold)
                         }
                     }
                     Spacer(modifier = Modifier.height(16.dp))
@@ -227,11 +253,33 @@ fun ProfileScreen(
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             userEvents.forEach { event ->
-                                MyEventCard(
-                                    event = event,
-                                    onEditClick = { onNavigateToEditEvent(event.id) },
-                                    onDeleteClick = { eventToDeleteId = event.id }
-                                )
+                                Card(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(bottom = 12.dp)
+                                        .clickable { onNavigateToEditEvent(event.id) },
+                                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                                    shape = RoundedCornerShape(16.dp),
+                                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                                ) {
+                                    Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                                        Box(modifier = Modifier.size(60.dp).background(Color.LightGray, RoundedCornerShape(8.dp)))
+                                        Spacer(modifier = Modifier.width(12.dp))
+                                        Column(modifier = Modifier.weight(1f)) {
+                                            Text(text = event.title, fontWeight = FontWeight.Bold, fontSize = 16.sp, color = MaterialTheme.colorScheme.onBackground)
+                                            Spacer(modifier = Modifier.height(4.dp))
+                                            Text(text = "Inicio: ${event.date} • ${event.time}", fontSize = 12.sp, color = GrayText)
+                                            if (event.endDate.isNotEmpty() && event.endTime.isNotEmpty()) {
+                                                Text(text = "Fin: ${event.endDate} • ${event.endTime}", fontSize = 12.sp, color = GrayText)
+                                            }
+                                            Spacer(modifier = Modifier.height(4.dp))
+                                            Text(text = event.location, fontSize = 12.sp, color = Turquoise)
+                                        }
+                                        IconButton(onClick = { eventToDeleteId = event.id }) {
+                                            Icon(imageVector = Icons.Default.Delete, contentDescription = stringResource(R.string.profilescreen_eliminar_16), tint = Color.Red.copy(alpha = 0.7f))
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
@@ -248,7 +296,7 @@ fun ProfileScreen(
                 ) {
                     Icon(imageVector = Icons.Default.EditNote, contentDescription = null)
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text(text = "Editar datos", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                    Text(text = stringResource(R.string.profilescreen_editar_datos_4), fontSize = 16.sp, fontWeight = FontWeight.Bold)
                 }
 
                 Spacer(modifier = Modifier.height(12.dp))
@@ -262,7 +310,7 @@ fun ProfileScreen(
                 ) {
                     Icon(imageVector = Icons.Default.Delete, contentDescription = null)
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text(text = "Eliminar cuenta", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                    Text(text = stringResource(R.string.profilescreen_eliminar_cuenta_5), fontSize = 16.sp, fontWeight = FontWeight.Bold)
                 }
 
                 Spacer(modifier = Modifier.height(40.dp))
@@ -293,7 +341,7 @@ fun DeleteAccountDialog(onDismiss: () -> Unit, onConfirm: () -> Unit) {
                 Spacer(modifier = Modifier.height(16.dp))
                 
                 Text(
-                    text = "¿Eliminar cuenta?",
+                    text = stringResource(R.string.profilescreen_eliminar_cuenta_6),
                     fontSize = 22.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.Black,
@@ -303,7 +351,7 @@ fun DeleteAccountDialog(onDismiss: () -> Unit, onConfirm: () -> Unit) {
                 Spacer(modifier = Modifier.height(16.dp))
                 
                 Text(
-                    text = "Esta acción es permanente y perderás todas tus insignias y publicaciones. No podrás recuperar tus datos una vez confirmada.",
+                    text = stringResource(R.string.profilescreen_esta_acci_n_es_permanente_y_pe_7),
                     fontSize = 14.sp,
                     color = GrayText,
                     textAlign = TextAlign.Center,
@@ -321,7 +369,7 @@ fun DeleteAccountDialog(onDismiss: () -> Unit, onConfirm: () -> Unit) {
                         onClick = onDismiss,
                         modifier = Modifier.weight(1f)
                     ) {
-                        Text(text = "Cancelar", color = Turquoise, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                        Text(text = stringResource(R.string.profilescreen_cancelar_8), color = Turquoise, fontSize = 16.sp, fontWeight = FontWeight.Bold)
                     }
                     
                     Button(
@@ -330,7 +378,7 @@ fun DeleteAccountDialog(onDismiss: () -> Unit, onConfirm: () -> Unit) {
                         shape = RoundedCornerShape(24.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF5252))
                     ) {
-                        Text(text = "Eliminar", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                        Text(text = stringResource(R.string.profilescreen_eliminar_9), fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.White)
                     }
                 }
             }
@@ -343,7 +391,7 @@ fun StatCard(label: String, value: String, valueColor: Color, modifier: Modifier
     Card(
         modifier = modifier.height(100.dp),
         shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(
@@ -379,7 +427,7 @@ fun DeleteEventDialog(onDismiss: () -> Unit, onConfirm: () -> Unit) {
                 Spacer(modifier = Modifier.height(16.dp))
                 
                 Text(
-                    text = "¿Eliminar evento?",
+                    text = stringResource(R.string.profilescreen_eliminar_evento_10),
                     fontSize = 22.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.Black,
@@ -389,7 +437,7 @@ fun DeleteEventDialog(onDismiss: () -> Unit, onConfirm: () -> Unit) {
                 Spacer(modifier = Modifier.height(16.dp))
                 
                 Text(
-                    text = "Esta acción no se puede deshacer. El evento será eliminado permanentemente.",
+                    text = stringResource(R.string.profilescreen_esta_acci_n_no_se_puede_deshac_11),
                     fontSize = 14.sp,
                     color = GrayText,
                     textAlign = TextAlign.Center,
@@ -407,7 +455,7 @@ fun DeleteEventDialog(onDismiss: () -> Unit, onConfirm: () -> Unit) {
                         onClick = onDismiss,
                         modifier = Modifier.weight(1f)
                     ) {
-                        Text(text = "Cancelar", color = Turquoise, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                        Text(text = stringResource(R.string.profilescreen_cancelar_8), color = Turquoise, fontSize = 16.sp, fontWeight = FontWeight.Bold)
                     }
                     
                     Button(
@@ -416,7 +464,7 @@ fun DeleteEventDialog(onDismiss: () -> Unit, onConfirm: () -> Unit) {
                         shape = RoundedCornerShape(24.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF5252))
                     ) {
-                        Text(text = "Eliminar", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                        Text(text = stringResource(R.string.profilescreen_eliminar_9), fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.White)
                     }
                 }
             }
@@ -429,11 +477,11 @@ fun MyEventCard(event: com.example.movilexplora.domain.model.Event, onEditClick:
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Text(text = event.title, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = DarkBlue)
+            Text(text = event.title, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
             Spacer(modifier = Modifier.height(8.dp))
             Text(text = event.description, fontSize = 14.sp, color = GrayText)
             Spacer(modifier = Modifier.height(8.dp))
@@ -448,10 +496,10 @@ fun MyEventCard(event: com.example.movilexplora.domain.model.Event, onEditClick:
                 horizontalArrangement = Arrangement.End
             ) {
                 IconButton(onClick = onEditClick) {
-                    Icon(imageVector = Icons.Default.Edit, contentDescription = "Edit", tint = Turquoise)
+                    Icon(imageVector = Icons.Default.Edit, contentDescription = stringResource(R.string.profilescreen_edit_15), tint = Turquoise)
                 }
                 IconButton(onClick = onDeleteClick) {
-                    Icon(imageVector = Icons.Default.Delete, contentDescription = "Delete", tint = Color.Red.copy(alpha = 0.7f))
+                    Icon(imageVector = Icons.Default.Delete, contentDescription = stringResource(R.string.profilescreen_delete_18), tint = Color.Red.copy(alpha = 0.7f))
                 }
             }
         }
@@ -463,7 +511,7 @@ fun ParticipationPointsCard(profile: UserProfile) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(modifier = Modifier.padding(20.dp)) {
@@ -473,8 +521,8 @@ fun ParticipationPointsCard(profile: UserProfile) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Column {
-                    Text(text = "PUNTOS POR PARTICIPACIÓN", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = GrayText)
-                    Text(text = profile.role, fontSize = 20.sp, fontWeight = FontWeight.Bold, color = DarkBlue)
+                    Text(text = stringResource(R.string.profilescreen_puntos_por_participaci_n_14), fontSize = 12.sp, fontWeight = FontWeight.Bold, color = GrayText)
+                    Text(text = profile.role, fontSize = 20.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
                 }
                 Box(
                     modifier = Modifier.size(40.dp).background(Turquoise.copy(alpha = 0.1f), CircleShape),
@@ -487,7 +535,7 @@ fun ParticipationPointsCard(profile: UserProfile) {
             Spacer(modifier = Modifier.height(16.dp))
 
             Row(verticalAlignment = Alignment.Bottom) {
-                Text(text = profile.currentXp.toString(), fontSize = 32.sp, fontWeight = FontWeight.ExtraBold, color = DarkBlue)
+                Text(text = profile.currentXp.toString(), fontSize = 32.sp, fontWeight = FontWeight.ExtraBold, color = MaterialTheme.colorScheme.onBackground)
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
                     text = "/ ${profile.maxXp} XP",
@@ -530,13 +578,14 @@ fun ReputationTimeline(currentLevel: ReputationLevel) {
         levels.forEachIndexed { index, level ->
             val isReached = level.ordinal <= currentLevel.ordinal
             val isCurrent = level == currentLevel
+            val levelColor = com.example.movilexplora.ui.theme.getReputationColor(level)
 
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Box(
                     modifier = Modifier
                         .size(if (isCurrent) 48.dp else 36.dp)
-                        .background(if (isReached) Turquoise else Color.LightGray.copy(alpha = 0.3f), CircleShape)
-                        .border(if (isCurrent) 2.dp else 0.dp, Turquoise, CircleShape),
+                        .background(if (isReached) levelColor else Color.LightGray.copy(alpha = 0.3f), CircleShape)
+                        .border(if (isCurrent) 2.dp else 0.dp, levelColor, CircleShape),
                     contentAlignment = Alignment.Center
                 ) {
                     val icon = when (level) {
@@ -557,16 +606,17 @@ fun ReputationTimeline(currentLevel: ReputationLevel) {
                     text = level.displayName,
                     fontSize = 10.sp,
                     fontWeight = if (isCurrent) FontWeight.Bold else FontWeight.Normal,
-                    color = if (isReached) Turquoise else GrayText
+                    color = if (isReached) levelColor else GrayText
                 )
             }
 
             if (index < levels.size - 1) {
+                val nextLevelColor = com.example.movilexplora.ui.theme.getReputationColor(levels[index + 1])
                 Box(
                     modifier = Modifier
                         .weight(1f)
                         .height(2.dp)
-                        .background(if (levels[index + 1].ordinal <= currentLevel.ordinal) Turquoise else Color.LightGray.copy(alpha = 0.3f))
+                        .background(if (levels[index + 1].ordinal <= currentLevel.ordinal) nextLevelColor else Color.LightGray.copy(alpha = 0.3f))
                         .padding(bottom = 12.dp) // Offset to align with icons
                 )
             }
@@ -593,14 +643,14 @@ fun AchievementItem(achievement: Achievement, modifier: Modifier = Modifier) {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         val gradient = if (achievement.isUnlocked) {
-            when (achievement.name) {
-                "Caminante" -> Brush.verticalGradient(listOf(Color(0xFFFFD54F), Color(0xFFF57C00)))
-                "Fotógrafo" -> Brush.verticalGradient(listOf(Color(0xFF64B5F6), Color(0xFF1976D2)))
-                "Foodie" -> Brush.verticalGradient(listOf(Color(0xFF81C784), Color(0xFF388E3C)))
-                else -> Brush.verticalGradient(listOf(Turquoise, Turquoise))
+            when (achievement.iconName) {
+                "celebration" -> Brush.linearGradient(listOf(Color(0xFF00E5FF), Color(0xFF1DE9B6)))
+                "verified" -> Brush.linearGradient(listOf(Color(0xFF00B8D4), Color(0xFF00E5FF)))
+                "map" -> Brush.linearGradient(listOf(Color(0xFF40C4FF), Color(0xFF00B0FF)))
+                else -> Brush.linearGradient(listOf(Turquoise, Turquoise))
             }
         } else {
-            Brush.verticalGradient(listOf(Color.LightGray.copy(alpha = 0.3f), Color.LightGray.copy(alpha = 0.3f)))
+            Brush.linearGradient(listOf(Color(0xFFE0E0E0), Color(0xFFE0E0E0)))
         }
 
         Box(
@@ -610,20 +660,47 @@ fun AchievementItem(achievement: Achievement, modifier: Modifier = Modifier) {
             contentAlignment = Alignment.Center
         ) {
             val icon = when (achievement.iconName) {
-                "hiking" -> Icons.Default.Hiking
-                "camera" -> Icons.Default.PhotoCamera
-                "restaurant" -> Icons.Default.Restaurant
-                "flight" -> Icons.Default.Flight
-                else -> Icons.Default.Star
+                "celebration" -> Icons.Default.Celebration
+                "verified" -> Icons.Default.Verified
+                "map" -> Icons.Default.Map
+                "stars" -> Icons.Default.Stars
+                "contact_page" -> Icons.Default.ContactPage
+                else -> Icons.Default.EmojiEvents
             }
-            Icon(imageVector = icon, contentDescription = null, tint = Color.White, modifier = Modifier.size(32.dp))
+            Icon(
+                imageVector = icon, 
+                contentDescription = null, 
+                tint = if (achievement.isUnlocked) Color.White else Color.Gray.copy(alpha = 0.5f), 
+                modifier = Modifier.size(32.dp)
+            )
         }
+        
+        if (!achievement.isUnlocked) {
+            Box(
+                modifier = Modifier
+                    .offset(x = 24.dp, y = (-20).dp)
+                    .size(20.dp)
+                    .background(Color.Gray, CircleShape)
+                    .border(2.dp, Color.White, CircleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Lock,
+                    contentDescription = null,
+                    tint = Color.White,
+                    modifier = Modifier.size(10.dp)
+                )
+            }
+        } else {
+            Spacer(modifier = Modifier.height(0.dp)) // Maintain alignment if offset wasn't overlaid
+        }
+
         Spacer(modifier = Modifier.height(8.dp))
         Text(
             text = achievement.name,
             fontSize = 12.sp,
             fontWeight = FontWeight.Bold,
-            color = if (achievement.isUnlocked) DarkBlue else GrayText,
+            color = if (achievement.isUnlocked) MaterialTheme.colorScheme.primary else GrayText,
             textAlign = TextAlign.Center
         )
     }

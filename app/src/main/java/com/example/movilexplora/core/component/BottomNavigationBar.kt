@@ -46,7 +46,7 @@ fun BottomNavigationBar(
             label = { Text("Alertas") },
             selected = selectedItem == "Alertas",
             onClick = onAlertsClick,
-            colors = NavigationBarItemDefaults.colors(unselectedIconColor = Turquoise.copy(alpha = 0.5f), selectedIconColor = Turquoise, selectedTextColor = Turquoise, indicatorColor = Color.Transparent)
+            colors = NavigationBarItemDefaults.colors(selectedIconColor = Turquoise, selectedTextColor = Turquoise, indicatorColor = Color.Transparent)
         )
         NavigationBarItem(
             icon = { Icon(Icons.Default.Person, contentDescription = "Perfil") },
@@ -57,4 +57,3 @@ fun BottomNavigationBar(
         )
     }
 }
-

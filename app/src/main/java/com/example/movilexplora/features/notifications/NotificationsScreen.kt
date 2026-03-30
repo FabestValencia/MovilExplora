@@ -1,5 +1,7 @@
 package com.example.movilexplora.features.notifications
 
+import androidx.compose.ui.res.stringResource
+import com.example.movilexplora.R
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -12,6 +14,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Chat
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -23,14 +26,19 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.movilexplora.domain.model.Notification
 import com.example.movilexplora.domain.model.NotificationType
-import com.example.movilexplora.ui.theme.DarkBlue
 import com.example.movilexplora.ui.theme.GrayText
 import com.example.movilexplora.ui.theme.Turquoise
+
+import com.example.movilexplora.core.component.BottomNavigationBar
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NotificationsScreen(
     onNavigateBack: () -> Unit,
+    onNavigateToCreatePost: () -> Unit = {},
+    onNavigateToHome: () -> Unit = {},
+    onNavigateToEvents: () -> Unit = {},
+    onNavigateToProfile: () -> Unit = {},
     viewModel: NotificationsViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
@@ -38,18 +46,28 @@ fun NotificationsScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Notificaciones", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = DarkBlue) },
+                title = { Text("Notificaciones", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = DarkBlue)
+                        Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.notificationsscreen_back_1), tint = MaterialTheme.colorScheme.onBackground)
                     }
                 },
                 actions = {
                     IconButton(onClick = { /* Menu */ }) {
-                        Icon(imageVector = Icons.Default.MoreVert, contentDescription = "More", tint = DarkBlue)
+                        Icon(imageVector = Icons.Default.MoreVert, contentDescription = stringResource(R.string.notificationsscreen_more_2), tint = MaterialTheme.colorScheme.onBackground)
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface)
+            )
+        },
+        bottomBar = {
+            BottomNavigationBar(
+                onCreateClick = onNavigateToCreatePost,
+                onHomeClick = onNavigateToHome,
+                onEventsClick = onNavigateToEvents,
+                onAlertsClick = { /* Ya estamos aquí */ },
+                onProfileClick = onNavigateToProfile,
+                selectedItem = "Alertas"
             )
         }
     ) { paddingValues ->
@@ -173,11 +191,11 @@ fun NotificationItem(notification: Notification) {
                     text = notification.title,
                     fontSize = 15.sp,
                     fontWeight = FontWeight.Bold,
-                    color = DarkBlue
+                    color = MaterialTheme.colorScheme.onBackground
                 )
                 if (notification.isNew) {
                     Text(
-                        text = "NUEVO",
+                        text = stringResource(R.string.notificationsscreen_nuevo_0),
                         fontSize = 10.sp,
                         fontWeight = FontWeight.ExtraBold,
                         color = Turquoise

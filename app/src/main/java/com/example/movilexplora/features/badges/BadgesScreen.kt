@@ -1,10 +1,13 @@
 package com.example.movilexplora.features.badges
 
+import androidx.compose.ui.res.stringResource
+import com.example.movilexplora.R
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.CircleShape
@@ -13,23 +16,21 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.movilexplora.domain.model.Achievement
-import com.example.movilexplora.ui.theme.DarkBlue
 import com.example.movilexplora.ui.theme.GrayText
 import com.example.movilexplora.ui.theme.Turquoise
 
@@ -44,75 +45,74 @@ fun BadgesScreen(
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text("Mis Insignias", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = DarkBlue) },
+                title = { Text("Mis Insignias", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = DarkBlue)
+                        Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.badgesscreen_back_3), tint = MaterialTheme.colorScheme.onBackground)
                     }
                 },
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = Color.White)
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = MaterialTheme.colorScheme.surface)
             )
         }
     ) { paddingValues ->
-        Column(
+        LazyVerticalGrid(
+            columns = GridCells.Fixed(2),
+            contentPadding = PaddingValues(16.dp),
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
                 .background(Color.White),
-            horizontalAlignment = Alignment.CenterHorizontally
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Spacer(modifier = Modifier.height(24.dp))
+            item(span = { GridItemSpan(maxCurrentLineSpan) }) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Spacer(modifier = Modifier.height(8.dp))
 
-            // Unlocked count badge
-            Surface(
-                shape = RoundedCornerShape(24.dp),
-                color = Turquoise,
-                modifier = Modifier.padding(horizontal = 16.dp)
-            ) {
-                Text(
-                    text = "${state.unlockedCount} Desbloqueadas",
-                    color = Color.White,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(horizontal = 32.dp, vertical = 8.dp)
-                )
+                    // Unlocked count badge
+                    Surface(
+                        shape = RoundedCornerShape(24.dp),
+                        color = Turquoise,
+                        modifier = Modifier.padding(horizontal = 16.dp)
+                    ) {
+                        Text(
+                            text = "${state.unlockedCount} Desbloqueadas",
+                            color = Color.White,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(horizontal = 32.dp, vertical = 8.dp)
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    Text(
+                        text = stringResource(R.string.badgesscreen_sigue_explorando_para_complet_0),
+                        fontSize = 14.sp,
+                        color = GrayText,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(horizontal = 32.dp)
+                    )
+
+                    Spacer(modifier = Modifier.height(32.dp))
+
+                    Text(
+                        text = stringResource(R.string.badgesscreen_logros_recientes_1),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 8.dp),
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Text(
-                text = "¡Sigue explorando para completar tu colección!",
-                fontSize = 14.sp,
-                color = GrayText,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.padding(horizontal = 32.dp)
-            )
-
-            Spacer(modifier = Modifier.height(32.dp))
-
-            Text(
-                text = "Logros Recientes",
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 24.dp),
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold,
-                color = DarkBlue
-            )
-
-            LazyVerticalGrid(
-                columns = GridCells.Fixed(2),
-                contentPadding = PaddingValues(16.dp),
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-                modifier = Modifier.fillMaxSize()
-            ) {
-                items(state.achievements) { achievement ->
-                    BadgeCard(achievement)
-                }
-                item {
-                    NextChallengeCard()
-                }
+            items(state.achievements) { achievement ->
+                BadgeCard(achievement)
+            }
+            item {
+                NextChallengeCard()
             }
         }
     }
@@ -143,7 +143,7 @@ fun BadgeCard(achievement: Achievement) {
                 text = achievement.name,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Bold,
-                color = if (achievement.isUnlocked) DarkBlue else GrayText,
+                color = if (achievement.isUnlocked) MaterialTheme.colorScheme.primary else GrayText,
                 textAlign = TextAlign.Center
             )
             
@@ -240,7 +240,7 @@ fun NextChallengeCard() {
                 modifier = Modifier.size(32.dp)
             )
             Spacer(modifier = Modifier.height(8.dp))
-            Text(text = "Próximo Reto", color = GrayText.copy(alpha = 0.5f), fontSize = 14.sp)
+            Text(text = stringResource(R.string.badgesscreen_pr_ximo_reto_2), color = GrayText.copy(alpha = 0.5f), fontSize = 14.sp)
         }
     }
 }

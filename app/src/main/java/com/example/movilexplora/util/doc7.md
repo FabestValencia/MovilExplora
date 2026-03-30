@@ -1,11 +1,6 @@
 # Data Store en Jetpack Compose
 
-> **Universidad del Quindío**  
-> **Programa de Ingeniería de Sistemas y Computación**  
-> **Título:** Data Store en Jetpack Compose  
-> **Docente:** Carlos Andrés Florez V.
 
----
 
 ## Introducción
 

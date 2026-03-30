@@ -1,5 +1,7 @@
 package com.example.movilexplora.features.feed
 
+import androidx.compose.ui.res.stringResource
+import com.example.movilexplora.R
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -13,6 +15,7 @@ import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material3.*
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -25,26 +28,30 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.movilexplora.core.component.BottomNavigationBar
 import com.example.movilexplora.domain.model.Post
 import com.example.movilexplora.features.filters.FilterBottomSheet
-import com.example.movilexplora.ui.theme.DarkBlue
 import com.example.movilexplora.ui.theme.GrayText
 import com.example.movilexplora.ui.theme.Turquoise
+import com.example.movilexplora.ui.theme.VerifiedBlue
+import com.example.movilexplora.ui.theme.getCategoryColor
+import com.example.movilexplora.ui.theme.getCategoryIcon
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FeedScreen(
     onNavigateToDetail: (String) -> Unit,
-    onNavigateToCreatePost: () -> Unit,
+    onNavigateToCreatePost: () -> Unit = {},
     onNavigateToMap: () -> Unit,
-    onNavigateToEvents: () -> Unit,
-    onNavigateToNotifications: () -> Unit,
-    onNavigateToProfile: () -> Unit,
+    onNavigateToEvents: () -> Unit = {},
+    onNavigateToNotifications: () -> Unit = {},
+    onNavigateToProfile: () -> Unit = {},
     viewModel: FeedViewModel = hiltViewModel()
 ) {
+    val state by viewModel.state.collectAsState()
     val posts by viewModel.posts.collectAsState()
     var showFilterSheet by remember { mutableStateOf(false) }
 
     if (showFilterSheet) {
         FilterBottomSheet(
-            onDismissRequest = { showFilterSheet = false },
+            onDismiss = { showFilterSheet = false },
             onApplyFilters = {
                 // Aquí se aplicarían los filtros en el ViewModel del Feed
                 showFilterSheet = false
@@ -64,21 +71,14 @@ fun FeedScreen(
             ) 
         }
     ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .background(Color.White)
-        ) {
-            HeaderSection(onMapClick = onNavigateToMap)
-            
-            Spacer(modifier = Modifier.height(16.dp))
+        Column(modifier = Modifier.padding(paddingValues).fillMaxSize()) {
+            HeaderSection(userName = state.userName, onMapClick = onNavigateToMap)
             
             FilterToggleSection(onFilterClick = { showFilterSheet = true })
             
             Spacer(modifier = Modifier.height(16.dp))
             
-            CategoriesSection()
+            CategoriesSection(categories = state.categories.map { it.name })
             
             Spacer(modifier = Modifier.height(16.dp))
             
@@ -100,7 +100,7 @@ fun FeedScreen(
 }
 
 @Composable
-fun HeaderSection(onMapClick: () -> Unit) {
+fun HeaderSection(userName: String, onMapClick: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -113,22 +113,22 @@ fun HeaderSection(onMapClick: () -> Unit) {
                 modifier = Modifier
                     .size(48.dp)
                     .clip(CircleShape)
-                    .background(DarkBlue)
+                    .background(MaterialTheme.colorScheme.primary)
             ) {
                 // Profile image placeholder
             }
             Spacer(modifier = Modifier.width(12.dp))
             Column {
-                Text(text = "Hola,", fontSize = 14.sp, color = GrayText)
-                Text(text = "Jean Botsito", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = DarkBlue)
+                Text(text = stringResource(R.string.feedscreen_hola_0), fontSize = 14.sp, color = GrayText)
+                Text(text = userName, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
             }
         }
         Row {
             IconButton(onClick = onMapClick) {
-                Icon(imageVector = Icons.Default.Map, contentDescription = "Map", tint = DarkBlue)
+                Icon(imageVector = Icons.Default.Map, contentDescription = stringResource(R.string.feedscreen_map_5), tint = MaterialTheme.colorScheme.onBackground)
             }
             IconButton(onClick = { /* Search */ }) {
-                Icon(imageVector = Icons.Default.Search, contentDescription = "Search", tint = DarkBlue)
+                Icon(imageVector = Icons.Default.Search, contentDescription = stringResource(R.string.feedscreen_search_6), tint = MaterialTheme.colorScheme.onBackground)
             }
         }
     }
@@ -155,9 +155,9 @@ fun FilterToggleSection(onFilterClick: () -> Unit) {
                 shape = RoundedCornerShape(20.dp),
                 modifier = Modifier.height(36.dp)
             ) {
-                Icon(imageVector = Icons.AutoMirrored.Filled.List, contentDescription = null, modifier = Modifier.size(16.dp), tint = DarkBlue)
+                Icon(imageVector = Icons.AutoMirrored.Filled.List, contentDescription = null, modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.onBackground)
                 Spacer(modifier = Modifier.width(4.dp))
-                Text(text = "Feed", color = DarkBlue, fontSize = 14.sp)
+                Text(text = stringResource(R.string.feedscreen_feed_1), color = MaterialTheme.colorScheme.onBackground, fontSize = 14.sp)
             }
         }
         
@@ -165,37 +165,34 @@ fun FilterToggleSection(onFilterClick: () -> Unit) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(imageVector = Icons.Default.FilterList, contentDescription = null, tint = Turquoise, modifier = Modifier.size(18.dp))
                 Spacer(modifier = Modifier.width(4.dp))
-                Text(text = "Filtrar", color = Turquoise, fontWeight = FontWeight.Bold)
+                Text(text = stringResource(R.string.feedscreen_filtrar_2), color = Turquoise, fontWeight = FontWeight.Bold)
             }
         }
     }
 }
 
 @Composable
-fun CategoriesSection() {
-    val categories = listOf(
-        Pair("Gastronomía", Icons.Default.Restaurant),
-        Pair("Cultura", Icons.Default.TheaterComedy),
-        Pair("Naturaleza", Icons.Default.Landscape)
-    )
-    
+fun CategoriesSection(categories: List<String>) {
     LazyRow(
         contentPadding = PaddingValues(horizontal = 16.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        items(categories) { category ->
+        items(categories) { categoryName ->
+            val icon = getCategoryIcon(categoryName)
+            val color = getCategoryColor(categoryName)
+            
             Surface(
                 shape = RoundedCornerShape(24.dp),
-                border = BorderStroke(1.dp, Color.LightGray),
-                color = Color.Transparent
+                border = BorderStroke(1.dp, color.copy(alpha = 0.5f)),
+                color = color.copy(alpha = 0.1f)
             ) {
                 Row(
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Icon(imageVector = category.second, contentDescription = null, modifier = Modifier.size(18.dp), tint = GrayText)
+                    Icon(imageVector = icon, contentDescription = null, modifier = Modifier.size(18.dp), tint = color)
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text(text = category.first, color = GrayText, fontSize = 14.sp)
+                    Text(text = categoryName, color = color, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
                 }
             }
         }
@@ -210,7 +207,7 @@ fun PostCard(
 ) {
     Card(
         shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         modifier = Modifier.fillMaxWidth()
     ) {
@@ -225,13 +222,13 @@ fun PostCard(
                 Row(
                     modifier = Modifier
                         .padding(12.dp)
-                        .background(Turquoise, RoundedCornerShape(12.dp))
+                        .background(VerifiedBlue, RoundedCornerShape(12.dp))
                         .padding(horizontal = 8.dp, vertical = 4.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(imageVector = Icons.Default.CheckCircle, contentDescription = null, tint = Color.White, modifier = Modifier.size(14.dp))
                     Spacer(modifier = Modifier.width(4.dp))
-                    Text(text = "Verificado", color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                    Text(text = stringResource(R.string.feedscreen_verificado_3), color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Bold)
                 }
                 
                 // Rating Badge
@@ -256,7 +253,7 @@ fun PostCard(
                     verticalAlignment = Alignment.Top
                 ) {
                     Column {
-                        Text(text = post.title, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = DarkBlue)
+                        Text(text = post.title, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(imageVector = Icons.Default.LocationOn, contentDescription = null, tint = Color.LightGray, modifier = Modifier.size(14.dp))
                             Text(text = post.location, fontSize = 12.sp, color = Color.LightGray)
@@ -265,7 +262,7 @@ fun PostCard(
                     IconButton(onClick = onFavoriteClick) {
                         Icon(
                             imageVector = if (post.isFavorite) Icons.Default.Favorite else Icons.Outlined.FavoriteBorder,
-                            contentDescription = "Favorite",
+                            contentDescription = stringResource(R.string.feedscreen_favorite_7),
                             tint = if (post.isFavorite) Color.Red else Color.LightGray
                         )
                     }
@@ -281,18 +278,19 @@ fun PostCard(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
+                        val categoryColor = getCategoryColor(post.category)
                         Box(
                             modifier = Modifier
-                                .background(Turquoise.copy(alpha = 0.2f), RoundedCornerShape(8.dp))
+                                .background(categoryColor.copy(alpha = 0.2f), RoundedCornerShape(8.dp))
                                 .padding(horizontal = 12.dp, vertical = 4.dp)
                         ) {
-                            Text(text = post.category, color = Turquoise, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                            Text(text = post.category, color = categoryColor, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                         }
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(text = post.price, color = GrayText, fontSize = 12.sp)
                     }
                     TextButton(onClick = onDetailClick) {
-                        Text(text = "Details", color = Turquoise, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                        Text(text = stringResource(R.string.feedscreen_detalle_4), color = Turquoise, fontSize = 14.sp, fontWeight = FontWeight.Bold)
                     }
                 }
             }
@@ -301,4 +299,3 @@ fun PostCard(
 }
 
 // End of FeedScreen
-

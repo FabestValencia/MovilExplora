@@ -12,10 +12,12 @@ import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -23,17 +25,14 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.movilexplora.R
 import com.example.movilexplora.core.utils.RequestResult
-import com.example.movilexplora.ui.theme.DarkBlue
-import com.example.movilexplora.ui.theme.GrayText
 import com.example.movilexplora.ui.theme.Turquoise
-import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginScreen(
     onNavigateBack: () -> Unit,
-    onNavigateToUsers: () -> Unit,
     onNavigateToForgotPassword: () -> Unit,
     onNavigateToModerator: () -> Unit = {},
     viewModel: LoginViewModel = hiltViewModel()
@@ -50,10 +49,6 @@ fun LoginScreen(
             }
             snackbarHostState.showSnackbar(message)
 
-            if (result is RequestResult.Success) {
-                delay(1000)
-                onNavigateToUsers()
-            }
             viewModel.resetLoginResult()
         }
     }
@@ -75,8 +70,8 @@ fun LoginScreen(
                     IconButton(onClick = onNavigateBack) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back",
-                            tint = Color.Black
+                            contentDescription = stringResource(R.string.loginscreen_back_0),
+                            tint = MaterialTheme.colorScheme.onBackground
                         )
                     }
                 },
@@ -95,19 +90,19 @@ fun LoginScreen(
             Spacer(modifier = Modifier.height(20.dp))
 
             Text(
-                text = "¡Bienvenido de nuevo!",
+                text = stringResource(R.string.login_welcome_title),
                 fontSize = 32.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color.Black,
+                color = MaterialTheme.colorScheme.onBackground,
                 lineHeight = 38.sp
             )
 
             Spacer(modifier = Modifier.height(12.dp))
 
             Text(
-                text = "Inicia sesión para continuar explorando joyas ocultas para descubrir tu próxima aventura.",
+                text = stringResource(R.string.login_welcome_desc),
                 fontSize = 16.sp,
-                color = GrayText.copy(alpha = 0.7f),
+                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
                 lineHeight = 22.sp
             )
 
@@ -118,15 +113,15 @@ fun LoginScreen(
                 value = viewModel.email.value,
                 onValueChange = { viewModel.email.onChange(it) },
                 modifier = Modifier.fillMaxWidth(),
-                label = { Text("Email", color = Turquoise) },
-                placeholder = { Text("example@mail.com") },
+                label = { Text(stringResource(R.string.login_email_label), color = Turquoise) },
+                placeholder = { Text(stringResource(R.string.login_email_placeholder)) },
                 trailingIcon = {
-                    Icon(imageVector = Icons.Default.Mail, contentDescription = null, tint = DarkBlue.copy(alpha = 0.6f))
+                    Icon(imageVector = Icons.Default.Mail, contentDescription = null, tint = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f))
                 },
                 shape = RoundedCornerShape(12.dp),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = DarkBlue,
-                    unfocusedBorderColor = DarkBlue.copy(alpha = 0.5f),
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
                     focusedLabelColor = Turquoise,
                     cursorColor = Turquoise
                 ),
@@ -135,9 +130,9 @@ fun LoginScreen(
                 isError = viewModel.email.error != null
             )
             Text(
-                text = "Use el email registrado a tu cuenta.",
+                text = stringResource(R.string.login_email_helper),
                 fontSize = 12.sp,
-                color = GrayText.copy(alpha = 0.6f),
+                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f),
                 modifier = Modifier.padding(start = 12.dp, top = 4.dp)
             )
 
@@ -148,18 +143,18 @@ fun LoginScreen(
                 value = viewModel.password.value,
                 onValueChange = { viewModel.password.onChange(it) },
                 modifier = Modifier.fillMaxWidth(),
-                label = { Text("Password", color = Turquoise) },
+                label = { Text(stringResource(R.string.login_password_label), color = Turquoise) },
                 visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                 trailingIcon = {
                     val image = if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff
                     IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                        Icon(imageVector = image, contentDescription = null, tint = DarkBlue.copy(alpha = 0.6f))
+                        Icon(imageVector = image, contentDescription = null, tint = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f))
                     }
                 },
                 shape = RoundedCornerShape(12.dp),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = DarkBlue,
-                    unfocusedBorderColor = DarkBlue.copy(alpha = 0.5f),
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
                     focusedLabelColor = Turquoise,
                     cursorColor = Turquoise
                 ),
@@ -175,7 +170,7 @@ fun LoginScreen(
                 modifier = Modifier.align(Alignment.End)
             ) {
                 Text(
-                    text = "¿Olvidaste la contraseña?",
+                    text = stringResource(R.string.login_forgot_password),
                     color = Turquoise,
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Medium
@@ -194,7 +189,7 @@ fun LoginScreen(
                 enabled = viewModel.isFormValid
             ) {
                 Text(
-                    text = "Iniciar sesión",
+                    text = stringResource(R.string.login_button),
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.White
@@ -226,7 +221,7 @@ fun LoginScreen(
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "Moderador",
+                        text = stringResource(R.string.login_moderator),
                         color = Turquoise,
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Medium

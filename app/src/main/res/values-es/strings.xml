@@ -1,71 +1,71 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">MovilExplora</string>
 
     <!-- Login Screen -->
-    <string name="login_welcome_title">Welcome back!</string>
-    <string name="login_welcome_desc">Log in to continue exploring hidden gems to discover your next adventure.</string>
+    <string name="login_welcome_title">¡Bienvenido de nuevo!</string>
+    <string name="login_welcome_desc">Inicia sesión para continuar explorando joyas ocultas para descubrir tu próxima aventura.</string>
     <string name="login_email_label">Email</string>
-    <string name="login_email_placeholder">example@mail.com</string>
-    <string name="login_email_helper">Use the email registered to your account.</string>
-    <string name="login_password_label">Password</string>
-    <string name="login_forgot_password">Forgot password?</string>
-    <string name="login_button">Log In</string>
-    <string name="login_moderator">Moderator</string>
+    <string name="login_email_placeholder">ejemplo@mail.com</string>
+    <string name="login_email_helper">Use el email registrado a su cuenta.</string>
+    <string name="login_password_label">Contraseña</string>
+    <string name="login_forgot_password">¿Olvidaste la contraseña?</string>
+    <string name="login_button">Iniciar sesión</string>
+    <string name="login_moderator">Moderador</string>
 
     <!-- Login ViewModel -->
-    <string name="error_email_empty">Email is required</string>
-    <string name="error_email_invalid">Enter a valid email</string>
-    <string name="error_password_empty">Password is required</string>
-    <string name="error_password_short">Password must be at least 6 characters</string>
-    <string name="login_success">Login successful</string>
-    <string name="login_failure">Invalid credentials</string>
+    <string name="error_email_empty">El email es obligatorio</string>
+    <string name="error_email_invalid">Ingresa un email válido</string>
+    <string name="error_password_empty">La contraseña es obligatoria</string>
+    <string name="error_password_short">La contraseña debe tener al menos 6 caracteres</string>
+    <string name="login_success">Inicio de sesión exitoso</string>
+    <string name="login_failure">Credenciales inválidas</string>
 
     <!-- Moderator Screen -->
-    <string name="moderator_title">Moderator</string>
-    <string name="logout_desc">Logout</string>
-    <string name="pending_verification_title">Pending verification</string>
-    <string name="filter_button">Filter</string>
-    <string name="filter_all">All</string>
-    <string name="filter_locations">Locations</string>
-    <string name="filter_reviews">Reviews</string>
-    <string name="filter_events">Events</string>
-    <string name="verify_action">Verify</string>
-    <string name="approve_action">Approve</string>
-    <string name="reject_action">Reject</string>
-    <string name="submitted_by">Submitted by %1$s</string>
-    <string name="image_placeholder">Image</string>
-    <string name="moderator_access_title">Moderator access</string>
-    <string name="moderator_access_desc">Enter your staff credentials to access the moderation panel.</string>
+    <string name="moderator_title">Moderador</string>
+    <string name="logout_desc">Salir</string>
+    <string name="pending_verification_title">Por verificar</string>
+    <string name="filter_button">Filtrar</string>
+    <string name="filter_all">Todo</string>
+    <string name="filter_locations">Lugares</string>
+    <string name="filter_reviews">Reseñas</string>
+    <string name="filter_events">Eventos</string>
+    <string name="verify_action">Verificar</string>
+    <string name="approve_action">Aprobar</string>
+    <string name="reject_action">Rechazar</string>
+    <string name="submitted_by">Enviado por %1$s</string>
+    <string name="image_placeholder">Imagen</string>
+    <string name="moderator_access_title">Acceso moderador</string>
+    <string name="moderator_access_desc">Ingrese sus credenciales de personal para acceder al panel de moderación.</string>
     <string name="email_placeholder">Email</string>
-    <string name="password_placeholder">Password</string>
-    <string name="admin_login_button">Login Admin</string>
-    <string name="moderator_footer">Authorized personnel only. Access is monitored and logged for security reasons.</string>
-    <string name="back_desc">Back</string>
+    <string name="password_placeholder">Contraseña</string>
+    <string name="admin_login_button">Iniciar sesión Admin</string>
+    <string name="moderator_footer">Solo personal autorizado. El acceso se supervisa y registra por motivos de seguridad.</string>
+    <string name="back_desc">Atrás</string>
     <!-- Home Screen -->
-    <string name="home_title">Discover the world</string>
-    <string name="home_desc">Join our travel community and find nature\'s most spectacular corners.</string>
-    <string name="home_create_account">Create account</string>
-    <string name="home_login">Log In</string>
-    <!-- Register Screen -->
-    <string name="register_title">Create account</string>
-    <string name="register_desc">Connect with travelers and locals and discover their favorite places.</string>
-    <string name="register_name_label">Full name</string>
-    <string name="register_name_placeholder">Enter full name</string>
-    <string name="register_email_label">Email</string>
-    <string name="register_email_placeholder">Enter your email</string>
-    <string name="register_password_label">Password</string>
-    <string name="register_password_placeholder">Min. 8 characters</string>
-    <string name="register_confirm_password_label">Confirm password</string>
-    <string name="register_confirm_password_placeholder">Confirm your password</string>
-    <string name="register_button">Create account</string>
-    <string name="register_login_button">Log In</string>
-    <string name="error_name_empty">Name is required</string>
-    <string name="error_location_empty">Location is required</string>
-    <string name="register_success">Registration successful</string>
-    <string name="register_failure">Registration error</string>
+    <string name="home_title">Descubre el mundo</string>
+    <string name="home_desc">Únete a nuestra comunidad de viajeros y encuentra los rincones más espectaculares de la naturaleza.</string>
+    <string name="home_create_account">Crear cuenta</string>
+    <string name="home_login">Iniciar sesión</string>
 
-    <string name="badgesscreen_sigue_explorando_para_complet_0">¡Sigue explorando para completar tu colección!</string>
+    <!-- Register Screen -->
+    <string name="register_title">Crear cuenta</string>
+    <string name="register_desc">Conecta con viajeros y locales y descubre sus lugares favoritos.</string>
+    <string name="register_name_label">Nombre completo</string>
+    <string name="register_name_placeholder">Ingrese nombre completo</string>
+    <string name="register_email_label">Email</string>
+    <string name="register_email_placeholder">Ingrese su correo electrónico</string>
+    <string name="register_password_label">Contraseña</string>
+    <string name="register_password_placeholder">Min. 8 caracteres</string>
+    <string name="register_confirm_password_label">Confirmar contraseña</string>
+    <string name="register_confirm_password_placeholder">Confirme la contraseña</string>
+    <string name="register_button">Crear cuenta</string>
+    <string name="register_login_button">Iniciar sesin</string>
+    <string name="error_name_empty">El nombre es obligatorio</string>
+    <string name="error_location_empty">La ubicación es obligatoria</string>
+    <string name="register_success">Registro exitoso</string>
+    <string name="register_failure">Error de registro</string>
+    <string name="badgesscreen_sigue_explorando_para_complet_0">Sigue explorando para completar tu coleccin!</string>
     <string name="badgesscreen_logros_recientes_1">Logros Recientes</string>
     <string name="badgesscreen_pr_ximo_reto_2">Próximo Reto</string>
     <string name="badgesscreen_back_3">Back</string>
@@ -207,34 +207,34 @@
     <string name="verificationcodescreen_back_6">Back</string>
 
     <!-- Edit Profile Screen -->
-    <string name="edit_profile_title">Edit profile</string>
-    <string name="edit_profile_save">Save</string>
-    <string name="edit_profile_change_photo">Change profile photo</string>
+    <string name="edit_profile_title">Editar perfil</string>
+    <string name="edit_profile_save">Guardar</string>
+    <string name="edit_profile_change_photo">Cambia foto de perfil</string>
 
     <!-- Create Post Screen Additional Strings -->
-    <string name="create_post_placeholder_title">E.g. Hidden Gem</string>
-    <string name="create_post_cat_gastronomy">Gastronomy</string>
-    <string name="create_post_cat_gastronomy_desc">Restaurants, cafes, street food…</string>
-    <string name="create_post_cat_culture">Culture</string>
-    <string name="create_post_cat_culture_desc">Museums, galleries, monuments…</string>
-    <string name="create_post_cat_nature">Nature</string>
-    <string name="create_post_cat_nature_desc">Parks, viewpoints, trails…</string>
-    <string name="create_post_cat_entertainment">Entertainment</string>
-    <string name="create_post_cat_entertainment_desc">Bars, nightclubs, theaters…</string>
-    <string name="create_post_cat_history">History</string>
-    <string name="create_post_cat_history_desc">Historical sites, ruins…</string>
-    <string name="create_post_placeholder_desc">Share what makes this place special…</string>
-    <string name="create_post_map_placeholder">Map of Mexico City</string>
-    <string name="create_post_time_morning">Morning</string>
-    <string name="create_post_time_afternoon">Afternoon</string>
-    <string name="create_post_time_night">Night</string>
-    <string name="create_post_time_allday">All day</string>
+    <string name="create_post_placeholder_title">Ej. Joyita por descubrir</string>
+    <string name="create_post_cat_gastronomy">Gastronomía</string>
+    <string name="create_post_cat_gastronomy_desc">Restaurantes, cafés, comida callejera…</string>
+    <string name="create_post_cat_culture">Cultura</string>
+    <string name="create_post_cat_culture_desc">Museos, galerías, monumentos…</string>
+    <string name="create_post_cat_nature">Naturaleza</string>
+    <string name="create_post_cat_nature_desc">Parques, miradores, senderos…</string>
+    <string name="create_post_cat_entertainment">Entretenimiento</string>
+    <string name="create_post_cat_entertainment_desc">Bares, discotecas, teatros…</string>
+    <string name="create_post_cat_history">Historia</string>
+    <string name="create_post_cat_history_desc">Sitios históricos, ruinas…</string>
+    <string name="create_post_placeholder_desc">Comparte lo que hace que este lugar sea especial…</string>
+    <string name="create_post_map_placeholder">Mapa de Mexico City</string>
+    <string name="create_post_time_morning">Mañana</string>
+    <string name="create_post_time_afternoon">Tarde</string>
+    <string name="create_post_time_night">Noche</string>
+    <string name="create_post_time_allday">Todo el día</string>
 
     <!-- Additional Detail/Map/Feed Strings -->
-    <string name="common_event_image">Event Image</string>
-    <string name="common_map_view">Map View</string>
-    <string name="common_location_image">Location Image</string>
-    <string name="post_detail_add_comment">Add comment</string>
-    <string name="map_search_placeholder">Search places, restaurants…</string>
-    <string name="common_image_placeholder">Image</string>
+    <string name="common_event_image">Imagen del Evento</string>
+    <string name="common_map_view">Vista del Mapa</string>
+    <string name="common_location_image">Imagen del lugar</string>
+    <string name="post_detail_add_comment">Añadir comentario</string>
+    <string name="map_search_placeholder">Buscar lugares, restaurantes…</string>
+    <string name="common_image_placeholder">Imagen</string>
 </resources>

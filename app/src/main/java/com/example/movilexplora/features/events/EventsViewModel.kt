@@ -5,6 +5,7 @@ import javax.inject.Inject
 
 import androidx.lifecycle.ViewModel
 import com.example.movilexplora.domain.model.Event
+import com.example.movilexplora.domain.model.PostStatus
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -31,10 +32,13 @@ class EventsViewModel @Inject constructor() : ViewModel() {
                         description = "Ven a disfrutar de los mejores platos locales.",
                         date = "15 de Diciembre",
                         time = "10:00 AM",
+                        endDate = "15 de Diciembre",
+                        endTime = "06:00 PM",
                         location = "Plaza Central",
                         imageUrl = "",
                         attendeesCount = 120,
-                        category = "Gastronomía"
+                        category = "Gastronomía",
+                        status = PostStatus.VERIFICADO
                     ),
                     Event(
                         id = "2",
@@ -42,10 +46,13 @@ class EventsViewModel @Inject constructor() : ViewModel() {
                         description = "Una ruta guiada para ver el atardecer.",
                         date = "18 de Diciembre",
                         time = "04:30 PM",
+                        endDate = "18 de Diciembre",
+                        endTime = "07:30 PM",
                         location = "Parque del Este",
                         imageUrl = "",
                         attendeesCount = 45,
-                        category = "Naturaleza"
+                        category = "Naturaleza",
+                        status = PostStatus.PENDIENTE
                     ),
                     Event(
                         id = "3",
@@ -53,10 +60,13 @@ class EventsViewModel @Inject constructor() : ViewModel() {
                         description = "Recorre los monumentos más emblemáticos.",
                         date = "20 de Diciembre",
                         time = "09:00 AM",
+                        endDate = "20 de Diciembre",
+                        endTime = "01:00 PM",
                         location = "Casco Antiguo",
                         imageUrl = "",
                         attendeesCount = 30,
-                        category = "Cultura"
+                        category = "Cultura",
+                        status = PostStatus.VERIFICADO
                     )
                 )
             )

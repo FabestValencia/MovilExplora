@@ -1,5 +1,7 @@
 package com.example.movilexplora.features.events
 
+import androidx.compose.ui.res.stringResource
+import com.example.movilexplora.R
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -8,6 +10,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -18,13 +21,14 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.movilexplora.core.component.BottomNavigationBar
 import com.example.movilexplora.domain.model.Event
-
-import com.example.movilexplora.ui.theme.DarkBlue
 import com.example.movilexplora.ui.theme.GrayText
 import com.example.movilexplora.ui.theme.Turquoise
+import com.example.movilexplora.ui.theme.VerifiedBlue
+import com.example.movilexplora.ui.theme.getCategoryColor
 
 @Composable
 fun EventsScreen(
+    onNavigateToEventDetail: (String) -> Unit,
     onNavigateToCreatePost: () -> Unit,
     onNavigateToCreateEvent: () -> Unit,
     onNavigateToHome: () -> Unit,
@@ -42,7 +46,7 @@ fun EventsScreen(
                 containerColor = Turquoise,
                 contentColor = Color.White
             ) {
-                Icon(Icons.Default.Add, contentDescription = "Crear Evento")
+                Icon(Icons.Default.Add, contentDescription = stringResource(R.string.eventsscreen_crear_evento_4))
             }
         },
         bottomBar = {
@@ -67,11 +71,11 @@ fun EventsScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             Text(
-                text = "Próximos Eventos",
+                text = stringResource(R.string.eventsscreen_pr_ximos_eventos_0),
                 modifier = Modifier.padding(horizontal = 16.dp),
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
-                color = DarkBlue
+                color = MaterialTheme.colorScheme.onBackground
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -84,7 +88,7 @@ fun EventsScreen(
                 items(state.events) { event ->
                     EventCard(
                         event = event,
-                        onJoinClick = { viewModel.toggleJoinEvent(event.id) }
+                        onDetailClick = { onNavigateToEventDetail(event.id) }
                     )
                 }
             }
@@ -102,14 +106,14 @@ fun HeaderSection(onMapClick: () -> Unit) {
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(text = "Explora", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Turquoise)
+            Text(text = stringResource(R.string.eventsscreen_explora_1), fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Turquoise)
         }
         Row {
             IconButton(onClick = onMapClick) {
-                Icon(imageVector = Icons.Default.Map, contentDescription = "Map", tint = DarkBlue)
+                Icon(imageVector = Icons.Default.Map, contentDescription = stringResource(R.string.eventsscreen_map_5), tint = MaterialTheme.colorScheme.onBackground)
             }
             IconButton(onClick = { /* Search */ }) {
-                Icon(imageVector = Icons.Default.Search, contentDescription = "Search", tint = DarkBlue)
+                Icon(imageVector = Icons.Default.Search, contentDescription = stringResource(R.string.eventsscreen_search_6), tint = MaterialTheme.colorScheme.onBackground)
             }
         }
     }
@@ -118,11 +122,11 @@ fun HeaderSection(onMapClick: () -> Unit) {
 @Composable
 fun EventCard(
     event: Event,
-    onJoinClick: () -> Unit
+    onDetailClick: () -> Unit
 ) {
     Card(
         shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         modifier = Modifier.fillMaxWidth()
     ) {
@@ -131,10 +135,11 @@ fun EventCard(
                 // Image placeholder
                 Text("Imagen del Evento", modifier = Modifier.align(Alignment.Center))
                 
+                val categoryColor = getCategoryColor(event.category)
                 Surface(
                     modifier = Modifier.padding(12.dp).align(Alignment.TopStart),
                     shape = RoundedCornerShape(8.dp),
-                    color = Turquoise
+                    color = categoryColor
                 ) {
                     Text(
                         text = event.category,
@@ -143,6 +148,21 @@ fun EventCard(
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
                     )
+                }
+                
+                if (event.isVerified) {
+                    Row(
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .padding(12.dp)
+                            .background(VerifiedBlue, RoundedCornerShape(12.dp))
+                            .padding(horizontal = 8.dp, vertical = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(imageVector = Icons.Default.CheckCircle, contentDescription = null, tint = Color.White, modifier = Modifier.size(14.dp))
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(text = stringResource(R.string.eventsscreen_verificado_2), color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                    }
                 }
             }
 
@@ -153,27 +173,23 @@ fun EventCard(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Column(modifier = Modifier.weight(1f)) {
-                        Text(text = event.title, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = DarkBlue)
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(imageVector = Icons.Default.CalendarToday, contentDescription = null, tint = Turquoise, modifier = Modifier.size(14.dp))
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Text(text = "${event.date} • ${event.time}", fontSize = 12.sp, color = GrayText)
-                        }
-                    }
-                    
-                    Button(
-                        onClick = onJoinClick,
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = if (event.isJoined) Color.LightGray else Turquoise
-                        ),
-                        shape = RoundedCornerShape(12.dp),
-                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp)
-                    ) {
                         Text(
-                            text = if (event.isJoined) "Asistiré" else "Asistir",
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.Bold
+                            text = event.title,
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onBackground
                         )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(imageVector = Icons.Default.DateRange, contentDescription = null, tint = Turquoise, modifier = Modifier.size(14.dp))
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Column {
+                                Text(text = "Inicio: ${event.date} • ${event.time}", fontSize = 12.sp, color = GrayText)
+                                if (event.endDate.isNotEmpty() && event.endTime.isNotEmpty()) {
+                                    Text(text = "Fin: ${event.endDate} • ${event.endTime}", fontSize = 12.sp, color = GrayText)
+                                }
+                            }
+                        }
                     }
                 }
 
@@ -187,15 +203,14 @@ fun EventCard(
 
                 Spacer(modifier = Modifier.height(8.dp))
                 
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(imageVector = Icons.Default.People, contentDescription = null, tint = Turquoise, modifier = Modifier.size(16.dp))
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(
-                        text = "${event.attendeesCount} personas asistirán",
-                        fontSize = 12.sp,
-                        color = GrayText,
-                        fontWeight = FontWeight.Medium
-                    )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    TextButton(onClick = onDetailClick) {
+                        Text(text = stringResource(R.string.eventsscreen_detalle_3), color = Turquoise, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                    }
                 }
             }
         }

@@ -34,10 +34,10 @@ class ProfileViewModel @Inject constructor() : ViewModel() {
             maxXp = 2000,
             reputationLevel = ReputationLevel.EMBAJADOR,
             achievements = listOf(
-                Achievement(name = "Caminante", iconName = "hiking", isUnlocked = true),
-                Achievement(name = "Fotógrafo", iconName = "camera", isUnlocked = true),
-                Achievement(name = "Foodie", iconName = "restaurant", isUnlocked = true),
-                Achievement(name = "Mochilero", iconName = "flight", isUnlocked = false)
+                Achievement("Primera Publicación", "¡Tu primera aventura compartida!", "celebration", true),
+                Achievement("10 Publicaciones", "Comunidad confiable y activa", "verified", true),
+                Achievement("Maestro del Mapa", "Experto en navegación local", "map", true),
+                Achievement("Explorador del Mes", "Sé el más activo este mes", "stars", false)
             )
         )
         

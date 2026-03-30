@@ -1,4 +1,4 @@
-package com.example.movilexplora.di
+package com.example.movilexplora.core.di
 
 import com.example.movilexplora.data.repository.PostRepositoryImpl
 import com.example.movilexplora.data.repository.UserRepositoryImpl

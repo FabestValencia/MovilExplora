@@ -6,10 +6,15 @@ data class Event(
     val description: String,
     val date: String,
     val time: String,
+    val endDate: String = "",
+    val endTime: String = "",
     val location: String,
     val imageUrl: String,
     val attendeesCount: Int,
     val isJoined: Boolean = false,
     val category: String,
-    val creatorId: String = "admin" // For identifying who created it
-)
+    val creatorId: String = "admin", // For identifying who created it
+    val status: PostStatus = PostStatus.PENDIENTE
+) {
+    val isVerified: Boolean get() = status == PostStatus.VERIFICADO
+}

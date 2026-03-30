@@ -1,5 +1,7 @@
 package com.example.movilexplora.features.editprofile
 
+import androidx.compose.ui.res.stringResource
+import com.example.movilexplora.R
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -12,18 +14,20 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.example.movilexplora.ui.theme.DarkBlue
 import com.example.movilexplora.ui.theme.GrayText
 import com.example.movilexplora.ui.theme.Turquoise
+import com.example.movilexplora.features.profile.DeleteAccountDialog
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -33,6 +37,10 @@ fun EditProfileScreen(
     viewModel: EditProfileViewModel = hiltViewModel()
 ) {
     val updateResult by viewModel.updateResult.collectAsState()
+    val isDarkMode by viewModel.isDarkMode.collectAsState()
+    val notificationsEnabled by viewModel.notificationsEnabled.collectAsState()
+    
+    var showDeleteDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(updateResult) {
         if (updateResult is com.example.movilexplora.core.utils.RequestResult.Success) {
@@ -41,13 +49,29 @@ fun EditProfileScreen(
         }
     }
 
+    if (showDeleteDialog) {
+        DeleteAccountDialog(
+            onDismiss = { showDeleteDialog = false },
+            onConfirm = {
+                // Logic to delete account
+                showDeleteDialog = false
+                onNavigateBack() // Redirect or exit app
+            }
+        )
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Editar datos", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = DarkBlue) },
+                title = { Text(stringResource(R.string.edit_profile_title), fontSize = 18.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = DarkBlue)
+                        Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.editprofilescreen_back_9), tint = MaterialTheme.colorScheme.onBackground)
+                    }
+                },
+                actions = {
+                    TextButton(onClick = { viewModel.updateProfile() }, enabled = viewModel.isFormValid) {
+                        Text(stringResource(R.string.edit_profile_save), color = Turquoise, fontSize = 16.sp, fontWeight = FontWeight.Bold)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
@@ -58,109 +82,246 @@ fun EditProfileScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(horizontal = 24.dp)
                 .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Spacer(modifier = Modifier.height(32.dp))
 
             // Profile Image Edit
-            Box(contentAlignment = Alignment.BottomEnd) {
-                Box(
-                    modifier = Modifier
-                        .size(120.dp)
-                        .clip(CircleShape)
-                        .background(Color.LightGray)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Person,
-                        contentDescription = null,
-                        modifier = Modifier.fillMaxSize().padding(20.dp),
-                        tint = Color.White
-                    )
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Box(contentAlignment = Alignment.BottomEnd) {
+                    Box(
+                        modifier = Modifier
+                            .size(100.dp)
+                            .border(2.dp, MaterialTheme.colorScheme.onBackground, CircleShape)
+                            .clip(CircleShape)
+                            .background(Color(0xFFFFCCBC)) // Fondo naranja claro como en la imagen
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Person,
+                            contentDescription = null,
+                            modifier = Modifier.fillMaxSize().padding(12.dp),
+                            tint = Color.Gray
+                        )
+                    }
+                    Box(
+                        modifier = Modifier
+                            .size(28.dp)
+                            .background(Color(0xFF2196F3), CircleShape) // Color azul para el lapiz
+                            .border(1.dp, Color.Black, CircleShape)
+                            .clickable { /* Change Photo */ },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(imageVector = Icons.Default.Edit, contentDescription = null, tint = Color.White, modifier = Modifier.size(16.dp))
+                    }
                 }
-                Box(
-                    modifier = Modifier
-                        .size(36.dp)
-                        .background(Turquoise, CircleShape)
-                        .border(2.dp, Color.White, CircleShape)
-                        .clickable { /* Change Photo */ },
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(imageVector = Icons.Default.CameraAlt, contentDescription = null, tint = Color.White, modifier = Modifier.size(18.dp))
-                }
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(stringResource(R.string.edit_profile_change_photo), fontSize = 14.sp, color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.SemiBold)
             }
 
             Spacer(modifier = Modifier.height(48.dp))
 
-            // Name Field
-            EditField(
-                label = "Nombre completo",
-                value = viewModel.name.value,
-                onValueChange = { viewModel.name.onChange(it) },
-                error = viewModel.name.error,
-                placeholder = "Ingrese su nombre"
-            )
+            Column(modifier = Modifier.padding(horizontal = 24.dp)) {
+                // Name Field
+                EditFieldCustom(
+                    label = stringResource(R.string.editprofilescreen_nombre_5),
+                    value = viewModel.name.value,
+                    onValueChange = { viewModel.name.onChange(it) },
+                    error = viewModel.name.error,
+                    icon = Icons.Default.PersonOutline
+                )
+    
+                Spacer(modifier = Modifier.height(24.dp))
+                
+                // Description Field
+                EditFieldCustom(
+                    label = stringResource(R.string.editprofilescreen_descripci_n_6),
+                    value = viewModel.description.value,
+                    onValueChange = { viewModel.description.onChange(it) },
+                    error = viewModel.description.error,
+                    icon = null,
+                    isTextArea = true
+                )
+                
+                Spacer(modifier = Modifier.height(24.dp))
+    
+                // Email Field
+                EditFieldCustom(
+                    label = stringResource(R.string.editprofilescreen_email_7),
+                    value = viewModel.email.value,
+                    onValueChange = { viewModel.email.onChange(it) },
+                    error = viewModel.email.error,
+                    icon = Icons.Default.MailOutline,
+                    keyboardType = androidx.compose.ui.text.input.KeyboardType.Email
+                )
+                
+                Spacer(modifier = Modifier.height(24.dp))
+                
+                // Ubicacion Field
+                EditFieldCustom(
+                    label = stringResource(R.string.editprofilescreen_ubicaci_n_8),
+                    value = viewModel.location.value,
+                    onValueChange = { viewModel.location.onChange(it) },
+                    error = viewModel.location.error,
+                    icon = Icons.Default.LocationOn // Adjust with LocationOnOutlined if available
+                )
+            }
 
+            Spacer(modifier = Modifier.height(48.dp))
+            HorizontalDivider(color = Color.Gray.copy(alpha = 0.3f), thickness = 1.dp)
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Email Field
-            EditField(
-                label = "Correo electrónico",
-                value = viewModel.email.value,
-                onValueChange = { viewModel.email.onChange(it) },
-                error = viewModel.email.error,
-                placeholder = "ejemplo@correo.com",
-                keyboardType = androidx.compose.ui.text.input.KeyboardType.Email
-            )
+            Column(modifier = Modifier.padding(horizontal = 24.dp).fillMaxWidth()) {
+                Text(
+                    text = stringResource(R.string.editprofilescreen_preferencias_0),
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+                Spacer(modifier = Modifier.height(16.dp))
 
-            Spacer(modifier = Modifier.height(56.dp))
+                // Dark Mode Switch
+                Row(
+                    modifier = Modifier.fillMaxWidth().height(56.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Box(
+                            modifier = Modifier
+                                .size(36.dp)
+                                .background(Color.LightGray.copy(alpha = 0.5f), CircleShape),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(imageVector = Icons.Default.DarkMode, contentDescription = null, tint = MaterialTheme.colorScheme.onBackground, modifier = Modifier.size(20.dp))
+                        }
+                        Spacer(modifier = Modifier.width(16.dp))
+                        Text(text = stringResource(R.string.editprofilescreen_modo_oscuro_1), fontSize = 16.sp, color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.Medium)
+                    }
+                    Switch(
+                        checked = isDarkMode,
+                        onCheckedChange = { viewModel.toggleDarkMode(it) },
+                        colors = SwitchDefaults.colors(checkedThumbColor = Turquoise, checkedTrackColor = Turquoise.copy(alpha = 0.5f))
+                    )
+                }
 
-            // Save Button
-            Button(
-                onClick = { viewModel.updateProfile() },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp),
-                shape = RoundedCornerShape(28.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Turquoise),
-                enabled = viewModel.isFormValid
-            ) {
-                Text(text = "Guardar cambios", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Notifications Switch
+                Row(
+                    modifier = Modifier.fillMaxWidth().height(56.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Box(
+                            modifier = Modifier
+                                .size(36.dp)
+                                .background(Color.LightGray.copy(alpha = 0.5f), CircleShape),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(imageVector = Icons.Default.Notifications, contentDescription = null, tint = MaterialTheme.colorScheme.onBackground, modifier = Modifier.size(20.dp))
+                        }
+                        Spacer(modifier = Modifier.width(16.dp))
+                        Text(text = stringResource(R.string.editprofilescreen_notificaciones_2), fontSize = 16.sp, color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.Medium)
+                    }
+                    Switch(
+                        checked = notificationsEnabled,
+                        onCheckedChange = { viewModel.toggleNotifications(it) },
+                        colors = SwitchDefaults.colors(checkedThumbColor = Turquoise, checkedTrackColor = Turquoise.copy(alpha = 0.5f))
+                    )
+                }
             }
+
+            Spacer(modifier = Modifier.height(24.dp))
+            HorizontalDivider(color = Color.Gray.copy(alpha = 0.3f), thickness = 1.dp)
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Column(modifier = Modifier.padding(horizontal = 24.dp).fillMaxWidth()) {
+                Text(
+                    text = stringResource(R.string.editprofilescreen_sobre_el_perfil_3),
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                
+                Button(
+                    onClick = { showDeleteDialog = true },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(56.dp),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFDECEA)), // Soft red bg
+                    contentPadding = PaddingValues(horizontal = 16.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Start
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(36.dp)
+                                .background(Color(0xFFE57373).copy(alpha = 0.5f), CircleShape),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(imageVector = Icons.Default.DeleteOutline, contentDescription = null, tint = Color(0xFFE57373), modifier = Modifier.size(20.dp))
+                        }
+                        Spacer(modifier = Modifier.width(16.dp))
+                        Text(text = stringResource(R.string.editprofilescreen_eliminar_cuenta_4), fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = Color(0xFFE57373))
+                    }
+                }
+            }
+            
+            Spacer(modifier = Modifier.height(32.dp))
         }
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun EditField(
+fun EditFieldCustom(
     label: String,
     value: String,
     onValueChange: (String) -> Unit,
     error: String?,
-    placeholder: String,
+    icon: androidx.compose.ui.graphics.vector.ImageVector?,
+    isTextArea: Boolean = false,
     keyboardType: androidx.compose.ui.text.input.KeyboardType = androidx.compose.ui.text.input.KeyboardType.Text
 ) {
-    Column(modifier = Modifier.fillMaxWidth()) {
-        Text(text = label, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = DarkBlue, modifier = Modifier.padding(start = 4.dp, bottom = 8.dp))
+    Box(modifier = Modifier.fillMaxWidth()) {
         OutlinedTextField(
             value = value,
             onValueChange = onValueChange,
-            modifier = Modifier.fillMaxWidth(),
-            placeholder = { Text(text = placeholder, color = GrayText.copy(alpha = 0.4f)) },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(if (isTextArea) 120.dp else 56.dp),
             shape = RoundedCornerShape(12.dp),
             colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = Turquoise,
-                unfocusedBorderColor = Color.LightGray.copy(alpha = 0.5f),
-                focusedContainerColor = Color(0xFFF7F8F9),
-                unfocusedContainerColor = Color(0xFFF7F8F9)
+                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                unfocusedBorderColor = MaterialTheme.colorScheme.primary,
+                focusedContainerColor = Color.Transparent,
+                unfocusedContainerColor = Color.Transparent
             ),
             isError = error != null,
             keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = keyboardType),
-            singleLine = true
+            singleLine = !isTextArea,
+            trailingIcon = if (icon != null) {
+                { Icon(imageVector = icon, contentDescription = null, tint = MaterialTheme.colorScheme.onBackground) }
+            } else null
         )
+        // Sobrescribir el borde superior para poner el texto flotando fuera de OutlinedTextField por defecto.
+        Box(
+            modifier = Modifier
+                .offset(x = 12.dp, y = (-8).dp)
+                .background(MaterialTheme.colorScheme.background)
+                .padding(horizontal = 4.dp)
+        ) {
+            Text(text = label, fontSize = 12.sp, color = Turquoise)
+        }
         if (error != null) {
-            Text(text = error, color = Color.Red, fontSize = 12.sp, modifier = Modifier.padding(start = 12.dp, top = 4.dp))
+            Text(text = error, color = Color.Red, fontSize = 12.sp, modifier = Modifier.padding(start = 12.dp, top = 4.dp).align(Alignment.BottomStart))
         }
     }
 }

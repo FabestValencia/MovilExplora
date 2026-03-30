@@ -1,14 +1,19 @@
 package com.example.movilexplora.features.verificationcode
 
+import androidx.compose.ui.res.stringResource
+import com.example.movilexplora.R
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -18,45 +23,28 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
-import com.example.movilexplora.ui.theme.DarkBlue
-import com.example.movilexplora.ui.theme.GrayText
 import com.example.movilexplora.ui.theme.Turquoise
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun VerificationCodeScreen(
     onNavigateBack: () -> Unit,
-    onVerifySuccess: () -> Unit,
-    viewModel: VerificationCodeViewModel = hiltViewModel()
+    onVerifySuccess: () -> Unit
 ) {
     var code by remember { mutableStateOf("") }
-    val verificationResult by viewModel.verificationResult.collectAsState()
-
-    LaunchedEffect(verificationResult) {
-        if (verificationResult is com.example.movilexplora.core.utils.RequestResult.Success) {
-            onVerifySuccess()
-            viewModel.resetResult()
-        }
-    }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
+    val isCodeValid = code.length == 4
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = {
-                    Text(
-                        text = "Verificar Código",
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = DarkBlue
-                    )
-                },
+                title = { },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back",
-                            tint = DarkBlue
+                            contentDescription = stringResource(R.string.verificationcodescreen_back_6),
+                            tint = MaterialTheme.colorScheme.onBackground
                         )
                     }
                 },
@@ -68,72 +56,69 @@ fun VerificationCodeScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(horizontal = 24.dp),
+                .padding(horizontal = 24.dp)
+                .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(modifier = Modifier.height(60.dp))
+            Spacer(modifier = Modifier.height(20.dp))
 
             Text(
-                text = "Verificar Código",
+                text = stringResource(R.string.verificationcodescreen_verificar_c_digo_0),
                 fontSize = 32.sp,
                 fontWeight = FontWeight.Bold,
-                color = DarkBlue,
-                modifier = Modifier.fillMaxWidth(),
-                textAlign = TextAlign.Start
+                color = MaterialTheme.colorScheme.onBackground,
+                lineHeight = 38.sp
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
             Text(
-                text = "Introduce el código de 6 dígitos enviado a tu correo electrónico para recuperar tu contraseña.",
+                text = stringResource(R.string.verificationcodescreen_introduce_el_c_digo_de_6_d_git_2),
                 fontSize = 16.sp,
-                color = GrayText,
-                lineHeight = 22.sp,
-                modifier = Modifier.fillMaxWidth(),
-                textAlign = TextAlign.Start
+                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
+                lineHeight = 22.sp
             )
 
             Spacer(modifier = Modifier.height(48.dp))
 
-            // 6-digit code input
+            // 4-digit code input
             CodeInput(
                 value = code,
-                onValueChange = { if (it.length <= 6) code = it }
+                onValueChange = { if (it.length <= 4) code = it }
             )
 
-            Spacer(modifier = Modifier.height(32.dp))
-
-            Text(
-                text = "¿No recibiste el código?",
-                fontSize = 14.sp,
-                color = GrayText
-            )
-
-            TextButton(onClick = { viewModel.resendCode() }) {
+            if (errorMessage != null) {
+                Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = "Reenviar código",
-                    color = Turquoise,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold
+                    text = errorMessage!!,
+                    color = MaterialTheme.colorScheme.error,
+                    fontSize = 14.sp,
+                    textAlign = TextAlign.Center
                 )
             }
 
-            Spacer(modifier = Modifier.height(48.dp))
+            Spacer(modifier = Modifier.height(32.dp))
 
             Button(
-                onClick = { viewModel.verifyCode(code) },
+                onClick = {
+                    if (isCodeValid) {
+                        onVerifySuccess()
+                    } else {
+                        errorMessage = "El código ingresado es incorrecto"
+                    }
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp),
-                shape = RoundedCornerShape(12.dp),
+                shape = RoundedCornerShape(28.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = Turquoise),
-                enabled = code.length == 6
+                enabled = isCodeValid
             ) {
                 Text(
-                    text = "Verificar Código",
-                    fontSize = 16.sp,
+                    text = stringResource(R.string.verificationcodescreen_verificar_c_digo_5),
+                    fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color.White
+                    color = MaterialTheme.colorScheme.background
                 )
             }
         }
@@ -154,39 +139,36 @@ fun CodeInput(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 modifier = Modifier.fillMaxWidth()
             ) {
-                repeat(6) { index ->
-                    val char = when {
-                        index < value.length -> value[index].toString()
-                        else -> ""
-                    }
-                    val isFocused = index == value.length
-
+                repeat(4) { index ->
+                    val char = value.getOrNull(index)?.toString() ?: ""
                     Box(
                         modifier = Modifier
-                            .weight(1f)
-                            .height(56.dp)
+                            .width(60.dp)
+                            .height(64.dp)
+                            .background(
+                                color = if (char.isNotEmpty()) MaterialTheme.colorScheme.primary.copy(alpha = 0.1f) else Color.Transparent,
+                                shape = RoundedCornerShape(12.dp)
+                            )
                             .border(
                                 width = 1.dp,
-                                color = if (isFocused) Turquoise else Color.LightGray.copy(alpha = 0.5f),
-                                shape = RoundedCornerShape(8.dp)
-                            )
-                            .background(Color.Transparent),
+                                color = if (char.isNotEmpty()) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
+                                shape = RoundedCornerShape(12.dp)
+                            ),
                         contentAlignment = Alignment.Center
                     ) {
                         if (char.isNotEmpty()) {
-                            Box(
-                                modifier = Modifier
-                                    .size(8.dp)
-                                    .background(DarkBlue.copy(alpha = 0.6f), shape = RoundedCornerShape(4.dp))
+                            Text(
+                                text = char,
+                                fontSize = 28.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onBackground
                             )
-                        } else {
+                        } else if (index == value.length) {
                             Box(
                                 modifier = Modifier
-                                    .width(20.dp)
-                                    .height(2.dp)
-                                    .background(Color.LightGray.copy(alpha = 0.5f))
-                                    .align(Alignment.BottomCenter)
-                                    .padding(bottom = 12.dp)
+                                    .width(2.dp)
+                                    .height(24.dp)
+                                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.6f), shape = RoundedCornerShape(4.dp))
                             )
                         }
                     }

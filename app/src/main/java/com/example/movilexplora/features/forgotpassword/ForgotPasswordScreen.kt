@@ -1,13 +1,18 @@
 package com.example.movilexplora.features.forgotpassword
 
+import androidx.compose.ui.res.stringResource
+import com.example.movilexplora.R
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Mail
 import androidx.compose.material.icons.filled.LockReset
 import androidx.compose.material3.*
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -16,7 +21,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.example.movilexplora.ui.theme.DarkBlue
 import com.example.movilexplora.ui.theme.GrayText
 import com.example.movilexplora.ui.theme.Turquoise
 
@@ -42,18 +46,18 @@ fun ForgotPasswordScreen(
             TopAppBar(
                 title = {
                     Text(
-                        text = "Explora",
+                        text = stringResource(R.string.forgotpasswordscreen_explora_0),
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
-                        color = DarkBlue
+                        color = MaterialTheme.colorScheme.onBackground
                     )
                 },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back",
-                            tint = DarkBlue
+                            contentDescription = stringResource(R.string.forgotpasswordscreen_back_5),
+                            tint = MaterialTheme.colorScheme.onBackground
                         )
                     }
                 },
@@ -65,7 +69,8 @@ fun ForgotPasswordScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(horizontal = 24.dp),
+                .padding(horizontal = 24.dp)
+                .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.Start
         ) {
             Spacer(modifier = Modifier.height(40.dp))
@@ -94,14 +99,14 @@ fun ForgotPasswordScreen(
                 text = "¿Olvidaste tu\ncontraseña?",
                 fontSize = 32.sp,
                 fontWeight = FontWeight.Bold,
-                color = DarkBlue,
+                color = MaterialTheme.colorScheme.onBackground,
                 lineHeight = 38.sp
             )
 
             Spacer(modifier = Modifier.height(16.dp))
 
             Text(
-                text = "Introduce tu correo electrónico y te enviaremos un enlace para restablecerla.",
+                text = stringResource(R.string.forgotpasswordscreen_introduce_tu_correo_electr_nic_1),
                 fontSize = 16.sp,
                 color = GrayText,
                 lineHeight = 22.sp
@@ -110,9 +115,9 @@ fun ForgotPasswordScreen(
             Spacer(modifier = Modifier.height(40.dp))
 
             Text(
-                text = "Correo electrónico",
+                text = stringResource(R.string.forgotpasswordscreen_correo_electr_nico_2),
                 fontSize = 14.sp,
-                color = DarkBlue.copy(alpha = 0.8f),
+                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.8f),
                 modifier = Modifier.padding(bottom = 8.dp)
             )
 
@@ -120,18 +125,18 @@ fun ForgotPasswordScreen(
                 value = emailValue,
                 onValueChange = { viewModel.email.onChange(it) },
                 modifier = Modifier.fillMaxWidth(),
-                placeholder = { Text(text = "ejemplo@correo.com", color = GrayText.copy(alpha = 0.5f)) },
+                placeholder = { Text(text = stringResource(R.string.forgotpasswordscreen_ejemplo_correo_com_3), color = GrayText.copy(alpha = 0.5f)) },
                 leadingIcon = {
                     Icon(
                         imageVector = Icons.Default.Mail,
                         contentDescription = null,
-                        tint = DarkBlue.copy(alpha = 0.4f)
+                        tint = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.4f)
                     )
                 },
                 shape = RoundedCornerShape(12.dp),
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = Turquoise,
-                    unfocusedBorderColor = DarkBlue.copy(alpha = 0.2f),
+                    unfocusedBorderColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
                     focusedContainerColor = Color.Transparent,
                     unfocusedContainerColor = Color.Transparent
                 ),
@@ -159,7 +164,7 @@ fun ForgotPasswordScreen(
                 enabled = viewModel.isFormValid
             ) {
                 Text(
-                    text = "Enviar Enlace",
+                    text = stringResource(R.string.forgotpasswordscreen_enviar_enlace_4),
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.White

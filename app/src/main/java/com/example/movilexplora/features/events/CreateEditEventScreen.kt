@@ -1,9 +1,22 @@
 package com.example.movilexplora.features.events
 
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.ui.res.stringResource
+import com.example.movilexplora.R
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -12,24 +25,35 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.outlined.Send
 import androidx.compose.material.icons.filled.AddAPhoto
 import androidx.compose.material.icons.filled.CalendarToday
-import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.PathEffect
-import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.movilexplora.ui.theme.DarkBlue
-import com.example.movilexplora.ui.theme.Turquoise
+import com.example.movilexplora.features.createpost.CategorySelectableItem
 import com.example.movilexplora.ui.theme.GrayText
+import com.example.movilexplora.ui.theme.Turquoise
+import com.example.movilexplora.ui.theme.getCategoryColor
+import com.example.movilexplora.ui.theme.getCategoryIcon
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -68,12 +92,12 @@ fun CreateEditEventScreen(
                         text = if (isEditing) "Editar evento" else "Crear evento",
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
-                        color = DarkBlue
+                        color = MaterialTheme.colorScheme.onBackground
                     )
                 },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = DarkBlue)
+                        Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.createediteventscreen_back_14), tint = MaterialTheme.colorScheme.onBackground)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = backgroundColor)
@@ -104,13 +128,13 @@ fun CreateEditEventScreen(
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Icon(
                         imageVector = Icons.Default.AddAPhoto,
-                        contentDescription = "Añadir imagen",
+                        contentDescription = stringResource(R.string.createediteventscreen_a_adir_imagen_15),
                         tint = Turquoise,
                         modifier = Modifier.size(32.dp)
                     )
                     Spacer(modifier = Modifier.height(8.dp))
-                    Text(text = "Añadir imagen del evento", color = DarkBlue, fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
-                    Text(text = "Formato JPG o PNG, máx. 5MB", color = GrayText, fontSize = 12.sp)
+                    Text(text = stringResource(R.string.createediteventscreen_a_adir_imagen_del_evento_0), color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
+                    Text(text = stringResource(R.string.createediteventscreen_formato_jpg_o_png__m_x__5mb_1), color = GrayText, fontSize = 12.sp)
                 }
             }
 
@@ -118,48 +142,75 @@ fun CreateEditEventScreen(
 
             // Form Fields
             EventInputField(
-                label = "Título del evento",
+                label = stringResource(R.string.createediteventscreen_t_tulo_del_evento_6),
                 value = title,
                 onValueChange = { title = it },
-                placeholder = "Ej: Festival de Gastronomía"
+                placeholder = stringResource(R.string.createediteventscreen_ej__festival_de_gastronom_a_10)
             )
 
             EventInputField(
-                label = "Descripción",
+                label = stringResource(R.string.createediteventscreen_descripci_n_7),
                 value = description,
                 onValueChange = { description = it },
-                placeholder = "Describe los detalles del evento, actividades y más...",
+                placeholder = stringResource(R.string.createediteventscreen_describe_los_detalles_del_even_11),
                 singleLine = false,
                 modifier = Modifier.height(100.dp)
             )
 
-            EventInputField(
-                label = "Punto turístico",
-                value = location,
-                onValueChange = { location = it },
-                placeholder = "Seleccionar lugar",
-                trailingIcon = {
-                    Icon(imageVector = Icons.Default.KeyboardArrowDown, contentDescription = null, tint = GrayText)
-                },
-                readOnly = true
+            // Location Section
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(text = stringResource(R.string.createediteventscreen_ubicaci_n_2), fontSize = 14.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
+                Text(text = stringResource(R.string.createediteventscreen_pin_interactivo_3), fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Turquoise)
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(150.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(Color.LightGray)
+            ) {
+                Text(stringResource(R.string.create_post_map_placeholder), modifier = Modifier.align(Alignment.Center))
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Category Selection
+            Text(text = stringResource(R.string.createediteventscreen_categor_a_4), fontSize = 14.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
+            Text(text = stringResource(R.string.createediteventscreen_elige_la_categor_a_que_mejor_d_5), fontSize = 12.sp, color = GrayText.copy(alpha = 0.5f))
+            Spacer(modifier = Modifier.height(12.dp))
+            
+            data class CategoryData(val name: String, val desc: String)
+            
+            val categories = listOf(
+                CategoryData("Gastronomía", "Festivales, catas, rutas..."),
+                CategoryData("Cultura", "Exposiciones, ferias, talleres..."),
+                CategoryData("Naturaleza", "Campamentos, caminatas, excursiones..."),
+                CategoryData("Entretenimiento", "Conciertos, fiestas, shows..."),
+                CategoryData("Historia", "Recorridos guiados, charlas...")
             )
 
-            EventInputField(
-                label = "Categoría",
-                value = category,
-                onValueChange = { category = it },
-                placeholder = "Seleccionar categoría",
-                trailingIcon = {
-                    Icon(imageVector = Icons.Default.KeyboardArrowDown, contentDescription = null, tint = GrayText)
-                },
-                readOnly = true
-            )
+            categories.forEach { cat ->
+                CategorySelectableItem(
+                    name = cat.name,
+                    description = cat.desc,
+                    icon = getCategoryIcon(cat.name),
+                    iconColor = getCategoryColor(cat.name),
+                    isSelected = category == cat.name,
+                    onSelect = { category = cat.name }
+                )
+            }
+            Spacer(modifier = Modifier.height(12.dp))
 
             EventInputField(
-                label = "Fecha de inicio",
+                label = stringResource(R.string.createediteventscreen_fecha_de_inicio_8),
                 value = startDate,
                 onValueChange = { startDate = it },
-                placeholder = "mm/dd/yyyy, --:-- --",
+                placeholder = stringResource(R.string.createediteventscreen_mm_dd_yyyy_12),
                 trailingIcon = {
                     Icon(imageVector = Icons.Default.CalendarToday, contentDescription = null, tint = GrayText, modifier = Modifier.size(20.dp))
                 },
@@ -167,10 +218,10 @@ fun CreateEditEventScreen(
             )
 
             EventInputField(
-                label = "Fecha de fin",
+                label = stringResource(R.string.createediteventscreen_fecha_de_fin_9),
                 value = endDate,
                 onValueChange = { endDate = it },
-                placeholder = "mm/dd/yyyy, --:-- --",
+                placeholder = stringResource(R.string.createediteventscreen_mm_dd_yyyy_12),
                 trailingIcon = {
                     Icon(imageVector = Icons.Default.CalendarToday, contentDescription = null, tint = GrayText, modifier = Modifier.size(20.dp))
                 },
@@ -216,7 +267,7 @@ fun EventInputField(
             text = label,
             fontSize = 14.sp,
             fontWeight = FontWeight.Bold,
-            color = DarkBlue,
+            color = MaterialTheme.colorScheme.onBackground,
             modifier = Modifier.padding(bottom = 6.dp)
         )
         OutlinedTextField(

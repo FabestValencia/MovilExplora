@@ -1,5 +1,7 @@
 package com.example.movilexplora.features.createpost
 
+import androidx.compose.ui.res.stringResource
+import com.example.movilexplora.R
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -13,6 +15,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -23,9 +26,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.example.movilexplora.ui.theme.DarkBlue
 import com.example.movilexplora.ui.theme.GrayText
 import com.example.movilexplora.ui.theme.Turquoise
+import com.example.movilexplora.ui.theme.getCategoryColor
+import com.example.movilexplora.ui.theme.getCategoryIcon
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -49,21 +53,21 @@ fun CreatePostScreen(
             TopAppBar(
                 title = {
                     Text(
-                        text = "Nueva publicación",
+                        text = stringResource(R.string.createpostscreen_nueva_publicaci_n_0),
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
-                        color = DarkBlue,
+                        color = MaterialTheme.colorScheme.onBackground,
                         modifier = Modifier.fillMaxWidth(),
                         textAlign = TextAlign.Center
                     )
                 },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = DarkBlue)
+                        Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.createpostscreen_back_12), tint = MaterialTheme.colorScheme.onBackground)
                     }
                 },
                 actions = { Spacer(modifier = Modifier.width(48.dp)) },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface)
             )
         }
     ) { paddingValues ->
@@ -78,7 +82,7 @@ fun CreatePostScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             // Image Picker Placeholder
-            Text(text = "Imagen del lugar", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = DarkBlue)
+            Text(text = stringResource(R.string.createpostscreen_imagen_del_lugar_1), fontSize = 14.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
             Spacer(modifier = Modifier.height(8.dp))
             Box(
                 modifier = Modifier
@@ -92,20 +96,20 @@ fun CreatePostScreen(
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Icon(imageVector = Icons.Default.AddPhotoAlternate, contentDescription = null, tint = Turquoise, modifier = Modifier.size(40.dp))
-                    Text(text = "Añadir foto", color = GrayText.copy(alpha = 0.5f), fontSize = 14.sp)
+                    Text(text = stringResource(R.string.createpostscreen_a_adir_foto_2), color = GrayText.copy(alpha = 0.5f), fontSize = 14.sp)
                 }
             }
 
             Spacer(modifier = Modifier.height(24.dp))
 
             // Title Field
-            Text(text = "Título", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = DarkBlue)
+            Text(text = stringResource(R.string.createpostscreen_t_tulo_3), fontSize = 14.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
             Spacer(modifier = Modifier.height(8.dp))
             OutlinedTextField(
                 value = viewModel.title.value,
                 onValueChange = { viewModel.title.onChange(it) },
                 modifier = Modifier.fillMaxWidth(),
-                placeholder = { Text("Ej. Joyita por descubrir", color = GrayText.copy(alpha = 0.4f)) },
+                placeholder = { Text(stringResource(R.string.create_post_placeholder_title), color = GrayText.copy(alpha = 0.4f)) },
                 shape = RoundedCornerShape(12.dp),
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedContainerColor = Color(0xFFF7F8F9),
@@ -118,38 +122,41 @@ fun CreatePostScreen(
             Spacer(modifier = Modifier.height(24.dp))
 
             // Category Section
-            Text(text = "Categoría", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = DarkBlue)
-            Text(text = "Select the category that best fits the place.", fontSize = 12.sp, color = GrayText.copy(alpha = 0.5f))
+            Text(text = stringResource(R.string.createpostscreen_categor_a_4), fontSize = 14.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
+            Text(text = stringResource(R.string.createpostscreen_select_the_category_that_best_5), fontSize = 12.sp, color = GrayText.copy(alpha = 0.5f))
             Spacer(modifier = Modifier.height(12.dp))
             
+            data class CategoryData(val key: String, val name: String, val desc: String)
+            
             val categories = listOf(
-                Triple("Gastronomía", "Restaurantes, cafés, comida callejera...", Icons.Default.Restaurant),
-                Triple("Cultura", "Museos, galerías, monumentos...", Icons.Default.TheaterComedy),
-                Triple("Naturaleza", "Parques, miradores, senderos...", Icons.Default.Landscape),
-                Triple("Entretenimiento", "Bares, discotecas, teatros...", Icons.Default.MusicNote),
-                Triple("Historia", "Sitios históricos, ruinas...", Icons.Default.History)
+                CategoryData("Gastronomia", stringResource(R.string.create_post_cat_gastronomy), stringResource(R.string.create_post_cat_gastronomy_desc)),
+                CategoryData("Cultura", stringResource(R.string.create_post_cat_culture), stringResource(R.string.create_post_cat_culture_desc)),
+                CategoryData("Naturaleza", stringResource(R.string.create_post_cat_nature), stringResource(R.string.create_post_cat_nature_desc)),
+                CategoryData("Entretenimiento", stringResource(R.string.create_post_cat_entertainment), stringResource(R.string.create_post_cat_entertainment_desc)),
+                CategoryData("Historia", stringResource(R.string.create_post_cat_history), stringResource(R.string.create_post_cat_history_desc))
             )
 
-            categories.forEach { (name, desc, icon) ->
+            categories.forEach { category ->
                 CategorySelectableItem(
-                    name = name,
-                    description = desc,
-                    icon = icon,
-                    isSelected = state.selectedCategory == name,
-                    onSelect = { viewModel.selectCategory(name) }
+                    name = category.name,
+                    description = category.desc,
+                    icon = getCategoryIcon(category.key),
+                    iconColor = getCategoryColor(category.key),
+                    isSelected = state.selectedCategory == category.key,
+                    onSelect = { viewModel.selectCategory(category.key) }
                 )
             }
 
             Spacer(modifier = Modifier.height(24.dp))
 
             // Description Field
-            Text(text = "Descripción", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = DarkBlue)
+            Text(text = stringResource(R.string.createpostscreen_descripci_n_6), fontSize = 14.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
             Spacer(modifier = Modifier.height(8.dp))
             OutlinedTextField(
                 value = viewModel.description.value,
                 onValueChange = { viewModel.description.onChange(it) },
                 modifier = Modifier.fillMaxWidth().height(120.dp),
-                placeholder = { Text("Comparte lo que hace que este lugar sea especial...", color = GrayText.copy(alpha = 0.4f)) },
+                placeholder = { Text(stringResource(R.string.create_post_placeholder_desc), color = GrayText.copy(alpha = 0.4f)) },
                 shape = RoundedCornerShape(12.dp),
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedContainerColor = Color(0xFFF7F8F9),
@@ -161,7 +168,7 @@ fun CreatePostScreen(
             Spacer(modifier = Modifier.height(24.dp))
 
             // Price Range
-            Text(text = "Price Range", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = DarkBlue)
+            Text(text = stringResource(R.string.createpostscreen_price_range_7), fontSize = 14.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
             Spacer(modifier = Modifier.height(12.dp))
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -185,8 +192,8 @@ fun CreatePostScreen(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(text = "Ubicación", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = DarkBlue)
-                Text(text = "PIN INTERACTIVO", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Turquoise)
+                Text(text = stringResource(R.string.createpostscreen_ubicaci_n_8), fontSize = 14.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
+                Text(text = stringResource(R.string.createpostscreen_pin_interactivo_9), fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Turquoise)
             }
             Spacer(modifier = Modifier.height(8.dp))
             Box(
@@ -196,30 +203,31 @@ fun CreatePostScreen(
                     .clip(RoundedCornerShape(12.dp))
                     .background(Color.LightGray)
             ) {
-                Text("Mapa de México City", modifier = Modifier.align(Alignment.Center))
+                Text(stringResource(R.string.create_post_map_placeholder), modifier = Modifier.align(Alignment.Center))
             }
 
             Spacer(modifier = Modifier.height(24.dp))
 
             // Horario Sugerido
-            Text(text = "Horario Sugerido", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = DarkBlue)
+            Text(text = stringResource(R.string.createpostscreen_horario_sugerido_10), fontSize = 14.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
             Spacer(modifier = Modifier.height(12.dp))
             
+            data class TimeOptionData(val key: String, val text: String, val icon: androidx.compose.ui.graphics.vector.ImageVector)
             val times = listOf(
-                Pair("Mañana", Icons.Default.LightMode),
-                Pair("Tarde", Icons.Default.WbSunny),
-                Pair("Noche", Icons.Default.NightsStay),
-                Pair("Todo el día", Icons.Default.Schedule)
+                TimeOptionData("Mañana", stringResource(R.string.create_post_time_morning), Icons.Default.LightMode),
+                TimeOptionData("Tarde", stringResource(R.string.create_post_time_afternoon), Icons.Default.WbSunny),
+                TimeOptionData("Noche", stringResource(R.string.create_post_time_night), Icons.Default.NightsStay),
+                TimeOptionData("Todo el día", stringResource(R.string.create_post_time_allday), Icons.Default.Schedule)
             )
             
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    TimeOption(times[0].first, times[0].second, state.selectedTime == times[0].first, Modifier.weight(1f)) { viewModel.selectTime(times[0].first) }
-                    TimeOption(times[1].first, times[1].second, state.selectedTime == times[1].first, Modifier.weight(1f)) { viewModel.selectTime(times[1].first) }
+                    TimeOption(times[0].text, times[0].icon, state.selectedTime == times[0].key, Modifier.weight(1f)) { viewModel.selectTime(times[0].key) }
+                    TimeOption(times[1].text, times[1].icon, state.selectedTime == times[1].key, Modifier.weight(1f)) { viewModel.selectTime(times[1].key) }
                 }
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    TimeOption(times[2].first, times[2].second, state.selectedTime == times[2].first, Modifier.weight(1f)) { viewModel.selectTime(times[2].first) }
-                    TimeOption(times[3].first, times[3].second, state.selectedTime == times[3].first, Modifier.weight(1f)) { viewModel.selectTime(times[3].first) }
+                    TimeOption(times[2].text, times[2].icon, state.selectedTime == times[2].key, Modifier.weight(1f)) { viewModel.selectTime(times[2].key) }
+                    TimeOption(times[3].text, times[3].icon, state.selectedTime == times[3].key, Modifier.weight(1f)) { viewModel.selectTime(times[3].key) }
                 }
             }
 
@@ -236,7 +244,7 @@ fun CreatePostScreen(
             ) {
                 Icon(imageVector = Icons.Default.FileUpload, contentDescription = null)
                 Spacer(modifier = Modifier.width(8.dp))
-                Text(text = "Publicar", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                Text(text = stringResource(R.string.createpostscreen_publicar_11), fontSize = 18.sp, fontWeight = FontWeight.Bold)
             }
             
             Spacer(modifier = Modifier.height(40.dp))
@@ -249,6 +257,7 @@ fun CategorySelectableItem(
     name: String,
     description: String,
     icon: androidx.compose.ui.graphics.vector.ImageVector,
+    iconColor: Color,
     isSelected: Boolean,
     onSelect: () -> Unit
 ) {
@@ -264,14 +273,14 @@ fun CategorySelectableItem(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Box(
-                modifier = Modifier.size(40.dp).background(Color(0xFFE0E0E0), CircleShape),
+                modifier = Modifier.size(40.dp).background(iconColor.copy(alpha = 0.2f), CircleShape),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(imageVector = icon, contentDescription = null, tint = GrayText, modifier = Modifier.size(20.dp))
+                Icon(imageVector = icon, contentDescription = null, tint = iconColor, modifier = Modifier.size(20.dp))
             }
             Spacer(modifier = Modifier.width(12.dp))
             Column(modifier = Modifier.weight(1f)) {
-                Text(text = name, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = DarkBlue)
+                Text(text = name, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
                 Text(text = description, fontSize = 11.sp, color = GrayText.copy(alpha = 0.6f))
             }
             RadioButton(selected = isSelected, onClick = null, colors = RadioButtonDefaults.colors(selectedColor = Turquoise))
@@ -313,7 +322,7 @@ fun TimeOption(text: String, icon: androidx.compose.ui.graphics.vector.ImageVect
         ) {
             Icon(imageVector = icon, contentDescription = null, tint = if (isSelected) Turquoise else Turquoise.copy(alpha = 0.6f), modifier = Modifier.size(20.dp))
             Spacer(modifier = Modifier.width(8.dp))
-            Text(text = text, fontSize = 13.sp, color = if (isSelected) Turquoise else DarkBlue)
+            Text(text = text, fontSize = 13.sp, color = if (isSelected) Turquoise else MaterialTheme.colorScheme.primary)
         }
     }
 }

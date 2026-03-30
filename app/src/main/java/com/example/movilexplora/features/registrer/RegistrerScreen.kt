@@ -10,10 +10,12 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -21,8 +23,8 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.movilexplora.R
 import com.example.movilexplora.core.utils.ValidatedField
-import com.example.movilexplora.ui.theme.DarkBlue
 import com.example.movilexplora.ui.theme.GrayText
 import com.example.movilexplora.ui.theme.Turquoise
 
@@ -39,7 +41,7 @@ fun RegisterScreen(
                 title = { },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.registrerscreen_back_0))
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
@@ -55,16 +57,16 @@ fun RegisterScreen(
             horizontalAlignment = Alignment.Start
         ) {
             Text(
-                text = "Crear cuenta",
+                text = stringResource(R.string.register_title),
                 fontSize = 32.sp,
                 fontWeight = FontWeight.Bold,
-                color = DarkBlue
+                color = MaterialTheme.colorScheme.onBackground
             )
 
             Spacer(modifier = Modifier.height(12.dp))
 
             Text(
-                text = "Conecta con viajeros y locales y descubre sus lugares favoritos.",
+                text = stringResource(R.string.register_desc),
                 fontSize = 16.sp,
                 color = GrayText,
                 lineHeight = 22.sp
@@ -72,10 +74,10 @@ fun RegisterScreen(
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            RegisterField(label = "Nombre completo", placeholder = "Ingrese nombre completo", field = viewModel.nombre)
-            RegisterField(label = "Email", placeholder = "Ingrese su correo electronico", field = viewModel.email, keyboardType = KeyboardType.Email)
-            RegisterField(label = "Contraseña", placeholder = "Min. 8 caracteres", field = viewModel.password, isPassword = true)
-            RegisterField(label = "Confirmar contraseña", placeholder = "Confirme la contraseña", field = viewModel.confirmPassword, isPassword = true)
+            RegisterField(label = stringResource(R.string.register_name_label), placeholder = stringResource(R.string.register_name_placeholder), field = viewModel.nombre)
+            RegisterField(label = stringResource(R.string.register_email_label), placeholder = stringResource(R.string.register_email_placeholder), field = viewModel.email, keyboardType = KeyboardType.Email)
+            RegisterField(label = stringResource(R.string.register_password_label), placeholder = stringResource(R.string.register_password_placeholder), field = viewModel.password, isPassword = true)
+            RegisterField(label = stringResource(R.string.register_confirm_password_label), placeholder = stringResource(R.string.register_confirm_password_placeholder), field = viewModel.confirmPassword, isPassword = true)
 
             Spacer(modifier = Modifier.height(40.dp))
 
@@ -87,7 +89,7 @@ fun RegisterScreen(
                 shape = RoundedCornerShape(28.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = Turquoise)
             ) {
-                Text(text = "Crear cuenta", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                Text(text = stringResource(R.string.register_button), fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color.White)
             }
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -96,7 +98,7 @@ fun RegisterScreen(
                 onClick = onNavigateToLogin,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text(text = "Iniciar sesión", color = Turquoise, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                Text(text = stringResource(R.string.register_login_button), color = Turquoise, fontSize = 16.sp, fontWeight = FontWeight.Bold)
             }
             
             Spacer(modifier = Modifier.height(24.dp))

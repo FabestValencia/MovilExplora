@@ -10,6 +10,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -17,24 +18,23 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.movilexplora.ui.theme.DarkBlue
-import com.example.movilexplora.ui.theme.GrayText
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.movilexplora.ui.theme.Turquoise
+import com.example.movilexplora.ui.theme.GrayText
 import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FilterBottomSheet(
-    onDismissRequest: () -> Unit,
+    onDismiss: () -> Unit,
     onApplyFilters: (FilterState) -> Unit,
-    viewModel: FilterViewModel = viewModel()
+    viewModel: FilterViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
 
     ModalBottomSheet(
-        onDismissRequest = onDismissRequest,
-        containerColor = Color.White,
+        onDismissRequest = onDismiss,
+        containerColor = MaterialTheme.colorScheme.surface,
         dragHandle = {
             Box(
                 modifier = Modifier
@@ -62,7 +62,7 @@ fun FilterBottomSheet(
                     text = "Filtros",
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
-                    color = DarkBlue
+                    color = MaterialTheme.colorScheme.onBackground
                 )
                 TextButton(onClick = { viewModel.clearFilters() }) {
                     Text(text = "Limpiar", color = Turquoise, fontSize = 14.sp)
@@ -77,7 +77,7 @@ fun FilterBottomSheet(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(text = "Distance", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = DarkBlue)
+                Text(text = "Distance", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
                 Text(text = "${state.distance.roundToInt()} km", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Turquoise)
             }
             
@@ -104,7 +104,7 @@ fun FilterBottomSheet(
             Spacer(modifier = Modifier.height(24.dp))
 
             // Category Section
-            Text(text = "Categoria", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = DarkBlue)
+            Text(text = "Categoria", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
             Text(
                 text = "Select the category that best fits the place.",
                 fontSize = 12.sp,
@@ -124,7 +124,7 @@ fun FilterBottomSheet(
             Spacer(modifier = Modifier.height(24.dp))
 
             // Price Range Section
-            Text(text = "Price Range", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = DarkBlue)
+            Text(text = "Price Range", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
             Spacer(modifier = Modifier.height(16.dp))
             
             Row(
@@ -202,7 +202,7 @@ fun CategoryItem(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Text(text = name, color = DarkBlue, fontSize = 14.sp, fontWeight = FontWeight.Medium)
+            Text(text = name, color = MaterialTheme.colorScheme.onBackground, fontSize = 14.sp, fontWeight = FontWeight.Medium)
             RadioButton(
                 selected = isSelected,
                 onClick = null, // Handled by surface

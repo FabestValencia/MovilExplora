@@ -1,5 +1,7 @@
 package com.example.movilexplora.features.reputation
 
+import androidx.compose.ui.res.stringResource
+import com.example.movilexplora.R
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -13,6 +15,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Chat
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -23,9 +26,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.example.movilexplora.ui.theme.DarkBlue
 import com.example.movilexplora.ui.theme.GrayText
 import com.example.movilexplora.ui.theme.Turquoise
+import com.example.movilexplora.ui.theme.getReputationColor
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -38,10 +41,10 @@ fun ReputationScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Reputación", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = DarkBlue) },
+                title = { Text("Reputación", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = DarkBlue)
+                        Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.reputationscreen_back_6), tint = MaterialTheme.colorScheme.onBackground)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
@@ -85,16 +88,18 @@ fun ReputationScreen(
             }
 
             Spacer(modifier = Modifier.height(16.dp))
-            Text(text = state.userName, fontSize = 24.sp, fontWeight = FontWeight.Bold, color = DarkBlue)
+            Text(text = state.userName, fontSize = 24.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
+            
+            val levelColor = getReputationColor(state.currentLevel)
             
             Surface(
                 shape = RoundedCornerShape(16.dp),
-                color = Turquoise.copy(alpha = 0.1f),
+                color = levelColor.copy(alpha = 0.1f),
                 modifier = Modifier.padding(vertical = 8.dp)
             ) {
                 Text(
                     text = state.currentLevel.displayName.uppercase(),
-                    color = Turquoise,
+                    color = levelColor,
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp)
@@ -102,9 +107,9 @@ fun ReputationScreen(
             }
 
             Row(verticalAlignment = Alignment.Bottom) {
-                Text(text = "2,450", fontSize = 32.sp, fontWeight = FontWeight.ExtraBold, color = Turquoise)
+                Text(text = stringResource(R.string.reputationscreen_d_0).format(state.currentPoints), fontSize = 32.sp, fontWeight = FontWeight.ExtraBold, color = Turquoise)
                 Spacer(modifier = Modifier.width(4.dp))
-                Text(text = "pts totales", fontSize = 14.sp, color = GrayText, modifier = Modifier.padding(bottom = 6.dp))
+                Text(text = stringResource(R.string.reputationscreen_pts_totales_1), fontSize = 14.sp, color = GrayText, modifier = Modifier.padding(bottom = 6.dp))
             }
 
             Spacer(modifier = Modifier.height(32.dp))
@@ -113,7 +118,7 @@ fun ReputationScreen(
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(24.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                 elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
             ) {
                 Column(modifier = Modifier.padding(20.dp)) {
@@ -128,8 +133,8 @@ fun ReputationScreen(
                         }
                         Spacer(modifier = Modifier.width(16.dp))
                         Column {
-                            Text(text = "Siguiente: ${state.nextLevelName}", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = DarkBlue)
-                            Text(text = "Top 15% de exploradores en tu ciudad", fontSize = 12.sp, color = GrayText)
+                            Text(text = "Siguiente: ${state.nextLevelName}", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
+                            Text(text = state.percentageMessage, fontSize = 12.sp, color = GrayText)
                         }
                     }
 
@@ -139,8 +144,8 @@ fun ReputationScreen(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        Text(text = "Progreso", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = DarkBlue)
-                        Text(text = "${state.currentPoints} / ${state.targetPoints} pts", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = DarkBlue)
+                        Text(text = stringResource(R.string.reputationscreen_progreso_2), fontSize = 14.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
+                        Text(text = "${state.currentPoints} / ${state.targetPoints} pts", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
                     }
 
                     Spacer(modifier = Modifier.height(8.dp))
@@ -170,9 +175,9 @@ fun ReputationScreen(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(text = "Puntos Recientes", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = DarkBlue)
+                Text(text = stringResource(R.string.reputationscreen_puntos_recientes_3), fontSize = 18.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
                 TextButton(onClick = { /* Ver Historial */ }) {
-                    Text(text = "Ver Historial", color = Turquoise, fontWeight = FontWeight.Bold)
+                    Text(text = stringResource(R.string.reputationscreen_ver_historial_4), color = Turquoise, fontWeight = FontWeight.Bold)
                 }
             }
 
@@ -185,11 +190,11 @@ fun ReputationScreen(
 
             // How to earn points
             Text(
-                text = "Cómo ganar puntos",
+                text = stringResource(R.string.reputationscreen_c_mo_ganar_puntos_5),
                 modifier = Modifier.fillMaxWidth(),
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
-                color = DarkBlue
+                color = MaterialTheme.colorScheme.onBackground
             )
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -221,7 +226,7 @@ fun RecentPointItem(point: RecentPoint) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
         Row(
@@ -245,7 +250,7 @@ fun RecentPointItem(point: RecentPoint) {
             }
             Spacer(modifier = Modifier.width(16.dp))
             Column(modifier = Modifier.weight(1f)) {
-                Text(text = point.title, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = DarkBlue)
+                Text(text = point.title, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
                 Text(text = point.time, fontSize = 12.sp, color = GrayText)
             }
             Text(text = point.points, fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Turquoise)
@@ -266,7 +271,7 @@ fun EarnCard(option: EarnOption, modifier: Modifier = Modifier) {
         Column(modifier = Modifier.padding(16.dp)) {
             Icon(imageVector = option.icon, contentDescription = null, tint = Turquoise, modifier = Modifier.size(24.dp))
             Spacer(modifier = Modifier.height(12.dp))
-            Text(text = option.title, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = DarkBlue)
+            Text(text = option.title, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
             Text(text = option.description, fontSize = 11.sp, color = GrayText, lineHeight = 14.sp, modifier = Modifier.weight(1f))
             Text(text = option.points, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = Turquoise)
         }

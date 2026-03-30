@@ -24,10 +24,11 @@ enum class PointType {
 
 data class ReputationState(
     val userName: String = "Jean Botsito",
-    val currentLevel: ReputationLevel = ReputationLevel.AVENTURERO,
-    val nextLevelName: String = "Embajador Local",
-    val currentPoints: Int = 2450,
-    val targetPoints: Int = 3000,
+    val currentLevel: ReputationLevel = ReputationLevel.EMBAJADOR,
+    val nextLevelName: String = "Nivel Máximo",
+    val currentPoints: Int = 1250,
+    val targetPoints: Int = 2000,
+    val percentageMessage: String = "Top 15% de exploradores en tu ciudad",
     val recentPoints: List<RecentPoint> = emptyList()
 )
 

@@ -1,12 +1,17 @@
 package com.example.movilexplora.features.success
 
+import androidx.compose.ui.res.stringResource
+import com.example.movilexplora.R
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.*
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -15,7 +20,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.movilexplora.ui.theme.DarkBlue
 import com.example.movilexplora.ui.theme.GrayText
 import com.example.movilexplora.ui.theme.Turquoise
 
@@ -26,7 +30,8 @@ fun SuccessScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 24.dp),
+            .padding(horizontal = 24.dp)
+            .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
@@ -51,7 +56,7 @@ fun SuccessScreen(
             text = "¡Contraseña\nrestablecida!",
             fontSize = 32.sp,
             fontWeight = FontWeight.Bold,
-            color = DarkBlue,
+            color = MaterialTheme.colorScheme.onBackground,
             textAlign = TextAlign.Center,
             lineHeight = 38.sp
         )
@@ -59,7 +64,7 @@ fun SuccessScreen(
         Spacer(modifier = Modifier.height(16.dp))
 
         Text(
-            text = "Tu contraseña ha sido restablecida con éxito. Ahora puedes iniciar sesión con tu nueva clave.",
+            text = stringResource(R.string.successscreen_tu_contrase_a_ha_sido_restable_0),
             fontSize = 16.sp,
             color = GrayText,
             textAlign = TextAlign.Center,
@@ -77,7 +82,7 @@ fun SuccessScreen(
             colors = ButtonDefaults.buttonColors(containerColor = Turquoise)
         ) {
             Text(
-                text = "Volver al Inicio",
+                text = stringResource(R.string.successscreen_volver_al_inicio_1),
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color.White

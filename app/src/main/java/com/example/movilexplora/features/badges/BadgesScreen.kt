@@ -5,6 +5,7 @@ import com.example.movilexplora.R
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
@@ -33,6 +34,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.movilexplora.domain.model.Achievement
 import com.example.movilexplora.ui.theme.GrayText
 import com.example.movilexplora.ui.theme.Turquoise
+import com.example.movilexplora.core.component.UnlockNotificationDialog
+import com.example.movilexplora.domain.model.UnlockNotification
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -41,6 +44,7 @@ fun BadgesScreen(
     viewModel: BadgesViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
+    var selectedBadge by remember { mutableStateOf<UnlockNotification?>(null) }
 
     Scaffold(
         topBar = {
@@ -109,21 +113,50 @@ fun BadgesScreen(
             }
 
             items(state.achievements) { achievement ->
-                BadgeCard(achievement)
+                BadgeCard(
+                    achievement = achievement,
+                    onClick = {
+                        if (achievement.isUnlocked) {
+                            selectedBadge = UnlockNotification(
+                                title = "¡INSIGNIA DESBLOQUEADA!",
+                                name = achievement.name,
+                                icon = when (achievement.iconName) {
+                                    "celebration" -> Icons.Default.Celebration
+                                    "verified" -> Icons.Default.Verified
+                                    "map" -> Icons.Default.Map
+                                    "stars" -> Icons.Default.Stars
+                                    "contact_page" -> Icons.Default.ContactPage
+                                    else -> Icons.Default.EmojiEvents
+                                },
+                                date = "Reciente",
+                                xpEarned = "+50 XP",
+                                footerText = achievement.description
+                            )
+                        }
+                    }
+                )
             }
             item {
                 NextChallengeCard()
             }
         }
+
+        selectedBadge?.let { notification ->
+            UnlockNotificationDialog(
+                notification = notification,
+                onDismiss = { selectedBadge = null }
+            )
+        }
     }
 }
 
 @Composable
-fun BadgeCard(achievement: Achievement) {
+fun BadgeCard(achievement: Achievement, onClick: () -> Unit = {}) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .aspectRatio(0.85f),
+            .aspectRatio(0.85f)
+            .clickable { onClick() },
         shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(containerColor = Color(0xFFF9FAFB)),
         border = BorderStroke(1.dp, Color.LightGray.copy(alpha = 0.2f))

@@ -176,7 +176,8 @@
     <string name="profilescreen_eliminar_16">Eliminar</string>
     <string name="profilescreen_edit_17">Editar</string>
     <string name="profilescreen_delete_18">Eliminar</string>
-    <string name="registrerscreen_back_0">Atrás</string>
+    <string name="profilescreen_cerrar_sesion">Cerrar sesión</string>
+    <string name="registrerscreen_back_0">Atrs</string>
     <string name="reputationscreen_d_0">%,d</string>
     <string name="reputationscreen_pts_totales_1">pts totales</string>
     <string name="reputationscreen_progreso_2">Progreso</string>

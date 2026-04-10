@@ -249,7 +249,8 @@ private fun MainNavigation(
                     onNavigateToEditEvent = { eventId -> navController.navigate("create_edit_event?eventId=$eventId") },
                     onNavigateToReputation = { navController.navigate("reputation") },
                     onNavigateToBadges = { navController.navigate("badges") },
-                    onNavigateToStatistics = { navController.navigate("statistics") }
+                    onNavigateToStatistics = { navController.navigate("statistics") },
+                    onLogout = onLogout
                 )
             }
             composable("edit_profile") {

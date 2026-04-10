@@ -53,12 +53,13 @@ class FeedViewModel @Inject constructor(
     // Combine logs
     val posts: StateFlow<List<Post>> = combine(_allPosts, _state) { allPosts, currentState ->
         val filters = currentState.filterState
-        allPosts.filter { post ->
+        val filteredList = allPosts.filter { post ->
             val matchesCategory = filters.selectedCategory == null || post.category == filters.selectedCategory
             val matchesPrice = filters.selectedPriceRange == 4 || (post.price.count { it == '$' } <= filters.selectedPriceRange)
             val matchesDistance = post.distance <= filters.distance
             matchesCategory && matchesPrice && matchesDistance
         }
+        filteredList.sortedByDescending { it.likedBy.size }
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),

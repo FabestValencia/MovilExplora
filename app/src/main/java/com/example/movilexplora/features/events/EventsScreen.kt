@@ -9,6 +9,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material3.*
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
@@ -38,6 +39,7 @@ fun EventsScreen(
     viewModel: EventsViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
+    val currentUserId by viewModel.currentUserId.collectAsState()
 
     Scaffold(
         floatingActionButton = {
@@ -88,6 +90,8 @@ fun EventsScreen(
                 items(state.events) { event ->
                     EventCard(
                         event = event,
+                        currentUserId = currentUserId,
+                        onFavoriteClick = { viewModel.toggleFavorite(event.id) },
                         onDetailClick = { onNavigateToEventDetail(event.id) }
                     )
                 }
@@ -122,6 +126,8 @@ fun HeaderSection(onMapClick: () -> Unit) {
 @Composable
 fun EventCard(
     event: Event,
+    currentUserId: String,
+    onFavoriteClick: () -> Unit,
     onDetailClick: () -> Unit
 ) {
     Card(
@@ -189,6 +195,25 @@ fun EventCard(
                                     Text(text = "Fin: ${event.endDate} • ${event.endTime}", fontSize = 12.sp, color = GrayText)
                                 }
                             }
+                        }
+                    }
+                    val isFavorite = event.likedBy.contains(currentUserId)
+                    Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+                        IconButton(onClick = onFavoriteClick, modifier = Modifier.size(32.dp)) {
+                            Icon(
+                                imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Outlined.FavoriteBorder,
+                                contentDescription = "Favorite",
+                                tint = if (isFavorite) Color.Red else Color.LightGray,
+                                modifier = Modifier.size(24.dp)
+                            )
+                        }
+                        if (event.likedBy.isNotEmpty()) {
+                            Text(
+                                text = "${event.likedBy.size}",
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Medium,
+                                color = if (isFavorite) Color.Red else GrayText
+                            )
                         }
                     }
                 }

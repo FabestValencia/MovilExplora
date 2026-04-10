@@ -155,19 +155,19 @@ fun FilterToggleSection(onFilterClick: () -> Unit, onFeedClick: () -> Unit) {
     ) {
         Row(
             modifier = Modifier
-                .background(Color.LightGray.copy(alpha = 0.3f), RoundedCornerShape(24.dp))
+                .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(24.dp))
                 .padding(4.dp)
         ) {
             Button(
                 onClick = onFeedClick,
-                colors = ButtonDefaults.buttonColors(containerColor = Color.LightGray.copy(alpha = 0.5f)),
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
                 contentPadding = PaddingValues(horizontal = 24.dp, vertical = 8.dp),
                 shape = RoundedCornerShape(20.dp),
                 modifier = Modifier.height(36.dp)
             ) {
-                Icon(imageVector = Icons.AutoMirrored.Filled.List, contentDescription = null, modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.onBackground)
+                Icon(imageVector = Icons.AutoMirrored.Filled.List, contentDescription = null, modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.onSecondaryContainer)
                 Spacer(modifier = Modifier.width(4.dp))
-                Text(text = stringResource(R.string.feedscreen_feed_1), color = MaterialTheme.colorScheme.onBackground, fontSize = 14.sp)
+                Text(text = stringResource(R.string.feedscreen_feed_1), color = MaterialTheme.colorScheme.onSecondaryContainer, fontSize = 14.sp)
             }
         }
         
@@ -198,7 +198,7 @@ fun CategoriesSection(
             val icon = getCategoryIcon(categoryName)
             val baseColor = getCategoryColor(categoryName)
 
-            val displayColor = if (hasSelection && !isSelected) Color.LightGray else baseColor
+            val displayColor = if (hasSelection && !isSelected) MaterialTheme.colorScheme.onSurfaceVariant else baseColor
 
             Surface(
                 onClick = { onCategorySelect(categoryName) },
@@ -235,21 +235,23 @@ fun PostCard(
         Column {
             Box(modifier = Modifier.height(200.dp).fillMaxWidth()) {
                 // Placeholder for Image
-                Box(modifier = Modifier.fillMaxSize().background(Color.LightGray)) {
-                    Text("Imagen", modifier = Modifier.align(Alignment.Center))
+                Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surfaceVariant)) {
+                    Text("Imagen", color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.align(Alignment.Center))
                 }
                 
                 // Verified Badge
-                Row(
-                    modifier = Modifier
-                        .padding(12.dp)
-                        .background(VerifiedBlue, RoundedCornerShape(12.dp))
-                        .padding(horizontal = 8.dp, vertical = 4.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(imageVector = Icons.Default.CheckCircle, contentDescription = null, tint = Color.White, modifier = Modifier.size(14.dp))
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(text = stringResource(R.string.feedscreen_verificado_3), color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                if (post.isVerified) {
+                    Row(
+                        modifier = Modifier
+                            .padding(12.dp)
+                            .background(VerifiedBlue, RoundedCornerShape(12.dp))
+                            .padding(horizontal = 8.dp, vertical = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(imageVector = Icons.Default.CheckCircle, contentDescription = null, tint = Color.White, modifier = Modifier.size(14.dp))
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(text = stringResource(R.string.feedscreen_verificado_3), color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                    }
                 }
                 
                 // Rating Badge
@@ -276,8 +278,8 @@ fun PostCard(
                     Column {
                         Text(text = post.title, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(imageVector = Icons.Default.LocationOn, contentDescription = null, tint = Color.LightGray, modifier = Modifier.size(14.dp))
-                            Text(text = post.location, fontSize = 12.sp, color = Color.LightGray)
+                            Icon(imageVector = Icons.Default.LocationOn, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(14.dp))
+                            Text(text = post.location, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                     }
                     val isFavorite = post.likedBy.contains(currentUserId)
@@ -286,7 +288,7 @@ fun PostCard(
                             Icon(
                                 imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Outlined.FavoriteBorder,
                                 contentDescription = stringResource(R.string.feedscreen_favorite_7),
-                                tint = if (isFavorite) Color.Red else Color.LightGray,
+                                tint = if (isFavorite) Color.Red else MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.size(24.dp)
                             )
                         }
@@ -302,7 +304,7 @@ fun PostCard(
                 }
                 
                 Spacer(modifier = Modifier.height(12.dp))
-                HorizontalDivider(color = Color.LightGray.copy(alpha = 0.3f))
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                 Spacer(modifier = Modifier.height(12.dp))
                 
                 Row(

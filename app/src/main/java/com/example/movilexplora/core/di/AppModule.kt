@@ -32,6 +32,14 @@ object AppModule {
 
     @Provides
     @Singleton
+    fun provideCommentDao(database: AppDatabase) = database.commentDao
+
+    @Provides
+    @Singleton
+    fun provideLikeDao(database: AppDatabase) = database.likeDao
+
+    @Provides
+    @Singleton
     fun provideResourceProvider(
         @ApplicationContext context: Context
     ): ResourceProvider = ResourceProviderImpl(context)

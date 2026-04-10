@@ -9,6 +9,7 @@ import com.example.movilexplora.domain.model.Post
 import com.example.movilexplora.domain.model.PostStatus
 import com.example.movilexplora.domain.model.Comment
 import com.example.movilexplora.domain.repository.PostRepository
+import com.example.movilexplora.domain.repository.UserRepository
 import com.example.movilexplora.data.datastore.SessionDataStore
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -25,7 +26,8 @@ data class PostDetailState(
 @HiltViewModel
 class PostDetailViewModel @Inject constructor(
     private val postRepository: PostRepository,
-    private val sessionDataStore: SessionDataStore
+    private val sessionDataStore: SessionDataStore,
+    private val userRepository: UserRepository
 ) : ViewModel() {
     private val _state = MutableStateFlow(PostDetailState())
     val state: StateFlow<PostDetailState> = _state.asStateFlow()
@@ -61,15 +63,20 @@ class PostDetailViewModel @Inject constructor(
 
     fun addComment(postId: String, content: String) {
         if (content.isBlank()) return
-        val newComment = Comment(
-            id = System.currentTimeMillis().toString(),
-            postId = postId,
-            userName = "Usuario Actual",
-            userAvatar = "",
-            date = "Ahora",
-            content = content
-        )
+
         viewModelScope.launch {
+            val user = userRepository.findById(currentUserId)
+            val currentUserName = user?.name ?: "Guest"
+            val currentUserAvatar = user?.profilePictureUrl ?: ""
+
+            val newComment = Comment(
+                id = System.currentTimeMillis().toString(),
+                postId = postId,
+                userName = currentUserName,
+                userAvatar = currentUserAvatar,
+                date = "Ahora",
+                content = content
+            )
             postRepository.addComment(newComment)
         }
     }

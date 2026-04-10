@@ -123,12 +123,14 @@ fun PostDetailScreen(
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        DetailBadge(
-                            text = stringResource(R.string.postdetailscreen_verificado_1),
-                            icon = Icons.Default.CheckCircle,
-                            containerColor = VerifiedBlue,
-                            contentColor = Color.White
-                        )
+                        if (post.isVerified) {
+                            DetailBadge(
+                                text = stringResource(R.string.postdetailscreen_verificado_1),
+                                icon = Icons.Default.CheckCircle,
+                                containerColor = VerifiedBlue,
+                                contentColor = Color.White
+                            )
+                        }
                         DetailBadge(
                             text = post.price,
                             icon = Icons.Default.AttachMoney,

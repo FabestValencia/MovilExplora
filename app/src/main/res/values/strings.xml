@@ -211,6 +211,16 @@
     <string name="edit_profile_title">Edit profile</string>
     <string name="edit_profile_save">Save</string>
     <string name="edit_profile_change_photo">Change profile photo</string>
+    <string name="edit_profile_language">Language</string>
+    <string name="language_english">English</string>
+    <string name="language_spanish">Spanish</string>
+
+    <!-- Bottom Navigation Bar Strings -->
+    <string name="bottom_nav_home">Home</string>
+    <string name="bottom_nav_events">Events</string>
+    <string name="bottom_nav_create">Create</string>
+    <string name="bottom_nav_alerts">Alerts</string>
+    <string name="bottom_nav_profile">Profile</string>
 
     <!-- Create Post Screen Additional Strings -->
     <string name="create_post_placeholder_title">E.g. Hidden Gem</string>

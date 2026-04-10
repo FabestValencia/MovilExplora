@@ -49,6 +49,15 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import android.app.DatePickerDialog
+import android.net.Uri
+import coil.compose.AsyncImage
+import java.util.Calendar
 import com.example.movilexplora.features.createpost.CategorySelectableItem
 import com.example.movilexplora.ui.theme.GrayText
 import com.example.movilexplora.ui.theme.Turquoise
@@ -61,6 +70,7 @@ fun CreateEditEventScreen(
     eventId: String? = null,
     onNavigateBack: () -> Unit,
     onSaveSuccess: () -> Unit,
+    viewModel: CreateEventViewModel = hiltViewModel()
 ) {
     var title by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
@@ -68,6 +78,30 @@ fun CreateEditEventScreen(
     var category by remember { mutableStateOf("") }
     var startDate by remember { mutableStateOf("") }
     var endDate by remember { mutableStateOf("") }
+    var imageUri by remember { mutableStateOf<Uri?>(null) } // URI de la imagen seleccionada
+
+    val context = LocalContext.current
+    val calendar = Calendar.getInstance()
+
+    val startDatePickerDialog = DatePickerDialog(
+        context,
+        { _, year, month, dayOfMonth -> startDate = "$dayOfMonth/${month + 1}/$year" },
+        calendar.get(Calendar.YEAR),
+        calendar.get(Calendar.MONTH),
+        calendar.get(Calendar.DAY_OF_MONTH)
+    )
+
+    val endDatePickerDialog = DatePickerDialog(
+        context,
+        { _, year, month, dayOfMonth -> endDate = "$dayOfMonth/${month + 1}/$year" },
+        calendar.get(Calendar.YEAR),
+        calendar.get(Calendar.MONTH),
+        calendar.get(Calendar.DAY_OF_MONTH)
+    )
+
+    val galleryLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? -> imageUri = uri }
 
     val isEditing = eventId != null && eventId != "{eventId}"
 
@@ -81,8 +115,6 @@ fun CreateEditEventScreen(
             endDate = "12/15/2026, 06:00 PM"
         }
     }
-
-    val backgroundColor = Color(0xFFF7F9FA) // Light greyish background
 
     Scaffold(
         topBar = {
@@ -100,10 +132,10 @@ fun CreateEditEventScreen(
                         Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.createediteventscreen_back_14), tint = MaterialTheme.colorScheme.onBackground)
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = backgroundColor)
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background)
             )
         },
-        containerColor = backgroundColor
+        containerColor = MaterialTheme.colorScheme.background
     ) { paddingValues ->
         Column(
             modifier = Modifier
@@ -120,21 +152,31 @@ fun CreateEditEventScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(140.dp)
-                    .background(Color(0xFFEFFFFB), RoundedCornerShape(12.dp))
-                    .border(2.dp, Color(0xFF00FFD4).copy(alpha = 0.4f), RoundedCornerShape(12.dp))
-                    .clickable { /* Select image */ },
+                    .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(12.dp))
+                    .border(2.dp, Turquoise.copy(alpha = 0.4f), RoundedCornerShape(12.dp))
+                    .clip(RoundedCornerShape(12.dp))
+                    .clickable { galleryLauncher.launch("image/*") },
                 contentAlignment = Alignment.Center
             ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Icon(
-                        imageVector = Icons.Default.AddAPhoto,
-                        contentDescription = stringResource(R.string.createediteventscreen_a_adir_imagen_15),
-                        tint = Turquoise,
-                        modifier = Modifier.size(32.dp)
+                if (imageUri != null) {
+                    AsyncImage(
+                        model = imageUri,
+                        contentDescription = "Event Image",
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
                     )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(text = stringResource(R.string.createediteventscreen_a_adir_imagen_del_evento_0), color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
-                    Text(text = stringResource(R.string.createediteventscreen_formato_jpg_o_png__m_x__5mb_1), color = GrayText, fontSize = 12.sp)
+                } else {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Icon(
+                            imageVector = Icons.Default.AddAPhoto,
+                            contentDescription = stringResource(R.string.createediteventscreen_a_adir_imagen_15),
+                            tint = Turquoise,
+                            modifier = Modifier.size(32.dp)
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(text = stringResource(R.string.createediteventscreen_a_adir_imagen_del_evento_0), color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
+                        Text(text = stringResource(R.string.createediteventscreen_formato_jpg_o_png__m_x__5mb_1), color = GrayText, fontSize = 12.sp)
+                    }
                 }
             }
 
@@ -172,9 +214,9 @@ fun CreateEditEventScreen(
                     .fillMaxWidth()
                     .height(150.dp)
                     .clip(RoundedCornerShape(12.dp))
-                    .background(Color.LightGray)
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
             ) {
-                Text(stringResource(R.string.create_post_map_placeholder), modifier = Modifier.align(Alignment.Center))
+                Text(stringResource(R.string.create_post_map_placeholder), modifier = Modifier.align(Alignment.Center), color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -206,32 +248,49 @@ fun CreateEditEventScreen(
             }
             Spacer(modifier = Modifier.height(12.dp))
 
-            EventInputField(
-                label = stringResource(R.string.createediteventscreen_fecha_de_inicio_8),
-                value = startDate,
-                onValueChange = { startDate = it },
-                placeholder = stringResource(R.string.createediteventscreen_mm_dd_yyyy_12),
-                trailingIcon = {
-                    Icon(imageVector = Icons.Default.CalendarToday, contentDescription = null, tint = GrayText, modifier = Modifier.size(20.dp))
-                },
-                readOnly = true
-            )
+            Box(modifier = Modifier.clickable { startDatePickerDialog.show() }) {
+                EventInputField(
+                    label = stringResource(R.string.createediteventscreen_fecha_de_inicio_8),
+                    value = startDate,
+                    onValueChange = {},
+                    placeholder = stringResource(R.string.createediteventscreen_mm_dd_yyyy_12),
+                    trailingIcon = {
+                        Icon(imageVector = Icons.Default.CalendarToday, contentDescription = null, tint = GrayText, modifier = Modifier.size(20.dp))
+                    },
+                    readOnly = true,
+                    enabled = false // Disable to let the Box intercept clicks
+                )
+            }
 
-            EventInputField(
-                label = stringResource(R.string.createediteventscreen_fecha_de_fin_9),
-                value = endDate,
-                onValueChange = { endDate = it },
-                placeholder = stringResource(R.string.createediteventscreen_mm_dd_yyyy_12),
-                trailingIcon = {
-                    Icon(imageVector = Icons.Default.CalendarToday, contentDescription = null, tint = GrayText, modifier = Modifier.size(20.dp))
-                },
-                readOnly = true
-            )
+            Box(modifier = Modifier.clickable { endDatePickerDialog.show() }) {
+                EventInputField(
+                    label = stringResource(R.string.createediteventscreen_fecha_de_fin_9),
+                    value = endDate,
+                    onValueChange = {},
+                    placeholder = stringResource(R.string.createediteventscreen_mm_dd_yyyy_12),
+                    trailingIcon = {
+                        Icon(imageVector = Icons.Default.CalendarToday, contentDescription = null, tint = GrayText, modifier = Modifier.size(20.dp))
+                    },
+                    readOnly = true,
+                    enabled = false // Disable to let the Box intercept clicks
+                )
+            }
 
             Spacer(modifier = Modifier.height(16.dp))
 
             Button(
-                onClick = onSaveSuccess,
+                onClick = {
+                    viewModel.publishEvent(
+                        title = title,
+                        description = description,
+                        location = location,
+                        category = category,
+                        startDate = startDate,
+                        endDate = endDate,
+                        imageUrl = imageUri?.toString() ?: ""
+                    )
+                    onSaveSuccess()
+                },
                 modifier = Modifier.fillMaxWidth().height(56.dp),
                 shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = Turquoise)
@@ -259,6 +318,7 @@ fun EventInputField(
     placeholder: String = "",
     singleLine: Boolean = true,
     readOnly: Boolean = false,
+    enabled: Boolean = true,
     trailingIcon: @Composable (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
@@ -276,16 +336,19 @@ fun EventInputField(
             placeholder = { Text(text = placeholder, color = Color(0xFFA0AAB4)) },
             singleLine = singleLine,
             readOnly = readOnly,
+            enabled = enabled,
             trailingIcon = trailingIcon,
             modifier = modifier.fillMaxWidth(),
             shape = RoundedCornerShape(12.dp),
             colors = OutlinedTextFieldDefaults.colors(
-                focusedContainerColor = Color.White,
-                unfocusedContainerColor = Color.White,
-                disabledContainerColor = Color.White,
+                focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant,
                 focusedBorderColor = Turquoise,
-                unfocusedBorderColor = Color(0xFFE2E8F0),
-                disabledBorderColor = Color(0xFFE2E8F0),
+                unfocusedBorderColor = Color.Transparent,
+                disabledBorderColor = Color.Transparent,
+                disabledTextColor = MaterialTheme.colorScheme.onBackground,
+                disabledPlaceholderColor = Color(0xFFA0AAB4)
             )
         )
     }

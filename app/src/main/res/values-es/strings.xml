@@ -211,6 +211,16 @@
     <string name="edit_profile_title">Editar perfil</string>
     <string name="edit_profile_save">Guardar</string>
     <string name="edit_profile_change_photo">Cambia foto de perfil</string>
+    <string name="edit_profile_language">Idioma</string>
+    <string name="language_english">Inglés</string>
+    <string name="language_spanish">Español</string>
+
+    <!-- Bottom Navigation Bar Strings -->
+    <string name="bottom_nav_home">Inicio</string>
+    <string name="bottom_nav_events">Eventos</string>
+    <string name="bottom_nav_create">Crear</string>
+    <string name="bottom_nav_alerts">Alertas</string>
+    <string name="bottom_nav_profile">Perfil</string>
 
     <!-- Create Post Screen Additional Strings -->
     <string name="create_post_placeholder_title">Ej. Joyita por descubrir</string>

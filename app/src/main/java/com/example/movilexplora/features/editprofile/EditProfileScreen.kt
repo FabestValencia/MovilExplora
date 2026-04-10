@@ -301,6 +301,90 @@ fun EditProfileScreen(
                         colors = SwitchDefaults.colors(checkedThumbColor = Turquoise, checkedTrackColor = Turquoise.copy(alpha = 0.5f))
                     )
                 }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Language Selection
+                var showLanguageMenu by remember { mutableStateOf(false) }
+                
+                val currentLocale = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+                    context.getSystemService(android.app.LocaleManager::class.java).applicationLocales.toLanguageTags().split(",").firstOrNull() ?: "es"
+                } else {
+                    context.resources.configuration.locales[0].language
+                }
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(56.dp)
+                        .clickable { showLanguageMenu = true },
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Box(
+                            modifier = Modifier
+                                .size(36.dp)
+                                .background(Color.LightGray.copy(alpha = 0.5f), CircleShape),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(imageVector = Icons.Default.Language, contentDescription = null, tint = MaterialTheme.colorScheme.onBackground, modifier = Modifier.size(20.dp))
+                        }
+                        Spacer(modifier = Modifier.width(16.dp))
+                        Text(text = stringResource(R.string.edit_profile_language), fontSize = 16.sp, color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.Medium)
+                    }
+                    
+                    Box {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                text = if (currentLocale.startsWith("en")) stringResource(R.string.language_english) else stringResource(R.string.language_spanish),
+                                color = GrayText,
+                                fontSize = 14.sp
+                            )
+                            Icon(imageVector = Icons.Default.ArrowDropDown, contentDescription = null, tint = GrayText)
+                        }
+                        
+                        DropdownMenu(
+                            expanded = showLanguageMenu,
+                            onDismissRequest = { showLanguageMenu = false }
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.language_english)) },
+                                onClick = {
+                                    val lang = "en"
+                                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+                                        context.getSystemService(android.app.LocaleManager::class.java).applicationLocales = android.os.LocaleList.forLanguageTags(lang)
+                                    } else {
+                                        val mLocale = java.util.Locale(lang)
+                                        java.util.Locale.setDefault(mLocale)
+                                        val config = context.resources.configuration
+                                        config.setLocale(mLocale)
+                                        context.resources.updateConfiguration(config, context.resources.displayMetrics)
+                                        (context as? android.app.Activity)?.recreate()
+                                    }
+                                    showLanguageMenu = false
+                                }
+                            )
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.language_spanish)) },
+                                onClick = {
+                                    val lang = "es"
+                                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+                                        context.getSystemService(android.app.LocaleManager::class.java).applicationLocales = android.os.LocaleList.forLanguageTags(lang)
+                                    } else {
+                                        val mLocale = java.util.Locale(lang)
+                                        java.util.Locale.setDefault(mLocale)
+                                        val config = context.resources.configuration
+                                        config.setLocale(mLocale)
+                                        context.resources.updateConfiguration(config, context.resources.displayMetrics)
+                                        (context as? android.app.Activity)?.recreate()
+                                    }
+                                    showLanguageMenu = false
+                                }
+                            )
+                        }
+                    }
+                }
             }
 
             Spacer(modifier = Modifier.height(24.dp))

@@ -15,7 +15,10 @@ data class Post(
     val price: String,
     val status: PostStatus = PostStatus.PENDIENTE,
     val imageUrl: String,
-    val isFavorite: Boolean = false
+    val likedBy: Set<String> = emptySet()
 ) {
     val isVerified: Boolean get() = status == PostStatus.VERIFICADO
+
+    // Deprecated old property for backward compatibility where needed briefly.
+    val isFavorite: Boolean get() = likedBy.isNotEmpty()
 }

@@ -9,9 +9,11 @@ import com.example.movilexplora.domain.model.Post
 import com.example.movilexplora.domain.model.PostStatus
 import com.example.movilexplora.domain.model.Comment
 import com.example.movilexplora.domain.repository.PostRepository
+import com.example.movilexplora.data.datastore.SessionDataStore
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 
 data class PostDetailState(
@@ -22,10 +24,19 @@ data class PostDetailState(
 
 @HiltViewModel
 class PostDetailViewModel @Inject constructor(
-    private val postRepository: PostRepository
+    private val postRepository: PostRepository,
+    private val sessionDataStore: SessionDataStore
 ) : ViewModel() {
     private val _state = MutableStateFlow(PostDetailState())
     val state: StateFlow<PostDetailState> = _state.asStateFlow()
+
+    private var currentUserId: String = "guest"
+
+    init {
+        viewModelScope.launch {
+            currentUserId = sessionDataStore.sessionFlow.firstOrNull()?.userId ?: "guest"
+        }
+    }
 
     fun loadPostDetail(postId: String) {
         val mockDescription = "Experimente las fascinantes aguas azules de esta cueva marina natural. La luz del sol, al atravesar una cavidad submarina, crea un reflejo azul que ilumina la caverna. Ideal para nadar y realizar excursiones guiadas en barco."
@@ -65,7 +76,11 @@ class PostDetailViewModel @Inject constructor(
 
     fun toggleFavorite(postId: String) {
         viewModelScope.launch {
-            postRepository.toggleFavorite(postId)
+            postRepository.toggleFavorite(postId, currentUserId)
         }
+    }
+
+    fun isFavorite(post: Post?): Boolean {
+        return post?.likedBy?.contains(currentUserId) == true
     }
 }

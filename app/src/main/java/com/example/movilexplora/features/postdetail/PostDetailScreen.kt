@@ -76,7 +76,7 @@ fun PostDetailScreen(
                 ModeratorActionButtons()
             } else {
                 BottomActionButtons(
-                    isFavorite = state.post?.isFavorite ?: false,
+                    isFavorite = viewModel.isFavorite(state.post),
                     onToggleFavorite = { viewModel.toggleFavorite(postId) }
                 )
             }
@@ -170,29 +170,8 @@ fun PostDetailScreen(
                         Text(text = stringResource(R.string.postdetailscreen_40_5594__n__14_2045__e_3), fontSize = 14.sp, color = MaterialTheme.colorScheme.onBackground)
                     }
                     Spacer(modifier = Modifier.height(12.dp))
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(200.dp)
-                            .clip(RoundedCornerShape(bottomStart = 24.dp, bottomEnd = 24.dp))
-                            .background(Color.LightGray)
-                    ) {
-                        Text(stringResource(R.string.common_location_image), modifier = Modifier.align(Alignment.Center))
-                        
-                        // Back Button
-                        IconButton(
-                            onClick = { /* Navigate back */ },
-                            modifier = Modifier
-                                .size(40.dp)
-                                .align(Alignment.TopStart)
-                                .padding(8.dp)
-                        ) {
-                            Icon(imageVector = Icons.Default.ArrowBack, contentDescription = null, tint = MaterialTheme.colorScheme.onBackground)
-                        }
-                    }
 
                     if (!isModerator) {
-                        Spacer(modifier = Modifier.height(16.dp))
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()

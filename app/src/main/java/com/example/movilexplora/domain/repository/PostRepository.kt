@@ -9,5 +9,5 @@ interface PostRepository {
     fun getPost(id: String): Flow<Post?>
     fun getComments(postId: String): Flow<List<Comment>>
     suspend fun addComment(comment: Comment)
-    suspend fun toggleFavorite(postId: String)
+    suspend fun toggleFavorite(postId: String, userId: String)
 }

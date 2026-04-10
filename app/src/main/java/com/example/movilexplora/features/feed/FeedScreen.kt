@@ -47,6 +47,7 @@ fun FeedScreen(
 ) {
     val state by viewModel.state.collectAsState()
     val posts by viewModel.posts.collectAsState()
+    val currentUserId by viewModel.currentUserId.collectAsState()
     var showFilterSheet by remember { mutableStateOf(false) }
 
     if (showFilterSheet) {
@@ -90,6 +91,7 @@ fun FeedScreen(
                 items(posts) { post ->
                     PostCard(
                         post = post, 
+                        currentUserId = currentUserId,
                         onFavoriteClick = { viewModel.toggleFavorite(post.id) },
                         onDetailClick = { onNavigateToDetail(post.id) }
                     )
@@ -202,6 +204,7 @@ fun CategoriesSection(categories: List<String>) {
 @Composable
 fun PostCard(
     post: Post, 
+    currentUserId: String,
     onFavoriteClick: () -> Unit,
     onDetailClick: () -> Unit
 ) {
@@ -259,12 +262,24 @@ fun PostCard(
                             Text(text = post.location, fontSize = 12.sp, color = Color.LightGray)
                         }
                     }
-                    IconButton(onClick = onFavoriteClick) {
-                        Icon(
-                            imageVector = if (post.isFavorite) Icons.Default.Favorite else Icons.Outlined.FavoriteBorder,
-                            contentDescription = stringResource(R.string.feedscreen_favorite_7),
-                            tint = if (post.isFavorite) Color.Red else Color.LightGray
-                        )
+                    val isFavorite = post.likedBy.contains(currentUserId)
+                    Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+                        IconButton(onClick = onFavoriteClick, modifier = Modifier.size(32.dp)) {
+                            Icon(
+                                imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Outlined.FavoriteBorder,
+                                contentDescription = stringResource(R.string.feedscreen_favorite_7),
+                                tint = if (isFavorite) Color.Red else Color.LightGray,
+                                modifier = Modifier.size(24.dp)
+                            )
+                        }
+                        if (post.likedBy.isNotEmpty()) {
+                            Text(
+                                text = "${post.likedBy.size}", 
+                                fontSize = 12.sp, 
+                                fontWeight = FontWeight.Medium, 
+                                color = if (isFavorite) Color.Red else GrayText
+                            )
+                        }
                     }
                 }
                 

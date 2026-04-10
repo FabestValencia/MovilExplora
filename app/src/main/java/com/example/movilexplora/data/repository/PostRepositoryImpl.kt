@@ -56,10 +56,18 @@ class PostRepositoryImpl @Inject constructor() : PostRepository {
         _comments.update { it + comment }
     }
 
-    override suspend fun toggleFavorite(postId: String) {
+    override suspend fun toggleFavorite(postId: String, userId: String) {
         _posts.update { posts ->
             posts.map {
-                if (it.id == postId) it.copy(isFavorite = !it.isFavorite) else it
+                if (it.id == postId) {
+                    val currentLikedBy = it.likedBy.toMutableSet()
+                    if (currentLikedBy.contains(userId)) {
+                        currentLikedBy.remove(userId)
+                    } else {
+                        currentLikedBy.add(userId)
+                    }
+                    it.copy(likedBy = currentLikedBy)
+                } else it
             }
         }
     }

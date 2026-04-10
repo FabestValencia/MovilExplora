@@ -28,10 +28,13 @@ import com.example.movilexplora.domain.model.VerificationItem
 import com.example.movilexplora.ui.theme.GrayText
 import com.example.movilexplora.ui.theme.Turquoise
 
+import androidx.compose.material.icons.filled.History
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ModeratorFeedScreen(
     onLogout: () -> Unit,
+    onNavigateToHistory: () -> Unit = {},
     viewModel: ModeratorFeedViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
@@ -51,6 +54,15 @@ fun ModeratorFeedScreen(
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.Logout, 
                             contentDescription = stringResource(R.string.logout_desc), 
+                            tint = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+                },
+                actions = {
+                    IconButton(onClick = onNavigateToHistory) {
+                        Icon(
+                            imageVector = Icons.Default.History,
+                            contentDescription = "Ver Historial",
                             tint = MaterialTheme.colorScheme.onSurface
                         )
                     }

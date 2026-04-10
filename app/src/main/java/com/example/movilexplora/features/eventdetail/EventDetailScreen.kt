@@ -162,31 +162,6 @@ fun EventDetailScreen(
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(200.dp)
-                            .clip(RoundedCornerShape(bottomStart = 24.dp, bottomEnd = 24.dp))
-                            .background(Color.LightGray)
-                    ) {
-                        Text(stringResource(R.string.common_event_image), modifier = Modifier.align(Alignment.Center))
-                        
-                        // Back Button
-                        IconButton(
-                            onClick = onNavigateBack,
-                            modifier = Modifier
-                                .align(Alignment.TopStart)
-                                .padding(16.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = stringResource(R.string.eventdetailscreen_back_4),
-                                tint = MaterialTheme.colorScheme.onBackground
-                            )
-                        }
-                    }
-                    
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
                             .height(150.dp)
                             .clip(RoundedCornerShape(16.dp))
                             .background(Color.LightGray)

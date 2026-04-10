@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.launch
+import android.net.Uri
 
 @HiltViewModel
 class EditProfileViewModel @Inject constructor(
@@ -36,6 +37,13 @@ class EditProfileViewModel @Inject constructor(
     
     val location = ValidatedField("Bogotá, Colombia") { value ->
         if (value.isEmpty()) "La ubicación es obligatoria" else null
+    }
+
+    private val _photoUri = MutableStateFlow<Uri?>(null)
+    val photoUri: StateFlow<Uri?> = _photoUri.asStateFlow()
+
+    fun onPhotoSelected(uri: Uri?) {
+        _photoUri.value = uri
     }
 
     private val _updateResult = MutableStateFlow<RequestResult?>(null)

@@ -18,19 +18,19 @@ class PostRepositoryImpl @Inject constructor() : PostRepository {
         listOf(
             Post(
                 "1", "Belcanto Experience", "Chiado, Lisbon", 4.9, 
-                "Gastronomía", "$$$ • Caro", PostStatus.VERIFICADO, "https://example.com/food.jpg"
+                "Gastronomía", "$$$ € Caro", PostStatus.VERIFICADO, "https://example.com/food.jpg", emptySet(), 12f
             ),
             Post(
                 "2", "Historic Old Town", "Lisbon, Portugal", 4.8, 
-                "Historia", "$$ • Moderado", PostStatus.VERIFICADO, "https://example.com/town.jpg"
+                "Historia", "$$ € Moderado", PostStatus.VERIFICADO, "https://example.com/town.jpg", emptySet(), 5f
             ),
             Post(
                 "3", "Serra da Estrela", "Guarda, Portugal", 4.7, 
-                "Naturaleza", "Gratis", PostStatus.VERIFICADO, "https://example.com/mountain.jpg"
+                "Naturaleza", "Gratis", PostStatus.VERIFICADO, "https://example.com/mountain.jpg", emptySet(), 30f
             ),
             Post(
                 "4", "Cascada Oculta", "Antioquia, Colombia", 4.5,
-                "Naturaleza", "Gratis", PostStatus.PENDIENTE, ""
+                "Naturaleza", "Gratis", PostStatus.PENDIENTE, "", emptySet(), 45f
             )
         )
     )

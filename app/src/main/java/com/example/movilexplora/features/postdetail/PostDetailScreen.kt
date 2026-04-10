@@ -330,6 +330,42 @@ fun BottomActionButtons(
 
 @Composable
 fun ModeratorActionButtons() {
+    var showRejectDialog by remember { mutableStateOf(false) }
+    var rejectReason by remember { mutableStateOf("") }
+
+    if (showRejectDialog) {
+        AlertDialog(
+            onDismissRequest = { showRejectDialog = false },
+            title = {
+                Text(text = "Motivo de rechazo", fontWeight = FontWeight.Bold)
+            },
+            text = {
+                OutlinedTextField(
+                    value = rejectReason,
+                    onValueChange = { rejectReason = it },
+                    modifier = Modifier.fillMaxWidth(),
+                    label = { Text("Escribe la razón aquí...") },
+                    minLines = 3
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        // TODO: Implement the reject action here
+                        showRejectDialog = false
+                    }
+                ) {
+                    Text(text = "Confirmar", color = Color.Red)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showRejectDialog = false }) {
+                    Text("Cancelar")
+                }
+            }
+        )
+    }
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -337,7 +373,7 @@ fun ModeratorActionButtons() {
             .background(Color.White)
     ) {
         Button(
-            onClick = { /* Rechazar */ },
+            onClick = { showRejectDialog = true },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(56.dp),

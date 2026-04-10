@@ -28,6 +28,33 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.movilexplora.ui.theme.GrayText
 import com.example.movilexplora.ui.theme.Turquoise
 import com.example.movilexplora.features.profile.DeleteAccountDialog
+import android.Manifest
+import android.content.Context
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.ui.platform.LocalContext
+import androidx.core.content.FileProvider
+import java.io.File
+import androidx.compose.ui.layout.ContentScale
+import coil.compose.AsyncImage
+
+private fun createTempImageUri(context: Context): Uri {
+    val tempFile = File.createTempFile(
+        "profile_photo_",
+        ".jpg",
+        context.cacheDir
+    ).apply {
+        createNewFile()
+        deleteOnExit()
+    }
+    return FileProvider.getUriForFile(
+        context,
+        "${context.packageName}.fileprovider",
+        tempFile
+    )
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -36,11 +63,42 @@ fun EditProfileScreen(
     onUpdateSuccess: () -> Unit,
     viewModel: EditProfileViewModel = hiltViewModel()
 ) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+
     val updateResult by viewModel.updateResult.collectAsState()
     val isDarkMode by viewModel.isDarkMode.collectAsState()
     val notificationsEnabled by viewModel.notificationsEnabled.collectAsState()
-    
+    val photoUri by viewModel.photoUri.collectAsState()
+
     var showDeleteDialog by remember { mutableStateOf(false) }
+    var showBottomSheet by remember { mutableStateOf(false) }
+    val bottomSheetState = rememberModalBottomSheetState()
+
+    var tempCameraUri by remember { mutableStateOf<Uri?>(null) }
+
+    val galleryLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        uri?.let { viewModel.onPhotoSelected(it) }
+    }
+
+    val cameraLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.TakePicture()
+    ) { success: Boolean ->
+        if (success) {
+            tempCameraUri?.let { viewModel.onPhotoSelected(it) }
+        }
+    }
+
+    val cameraPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted: Boolean ->
+        if (isGranted) {
+            tempCameraUri = createTempImageUri(context)
+            tempCameraUri?.let { cameraLauncher.launch(it) }
+        }
+    }
 
     LaunchedEffect(updateResult) {
         if (updateResult is com.example.movilexplora.core.utils.RequestResult.Success) {
@@ -90,26 +148,38 @@ fun EditProfileScreen(
             // Profile Image Edit
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Box(contentAlignment = Alignment.BottomEnd) {
-                    Box(
-                        modifier = Modifier
-                            .size(100.dp)
-                            .border(2.dp, MaterialTheme.colorScheme.onBackground, CircleShape)
-                            .clip(CircleShape)
-                            .background(Color(0xFFFFCCBC)) // Fondo naranja claro como en la imagen
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Person,
-                            contentDescription = null,
-                            modifier = Modifier.fillMaxSize().padding(12.dp),
-                            tint = Color.Gray
+                    if (photoUri != null) {
+                        AsyncImage(
+                            model = photoUri,
+                            contentDescription = "Profile Picture",
+                            modifier = Modifier
+                                .size(100.dp)
+                                .border(2.dp, MaterialTheme.colorScheme.onBackground, CircleShape)
+                                .clip(CircleShape),
+                            contentScale = ContentScale.Crop
                         )
+                    } else {
+                        Box(
+                            modifier = Modifier
+                                .size(100.dp)
+                                .border(2.dp, MaterialTheme.colorScheme.onBackground, CircleShape)
+                                .clip(CircleShape)
+                                .background(Color(0xFFFFCCBC)) // Fondo naranja claro como en la imagen
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Person,
+                                contentDescription = null,
+                                modifier = Modifier.fillMaxSize().padding(12.dp),
+                                tint = Color.Gray
+                            )
+                        }
                     }
                     Box(
                         modifier = Modifier
                             .size(28.dp)
                             .background(Color(0xFF2196F3), CircleShape) // Color azul para el lapiz
                             .border(1.dp, Color.Black, CircleShape)
-                            .clickable { /* Change Photo */ },
+                            .clickable { showBottomSheet = true },
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(imageVector = Icons.Default.Edit, contentDescription = null, tint = Color.White, modifier = Modifier.size(16.dp))
@@ -275,6 +345,64 @@ fun EditProfileScreen(
             }
             
             Spacer(modifier = Modifier.height(32.dp))
+        }
+
+        if (showBottomSheet) {
+            ModalBottomSheet(
+                onDismissRequest = { showBottomSheet = false },
+                sheetState = bottomSheetState
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 32.dp)
+                ) {
+                    Text(
+                        text = "Seleccionar Imagen",
+                        style = MaterialTheme.typography.titleMedium,
+                        modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp)
+                    )
+
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                showBottomSheet = false
+                                cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+                            }
+                            .padding(horizontal = 24.dp, vertical = 16.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        Icon(imageVector = Icons.Default.PhotoCamera, contentDescription = null, tint = Turquoise)
+                        Text(text = "Tomar Foto", style = MaterialTheme.typography.bodyLarge)
+                    }
+
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                showBottomSheet = false
+                                galleryLauncher.launch("image/*")
+                            }
+                            .padding(horizontal = 24.dp, vertical = 16.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        Icon(imageVector = Icons.Default.Image, contentDescription = null, tint = Turquoise)
+                        Text(text = "Elegir de Galería", style = MaterialTheme.typography.bodyLarge)
+                    }
+
+                    TextButton(
+                        onClick = { showBottomSheet = false },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 8.dp)
+                    ) {
+                        Text("Cancelar", color = Turquoise)
+                    }
+                }
+            }
         }
     }
 }

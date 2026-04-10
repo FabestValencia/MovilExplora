@@ -47,6 +47,8 @@ import androidx.compose.ui.Alignment
 import com.example.movilexplora.data.model.UserSession
 import com.example.movilexplora.domain.model.UserRole
 
+import com.example.movilexplora.features.moderator.ModeratorHistoryScreen
+
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -141,8 +143,7 @@ private fun AuthNavigation(sessionViewModel: SessionViewModel) {
             ModeratorScreen(
                 onNavigateBack = { navController.popBackStack() },
                 onAccessGranted = {
-                    // Force login as moderator using Session ViewModel
-                    sessionViewModel.login("admin", UserRole.MODERATOR)
+                    // Session is saved directly by ModeratorViewModel, handled by AppNavigation
                 }
             )
         }
@@ -165,7 +166,13 @@ private fun MainNavigation(
             // Admin / Moderator Routes
             composable("moderator_feed") {
                 ModeratorFeedScreen(
-                    onLogout = { onLogout() }
+                    onLogout = { onLogout() },
+                    onNavigateToHistory = { navController.navigate("moderator_history") }
+                )
+            }
+            composable("moderator_history") {
+                ModeratorHistoryScreen(
+                    onNavigateBack = { navController.popBackStack() }
                 )
             }
         } else {

@@ -52,9 +52,10 @@ fun FeedScreen(
 
     if (showFilterSheet) {
         FilterBottomSheet(
+            initialState = state.filterState,
             onDismiss = { showFilterSheet = false },
-            onApplyFilters = {
-                // Aquí se aplicarían los filtros en el ViewModel del Feed
+            onApplyFilters = { filterState ->
+                viewModel.applyFilters(filterState)
                 showFilterSheet = false
             }
         )
@@ -75,11 +76,18 @@ fun FeedScreen(
         Column(modifier = Modifier.padding(paddingValues).fillMaxSize()) {
             HeaderSection(userName = state.userName, onMapClick = onNavigateToMap)
             
-            FilterToggleSection(onFilterClick = { showFilterSheet = true })
-            
+            FilterToggleSection(
+                onFilterClick = { showFilterSheet = true },
+                onFeedClick = { viewModel.clearFilters() }
+            )
+
             Spacer(modifier = Modifier.height(16.dp))
             
-            CategoriesSection(categories = state.categories.map { it.name })
+            CategoriesSection(
+                categories = state.categories.map { it.name },
+                selectedCategory = state.filterState.selectedCategory,
+                onCategorySelect = { viewModel.toggleCategoryFilter(it) }
+            )
             
             Spacer(modifier = Modifier.height(16.dp))
             
@@ -137,7 +145,7 @@ fun HeaderSection(userName: String, onMapClick: () -> Unit) {
 }
 
 @Composable
-fun FilterToggleSection(onFilterClick: () -> Unit) {
+fun FilterToggleSection(onFilterClick: () -> Unit, onFeedClick: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -151,7 +159,7 @@ fun FilterToggleSection(onFilterClick: () -> Unit) {
                 .padding(4.dp)
         ) {
             Button(
-                onClick = { /* Feed */ },
+                onClick = onFeedClick,
                 colors = ButtonDefaults.buttonColors(containerColor = Color.LightGray.copy(alpha = 0.5f)),
                 contentPadding = PaddingValues(horizontal = 24.dp, vertical = 8.dp),
                 shape = RoundedCornerShape(20.dp),
@@ -174,27 +182,37 @@ fun FilterToggleSection(onFilterClick: () -> Unit) {
 }
 
 @Composable
-fun CategoriesSection(categories: List<String>) {
+fun CategoriesSection(
+    categories: List<String>,
+    selectedCategory: String?,
+    onCategorySelect: (String) -> Unit
+) {
     LazyRow(
         contentPadding = PaddingValues(horizontal = 16.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         items(categories) { categoryName ->
+            val hasSelection = selectedCategory != null
+            val isSelected = selectedCategory == categoryName
+
             val icon = getCategoryIcon(categoryName)
-            val color = getCategoryColor(categoryName)
-            
+            val baseColor = getCategoryColor(categoryName)
+
+            val displayColor = if (hasSelection && !isSelected) Color.LightGray else baseColor
+
             Surface(
+                onClick = { onCategorySelect(categoryName) },
                 shape = RoundedCornerShape(24.dp),
-                border = BorderStroke(1.dp, color.copy(alpha = 0.5f)),
-                color = color.copy(alpha = 0.1f)
+                border = BorderStroke(1.dp, displayColor.copy(alpha = if (isSelected) 1f else 0.5f)),
+                color = displayColor.copy(alpha = if (isSelected) 0.5f else 0.1f)
             ) {
                 Row(
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Icon(imageVector = icon, contentDescription = null, modifier = Modifier.size(18.dp), tint = color)
+                    Icon(imageVector = icon, contentDescription = null, modifier = Modifier.size(18.dp), tint = displayColor)
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text(text = categoryName, color = color, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+                    Text(text = categoryName, color = displayColor, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
                 }
             }
         }

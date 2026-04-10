@@ -34,6 +34,18 @@ import com.example.movilexplora.ui.theme.VerifiedBlue
 import com.example.movilexplora.ui.theme.getCategoryColor
 import com.example.movilexplora.ui.theme.getCategoryIcon
 
+@Composable
+fun getTranslatedCategoryName(categoryKey: String): String {
+    return when (categoryKey.lowercase().replace("í", "i")) {
+        "gastronomia" -> stringResource(R.string.create_post_cat_gastronomy)
+        "cultura" -> stringResource(R.string.create_post_cat_culture)
+        "naturaleza" -> stringResource(R.string.create_post_cat_nature)
+        "entretenimiento" -> stringResource(R.string.create_post_cat_entertainment)
+        "historia" -> stringResource(R.string.create_post_cat_history)
+        else -> categoryKey
+    }
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FeedScreen(
@@ -212,7 +224,7 @@ fun CategoriesSection(
                 ) {
                     Icon(imageVector = icon, contentDescription = null, modifier = Modifier.size(18.dp), tint = displayColor)
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text(text = categoryName, color = displayColor, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+                    Text(text = getTranslatedCategoryName(categoryName), color = displayColor, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
                 }
             }
         }
@@ -319,7 +331,7 @@ fun PostCard(
                                 .background(categoryColor.copy(alpha = 0.2f), RoundedCornerShape(8.dp))
                                 .padding(horizontal = 12.dp, vertical = 4.dp)
                         ) {
-                            Text(text = post.category, color = categoryColor, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                            Text(text = getTranslatedCategoryName(post.category), color = categoryColor, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                         }
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(text = post.price, color = GrayText, fontSize = 12.sp)

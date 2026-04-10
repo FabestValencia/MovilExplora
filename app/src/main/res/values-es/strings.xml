@@ -146,6 +146,13 @@
     <string name="notificationsscreen_nuevo_0">NUEVO</string>
     <string name="notificationsscreen_back_1">Atrás</string>
     <string name="notificationsscreen_more_2">Más</string>
+    <string name="notifications_title">Notificaciones</string>
+    <string name="notifications_recent">RECIENTES</string>
+    <string name="notifications_mark_all_read">Marcar todo como leído</string>
+    <string name="notifications_older">ANTERIORES</string>
+
+    <string name="badges_title">Mis Insignias</string>
+    <string name="badges_unlocked_count">%1$d Desbloqueadas</string>
     <string name="postdetailscreen_punto_de_interes_0">Punto de interes</string>
     <string name="postdetailscreen_verificado_1">VERIFICADO</string>
     <string name="postdetailscreen_ubicaci_n_2">Ubicación</string>
@@ -208,6 +215,19 @@
     <string name="verificationcodescreen_back_6">Atrás</string>
 
     <!-- Edit Profile Screen -->
+    <string name="profile_screen_title">Perfil</string>
+    <string name="profile_my_places">Mis Lugares</string>
+    <string name="profile_my_events">Mis Eventos</string>
+    <string name="profile_statistics">Estadísticas</string>
+    <string name="profile_statistics_detail">Detalle estadísticas</string>
+    <string name="profile_stat_active">Activas</string>
+    <string name="profile_stat_finished">Finalizadas</string>
+    <string name="profile_stat_pending">Pendientes</string>
+    <string name="profile_xp_next_level">XP para el próximo nivel</string>
+    <string name="profile_no_events">No tienes eventos creados.</string>
+    <string name="profile_event_start">Inicio:</string>
+    <string name="profile_event_end">Fin:</string>
+
     <string name="edit_profile_title">Editar perfil</string>
     <string name="edit_profile_save">Guardar</string>
     <string name="edit_profile_change_photo">Cambia foto de perfil</string>
@@ -243,9 +263,54 @@
 
     <!-- Additional Detail/Map/Feed Strings -->
     <string name="common_event_image">Imagen del Evento</string>
-    <string name="common_map_view">Vista del Mapa</string>
-    <string name="common_location_image">Imagen del lugar</string>
+    <string name="common_map_view">Vista de mapa</string>
+    <string name="common_location_image">Imagen del Lugar</string>
     <string name="post_detail_add_comment">Añadir comentario</string>
     <string name="map_search_placeholder">Buscar lugares, restaurantes…</string>
     <string name="common_image_placeholder">Imagen</string>
+    <string name="statistics_title">Mis Estadísticas</string>
+    <string name="statistics_active_posts">Publicaciones Activas</string>
+    <string name="statistics_finished_posts">Publicaciones Finalizadas</string>
+    <string name="statistics_pending_posts">Pendientes de Verificación</string>
+    <string name="statistics_total_month">Total: %1$s este mes</string>
+    <string name="statistics_chart_active">ACTIVAS</string>
+    <string name="statistics_chart_finished">FINALIZADAS</string>
+    <string name="statistics_chart_pending">PENDIENTES</string>
+
+    <!-- Badges -->
+    <string name="badge_first_post_title">Primera Publicación</string>
+    <string name="badge_first_post_desc">¡Tu primera aventura compartida!</string>
+    <string name="badge_10_posts_title">10 Publicaciones</string>
+    <string name="badge_10_posts_desc">Comunidad confiable y activa</string>
+    <string name="badge_map_master_title">Maestro del Mapa</string>
+    <string name="badge_map_master_desc">Experto en navegación local</string>
+    <string name="badge_explorer_month_title">Explorador del Mes</string>
+    <string name="badge_explorer_month_desc">Sé el más activo este mes</string>
+    <string name="badge_local_guide_title">Guía Local</string>
+    <string name="badge_local_guide_desc">Ayuda a otros viajeros</string>
+
+    <!-- Reputation Additional -->
+    <string name="reputation_title">Reputación</string>
+    <string name="reputation_next">Siguiente: %1$s</string>
+    <string name="reputation_pts_to_level_up">%1$d pts para subir de nivel</string>
+
+    <string name="reputation_earn_post_title">Publicar Lugares</string>
+    <string name="reputation_earn_post_desc">Comparte nuevos descubrimientos con la comunidad.</string>
+    <string name="reputation_earn_comment_title">Comentar</string>
+    <string name="reputation_earn_comment_desc">Interactúa con las publicaciones de otros exploradores.</string>
+    <string name="reputation_earn_vote_title">Recibir Votos</string>
+    <string name="reputation_earn_vote_desc">Recibe \'me gusta\' en tus aportaciones de contenido.</string>
+    <string name="reputation_earn_visit_title">Visitar Lugares</string>
+    <string name="reputation_earn_visit_desc">Registra tu visita en puntos de interés verificados.</string>
+
+    <string name="reputation_recent_post">Nueva Publicación: %1$s</string>
+    <string name="reputation_recent_comment">Comentario recibido</string>
+    <string name="reputation_recent_visit">Visitado: Plaza Central</string>
+    <string name="reputation_time_2_hours">Hace poco</string>
+    <string name="reputation_time_5_hours">Hace poco</string>
+    <string name="reputation_time_yesterday">Reciente</string>
+
+    <string name="reputation_percentage_msg">Top 15%% de exploradores en tu ciudad</string>
+    <string name="reputation_max_level">Nivel Máximo</string>
+
 </resources>

@@ -33,6 +33,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.movilexplora.domain.model.Achievement
 import com.example.movilexplora.ui.theme.GrayText
 import com.example.movilexplora.ui.theme.Turquoise
+import com.example.movilexplora.ui.theme.getTranslatedBadgeDescription
+import com.example.movilexplora.ui.theme.getTranslatedBadgeName
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -45,7 +47,7 @@ fun BadgesScreen(
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text("Mis Insignias", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground) },
+                title = { Text(stringResource(R.string.badges_title), fontSize = 20.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.badgesscreen_back_3), tint = MaterialTheme.colorScheme.onBackground)
@@ -61,7 +63,7 @@ fun BadgesScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .background(Color.White),
+                .background(MaterialTheme.colorScheme.background),
             horizontalArrangement = Arrangement.spacedBy(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
@@ -76,7 +78,7 @@ fun BadgesScreen(
                         modifier = Modifier.padding(horizontal = 16.dp)
                     ) {
                         Text(
-                            text = "${state.unlockedCount} Desbloqueadas",
+                            text = stringResource(R.string.badges_unlocked_count, state.unlockedCount),
                             color = Color.White,
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Bold,
@@ -125,7 +127,7 @@ fun BadgeCard(achievement: Achievement) {
             .fillMaxWidth()
             .aspectRatio(0.85f),
         shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFFF9FAFB)),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
         border = BorderStroke(1.dp, Color.LightGray.copy(alpha = 0.2f))
     ) {
         Column(
@@ -140,7 +142,7 @@ fun BadgeCard(achievement: Achievement) {
             Spacer(modifier = Modifier.height(16.dp))
             
             Text(
-                text = achievement.name,
+                text = getTranslatedBadgeName(achievement.name),
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Bold,
                 color = if (achievement.isUnlocked) MaterialTheme.colorScheme.primary else GrayText,
@@ -150,7 +152,7 @@ fun BadgeCard(achievement: Achievement) {
             Spacer(modifier = Modifier.height(4.dp))
             
             Text(
-                text = achievement.description,
+                text = getTranslatedBadgeDescription(achievement.description),
                 fontSize = 11.sp,
                 color = GrayText.copy(alpha = 0.6f),
                 textAlign = TextAlign.Center,

@@ -21,6 +21,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -29,6 +30,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.movilexplora.ui.theme.GrayText
 import com.example.movilexplora.ui.theme.Turquoise
 import com.example.movilexplora.ui.theme.getReputationColor
+import coil.compose.AsyncImage
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -37,11 +39,12 @@ fun ReputationScreen(
     viewModel: ReputationViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
+    var showFullHistory by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Reputación", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground) },
+                title = { Text(stringResource(R.string.reputation_title), fontSize = 18.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.reputationscreen_back_6), tint = MaterialTheme.colorScheme.onBackground)
@@ -62,19 +65,28 @@ fun ReputationScreen(
             // Profile Header
             Spacer(modifier = Modifier.height(16.dp))
             Box(contentAlignment = Alignment.BottomEnd) {
-                Box(
-                    modifier = Modifier
-                        .size(120.dp)
-                        .clip(CircleShape)
-                        .border(2.dp, Turquoise, CircleShape)
-                        .background(Color.LightGray)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Person,
-                        contentDescription = null,
-                        modifier = Modifier.fillMaxSize().padding(20.dp),
-                        tint = Color.White
+                val boxModifier = Modifier
+                    .size(120.dp)
+                    .clip(CircleShape)
+                    .border(2.dp, Turquoise, CircleShape)
+                    .background(Color.LightGray)
+
+                if (state.profilePictureUrl.isNotEmpty()) {
+                    AsyncImage(
+                        model = state.profilePictureUrl,
+                        contentDescription = "Profile Picture",
+                        modifier = boxModifier,
+                        contentScale = ContentScale.Crop
                     )
+                } else {
+                    Box(modifier = boxModifier) {
+                        Icon(
+                            imageVector = Icons.Default.Person,
+                            contentDescription = null,
+                            modifier = Modifier.fillMaxSize().padding(20.dp),
+                            tint = Color.White
+                        )
+                    }
                 }
                 Box(
                     modifier = Modifier
@@ -133,8 +145,9 @@ fun ReputationScreen(
                         }
                         Spacer(modifier = Modifier.width(16.dp))
                         Column {
-                            Text(text = "Siguiente: ${state.nextLevelName}", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
-                            Text(text = state.percentageMessage, fontSize = 12.sp, color = GrayText)
+                            val nextName = if (state.nextLevelName == "Nivel Máximo" || state.nextLevelName == "Max Level") stringResource(R.string.reputation_max_level) else state.nextLevelName
+                            Text(text = stringResource(R.string.reputation_next, nextName), fontSize = 18.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
+                            Text(text = stringResource(R.string.reputation_percentage_msg), fontSize = 12.sp, color = GrayText)
                         }
                     }
 
@@ -158,7 +171,7 @@ fun ReputationScreen(
 
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        text = "${state.targetPoints - state.currentPoints} pts para subir de nivel",
+                        text = stringResource(R.string.reputation_pts_to_level_up, (state.targetPoints - state.currentPoints).coerceAtLeast(0)),
                         fontSize = 12.sp,
                         color = GrayText,
                         modifier = Modifier.fillMaxWidth(),
@@ -171,22 +184,36 @@ fun ReputationScreen(
 
             // Recent Points
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(text = stringResource(R.string.reputationscreen_puntos_recientes_3), fontSize = 18.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
-                TextButton(onClick = { /* Ver Historial */ }) {
-                    Text(text = stringResource(R.string.reputationscreen_ver_historial_4), color = Turquoise, fontWeight = FontWeight.Bold)
+                TextButton(onClick = { showFullHistory = !showFullHistory }) {
+                    Text(
+                        text = if (showFullHistory) "Ocultar" else stringResource(R.string.reputationscreen_ver_historial_4),
+                        color = Turquoise,
+                        fontWeight = FontWeight.Bold
+                    )
                 }
             }
 
-            state.recentPoints.forEach { point ->
-                RecentPointItem(point)
-                Spacer(modifier = Modifier.height(12.dp))
+            val pointsToShow = if (showFullHistory) state.recentPoints else state.recentPoints.take(3)
+
+            Column(
+                modifier = Modifier
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                    .fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                pointsToShow.forEach { point ->
+                    RecentPointItem(point)
+                }
             }
 
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
             // How to earn points
             Text(
@@ -199,10 +226,10 @@ fun ReputationScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             val earnOptions = listOf(
-                EarnOption("Publicar Lugares", "Comparte nuevos descubrimientos con la comunidad.", "+10 pts", Icons.Default.EditNote),
-                EarnOption("Comentar", "Interactúa con las publicaciones de otros exploradores.", "+2 pts", Icons.AutoMirrored.Filled.Chat),
-                EarnOption("Recibir Votos", "Recibe 'me gusta' en tus aportaciones de contenido.", "+5 pts", Icons.Default.ThumbUp),
-                EarnOption("Visitar Lugares", "Registra tu visita en puntos de interés verificados.", "+20 pts", Icons.Default.LocationOn)
+                EarnOption(stringResource(R.string.reputation_earn_post_title), stringResource(R.string.reputation_earn_post_desc), "+10 pts", Icons.Default.EditNote),
+                EarnOption(stringResource(R.string.reputation_earn_comment_title), stringResource(R.string.reputation_earn_comment_desc), "+2 pts", Icons.AutoMirrored.Filled.Chat),
+                EarnOption(stringResource(R.string.reputation_earn_vote_title), stringResource(R.string.reputation_earn_vote_desc), "+5 pts", Icons.Default.ThumbUp),
+                EarnOption(stringResource(R.string.reputation_earn_visit_title), stringResource(R.string.reputation_earn_visit_desc), "+20 pts", Icons.Default.LocationOn)
             )
 
             Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
@@ -218,6 +245,19 @@ fun ReputationScreen(
 
             Spacer(modifier = Modifier.height(40.dp))
         }
+    }
+}
+
+@Composable
+fun getTranslatedPointText(original: String): String {
+    return when (original) {
+        "Nueva Publicación: Cascada Oculta" -> stringResource(R.string.reputation_recent_post)
+        "Comentario recibido" -> stringResource(R.string.reputation_recent_comment)
+        "Visitado: Plaza Central" -> stringResource(R.string.reputation_recent_visit)
+        "Hace 2 horas" -> stringResource(R.string.reputation_time_2_hours)
+        "Hace 5 horas" -> stringResource(R.string.reputation_time_5_hours)
+        "Ayer" -> stringResource(R.string.reputation_time_yesterday)
+        else -> original
     }
 }
 
@@ -250,8 +290,8 @@ fun RecentPointItem(point: RecentPoint) {
             }
             Spacer(modifier = Modifier.width(16.dp))
             Column(modifier = Modifier.weight(1f)) {
-                Text(text = point.title, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
-                Text(text = point.time, fontSize = 12.sp, color = GrayText)
+                Text(text = getTranslatedPointText(point.title), fontSize = 14.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
+                Text(text = getTranslatedPointText(point.time), fontSize = 12.sp, color = GrayText)
             }
             Text(text = point.points, fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Turquoise)
         }

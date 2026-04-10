@@ -146,6 +146,13 @@
     <string name="notificationsscreen_nuevo_0">NEW</string>
     <string name="notificationsscreen_back_1">Back</string>
     <string name="notificationsscreen_more_2">More</string>
+    <string name="notifications_title">Notifications</string>
+    <string name="notifications_recent">RECENT</string>
+    <string name="notifications_mark_all_read">Mark all as read</string>
+    <string name="notifications_older">OLDER</string>
+
+    <string name="badges_title">My Badges</string>
+    <string name="badges_unlocked_count">%1$d Unlocked</string>
     <string name="postdetailscreen_punto_de_interes_0">Point of interest</string>
     <string name="postdetailscreen_verificado_1">VERIFIED</string>
     <string name="postdetailscreen_ubicaci_n_2">Location</string>
@@ -208,6 +215,19 @@
     <string name="verificationcodescreen_back_6">Back</string>
 
     <!-- Edit Profile Screen -->
+    <string name="profile_screen_title">Profile</string>
+    <string name="profile_my_places">My Places</string>
+    <string name="profile_my_events">My Events</string>
+    <string name="profile_statistics">Statistics</string>
+    <string name="profile_statistics_detail">Statistics detail</string>
+    <string name="profile_stat_active">Active</string>
+    <string name="profile_stat_finished">Finished</string>
+    <string name="profile_stat_pending">Pending</string>
+    <string name="profile_xp_next_level">XP for next level</string>
+    <string name="profile_no_events">You have no created events.</string>
+    <string name="profile_event_start">Start:</string>
+    <string name="profile_event_end">End:</string>
+
     <string name="edit_profile_title">Edit profile</string>
     <string name="edit_profile_save">Save</string>
     <string name="edit_profile_change_photo">Change profile photo</string>
@@ -248,4 +268,49 @@
     <string name="post_detail_add_comment">Add comment</string>
     <string name="map_search_placeholder">Search places, restaurants…</string>
     <string name="common_image_placeholder">Image</string>
+    <string name="statistics_title">My Statistics</string>
+    <string name="statistics_active_posts">Active Posts</string>
+    <string name="statistics_finished_posts">Finished Posts</string>
+    <string name="statistics_pending_posts">Pending Verification</string>
+    <string name="statistics_total_month">Total: %1$s this month</string>
+    <string name="statistics_chart_active">ACTIVE</string>
+    <string name="statistics_chart_finished">FINISHED</string>
+    <string name="statistics_chart_pending">PENDING</string>
+
+    <!-- Badges -->
+    <string name="badge_first_post_title">First Post</string>
+    <string name="badge_first_post_desc">Your first shared adventure!</string>
+    <string name="badge_10_posts_title">10 Posts</string>
+    <string name="badge_10_posts_desc">Reliable and active community</string>
+    <string name="badge_map_master_title">Map Master</string>
+    <string name="badge_map_master_desc">Local navigation expert</string>
+    <string name="badge_explorer_month_title">Explorer of the Month</string>
+    <string name="badge_explorer_month_desc">Be the most active this month</string>
+    <string name="badge_local_guide_title">Local Guide</string>
+    <string name="badge_local_guide_desc">Help other travelers</string>
+
+    <!-- Reputation Additional -->
+    <string name="reputation_title">Reputation</string>
+    <string name="reputation_next">Next: %1$s</string>
+    <string name="reputation_pts_to_level_up">%1$d pts to level up</string>
+
+    <string name="reputation_earn_post_title">Post Places</string>
+    <string name="reputation_earn_post_desc">Share new discoveries with the community.</string>
+    <string name="reputation_earn_comment_title">Comment</string>
+    <string name="reputation_earn_comment_desc">Interact with posts from other explorers.</string>
+    <string name="reputation_earn_vote_title">Receive Votes</string>
+    <string name="reputation_earn_vote_desc">Get likes on your content contributions.</string>
+    <string name="reputation_earn_visit_title">Visit Places</string>
+    <string name="reputation_earn_visit_desc">Log your visit at verified points of interest.</string>
+
+    <string name="reputation_recent_post">New Post: Hidden Waterfall</string>
+    <string name="reputation_recent_comment">Comment received</string>
+    <string name="reputation_recent_visit">Visited: Central Square</string>
+    <string name="reputation_time_2_hours">2 hours ago</string>
+    <string name="reputation_time_5_hours">5 hours ago</string>
+    <string name="reputation_time_yesterday">Yesterday</string>
+
+    <string name="reputation_percentage_msg">Top 15%% of explorers in your city</string>
+    <string name="reputation_max_level">Max Level</string>
+
 </resources>

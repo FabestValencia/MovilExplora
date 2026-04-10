@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.movilexplora.ui.theme.Turquoise
 import com.example.movilexplora.ui.theme.GrayText
+import com.example.movilexplora.ui.theme.getTranslatedCategoryName
 import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -122,7 +123,7 @@ fun FilterBottomSheet(
             val categories = listOf("Gastronomía", "Cultura", "Naturaleza", "Entretenimiento", "Historia")
             categories.forEach { category ->
                 CategoryItem(
-                    name = category,
+                    name = getTranslatedCategoryName(category),
                     isSelected = state.selectedCategory == category,
                     onSelect = {
                         val newSelection = if (state.selectedCategory == category) null else category

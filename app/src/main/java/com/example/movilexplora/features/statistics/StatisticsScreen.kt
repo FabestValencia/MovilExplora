@@ -44,7 +44,7 @@ fun StatisticsScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Mis Estadísticas", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground) },
+                title = { Text(stringResource(R.string.statistics_title), fontSize = 18.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.statisticsscreen_back_3), tint = MaterialTheme.colorScheme.onBackground)
@@ -63,7 +63,7 @@ fun StatisticsScreen(
                 selectedItem = "Perfil" // Manteniendo como parte del flujo del perfil
             )
         },
-        containerColor = Color(0xFFF7F8FA) // Fondo gris claro
+        containerColor = MaterialTheme.colorScheme.background
     ) { paddingValues ->
         Column(
             modifier = Modifier
@@ -88,7 +88,7 @@ fun StatisticsScreen(
             
             // Cards
             StatDetailCard(
-                title = "Publicaciones Activas",
+                title = stringResource(R.string.statistics_active_posts),
                 value = state.activePosts.toString(),
                 change = state.activePostsChange,
                 isPositive = state.isActivePostsPositive,
@@ -96,7 +96,7 @@ fun StatisticsScreen(
             )
             Spacer(modifier = Modifier.height(12.dp))
             StatDetailCard(
-                title = "Publicaciones Finalizadas",
+                title = stringResource(R.string.statistics_finished_posts),
                 value = state.finishedPosts.toString(),
                 change = state.finishedPostsChange,
                 isPositive = state.isFinishedPostsPositive,
@@ -104,7 +104,7 @@ fun StatisticsScreen(
             )
             Spacer(modifier = Modifier.height(12.dp))
             StatDetailCard(
-                title = "Pendientes de Verificación",
+                title = stringResource(R.string.statistics_pending_posts),
                 value = state.pendingPosts.toString(),
                 change = state.pendingPostsChange,
                 isPositive = state.isPendingPostsPositive,
@@ -150,7 +150,7 @@ fun StatDetailCard(
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Row(
@@ -190,13 +190,13 @@ fun ChartCard(total: Int, active: Int, finished: Int, pending: Int) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp).fillMaxWidth()) {
             Text(text = stringResource(R.string.statisticsscreen_distribuci_n_de_publicaciones_2), fontSize = 16.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
-            Text(text = "Total: $total este mes", fontSize = 12.sp, color = GrayText)
-            
+            Text(text = stringResource(R.string.statistics_total_month, total.toString()), fontSize = 12.sp, color = GrayText)
+
             Spacer(modifier = Modifier.height(24.dp))
             
             // Calculamos la altura máxima y proporcional para las barras
@@ -228,9 +228,9 @@ fun ChartCard(total: Int, active: Int, finished: Int, pending: Int) {
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text("ACTIVAS", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = GrayText)
-                Text("FINALIZADAS", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = GrayText)
-                Text("PENDIENTES", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = GrayText)
+                Text(stringResource(R.string.statistics_chart_active), fontSize = 10.sp, fontWeight = FontWeight.Bold, color = GrayText)
+                Text(stringResource(R.string.statistics_chart_finished), fontSize = 10.sp, fontWeight = FontWeight.Bold, color = GrayText)
+                Text(stringResource(R.string.statistics_chart_pending), fontSize = 10.sp, fontWeight = FontWeight.Bold, color = GrayText)
             }
         }
     }
@@ -241,7 +241,7 @@ fun RecentActivityList(activities: List<ActivityItemModel>) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp).fillMaxWidth()) {
@@ -261,10 +261,10 @@ fun ActivityItem(title: String, time: String) {
         Box(
             modifier = Modifier
                 .size(40.dp)
-                .background(Color(0xFFF0F5F9), CircleShape),
+                .background(Turquoise.copy(alpha = 0.1f), CircleShape),
             contentAlignment = Alignment.Center
         ) {
-            Icon(imageVector = Icons.Default.History, contentDescription = null, tint = GrayText)
+            Icon(imageVector = Icons.Default.History, contentDescription = null, tint = Turquoise)
         }
         Spacer(modifier = Modifier.width(16.dp))
         Column {

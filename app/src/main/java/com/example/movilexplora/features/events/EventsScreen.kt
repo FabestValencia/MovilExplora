@@ -26,6 +26,7 @@ import com.example.movilexplora.ui.theme.GrayText
 import com.example.movilexplora.ui.theme.Turquoise
 import com.example.movilexplora.ui.theme.VerifiedBlue
 import com.example.movilexplora.ui.theme.getCategoryColor
+import com.example.movilexplora.ui.theme.getTranslatedCategoryName
 
 @Composable
 fun EventsScreen(
@@ -132,14 +133,14 @@ fun EventCard(
 ) {
     Card(
         shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         modifier = Modifier.fillMaxWidth()
     ) {
         Column {
-            Box(modifier = Modifier.height(160.dp).fillMaxWidth().background(Color.LightGray)) {
+            Box(modifier = Modifier.height(160.dp).fillMaxWidth().background(MaterialTheme.colorScheme.surfaceVariant)) {
                 // Image placeholder
-                Text("Imagen del Evento", modifier = Modifier.align(Alignment.Center), color = Color.DarkGray)
+                Text(stringResource(R.string.common_event_image), modifier = Modifier.align(Alignment.Center), color = MaterialTheme.colorScheme.onSurfaceVariant)
 
                 val categoryColor = getCategoryColor(event.category)
                 Surface(
@@ -148,7 +149,7 @@ fun EventCard(
                     color = categoryColor
                 ) {
                     Text(
-                        text = event.category,
+                        text = getTranslatedCategoryName(event.category),
                         color = Color.White,
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold,

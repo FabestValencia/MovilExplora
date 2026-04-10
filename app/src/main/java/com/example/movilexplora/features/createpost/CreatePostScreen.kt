@@ -16,6 +16,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -90,7 +91,7 @@ fun CreatePostScreen(
                 Text(text = "Tu publicación \"$publishedTitle\" ha sido creada exitosamente y pronto estará disponible para la comunidad.")
             },
             shape = RoundedCornerShape(16.dp),
-            containerColor = Color.White
+            containerColor = MaterialTheme.colorScheme.surface
         )
     }
 
@@ -115,7 +116,8 @@ fun CreatePostScreen(
                 actions = { Spacer(modifier = Modifier.width(48.dp)) },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface)
             )
-        }
+        },
+        containerColor = MaterialTheme.colorScheme.background
     ) { paddingValues ->
         Column(
             modifier = Modifier
@@ -123,7 +125,6 @@ fun CreatePostScreen(
                 .padding(paddingValues)
                 .padding(horizontal = 24.dp)
                 .verticalScroll(rememberScrollState())
-                .background(Color.White)
         ) {
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -136,7 +137,7 @@ fun CreatePostScreen(
                     .height(180.dp)
                     .border(1.dp, Color.LightGray.copy(alpha = 0.5f), RoundedCornerShape(16.dp))
                     .clip(RoundedCornerShape(16.dp))
-                    .background(Color(0xFFF7F8F9))
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
                     .clickable { galleryLauncher.launch("image/*") },
                 contentAlignment = Alignment.Center
             ) {
@@ -180,8 +181,8 @@ fun CreatePostScreen(
                 placeholder = { Text(stringResource(R.string.create_post_placeholder_title), color = GrayText.copy(alpha = 0.4f)) },
                 shape = RoundedCornerShape(12.dp),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedContainerColor = Color(0xFFF7F8F9),
-                    unfocusedContainerColor = Color(0xFFF7F8F9),
+                    focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
                     unfocusedBorderColor = Color.Transparent
                 ),
                 singleLine = true
@@ -227,8 +228,8 @@ fun CreatePostScreen(
                 placeholder = { Text(stringResource(R.string.create_post_placeholder_desc), color = GrayText.copy(alpha = 0.4f)) },
                 shape = RoundedCornerShape(12.dp),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedContainerColor = Color(0xFFF7F8F9),
-                    unfocusedContainerColor = Color(0xFFF7F8F9),
+                    focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
                     unfocusedBorderColor = Color.Transparent
                 )
             )
@@ -269,9 +270,9 @@ fun CreatePostScreen(
                     .fillMaxWidth()
                     .height(150.dp)
                     .clip(RoundedCornerShape(12.dp))
-                    .background(Color.LightGray)
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
             ) {
-                Text(stringResource(R.string.create_post_map_placeholder), modifier = Modifier.align(Alignment.Center))
+                Text(stringResource(R.string.create_post_map_placeholder), modifier = Modifier.align(Alignment.Center), color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -382,7 +383,7 @@ fun TimeOption(text: String, icon: androidx.compose.ui.graphics.vector.ImageVect
         modifier = modifier.height(50.dp),
         shape = RoundedCornerShape(12.dp),
         border = BorderStroke(1.dp, if (isSelected) Turquoise else Color.LightGray.copy(alpha = 0.3f)),
-        color = if (isSelected) Turquoise.copy(alpha = 0.15f) else Color(0xFFF7F8F9)
+        color = if (isSelected) Turquoise.copy(alpha = 0.15f) else MaterialTheme.colorScheme.surfaceVariant
     ) {
         Row(
             modifier = Modifier.padding(horizontal = 12.dp),

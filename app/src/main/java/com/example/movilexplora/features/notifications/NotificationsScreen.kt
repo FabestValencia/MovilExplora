@@ -60,6 +60,7 @@ fun NotificationsScreen(
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface)
             )
         },
+        containerColor = MaterialTheme.colorScheme.background,
         bottomBar = {
             BottomNavigationBar(
                 onCreateClick = onNavigateToCreatePost,
@@ -75,7 +76,7 @@ fun NotificationsScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .background(Color.White)
+                .background(MaterialTheme.colorScheme.background)
         ) {
             if (state.recentNotifications.isNotEmpty()) {
                 item {
@@ -136,7 +137,7 @@ fun SectionHeader(
 
 @Composable
 fun NotificationItem(notification: Notification) {
-    val backgroundColor = if (notification.isNew) Turquoise.copy(alpha = 0.05f) else Color.Transparent
+    val backgroundColor = if (notification.isNew) Turquoise.copy(alpha = 0.05f) else MaterialTheme.colorScheme.surface
     val indicatorColor = if (notification.isNew) Turquoise else Color.Transparent
 
     Row(

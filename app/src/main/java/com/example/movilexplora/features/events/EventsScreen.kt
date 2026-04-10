@@ -66,7 +66,7 @@ fun EventsScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .background(Color.White)
+                .background(MaterialTheme.colorScheme.background)
         ) {
             HeaderSection(onMapClick = onNavigateToMap)
 
@@ -132,15 +132,15 @@ fun EventCard(
 ) {
     Card(
         shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         modifier = Modifier.fillMaxWidth()
     ) {
         Column {
             Box(modifier = Modifier.height(160.dp).fillMaxWidth().background(Color.LightGray)) {
                 // Image placeholder
-                Text("Imagen del Evento", modifier = Modifier.align(Alignment.Center))
-                
+                Text("Imagen del Evento", modifier = Modifier.align(Alignment.Center), color = Color.DarkGray)
+
                 val categoryColor = getCategoryColor(event.category)
                 Surface(
                     modifier = Modifier.padding(12.dp).align(Alignment.TopStart),
@@ -221,9 +221,9 @@ fun EventCard(
                 Spacer(modifier = Modifier.height(8.dp))
                 
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(imageVector = Icons.Default.LocationOn, contentDescription = null, tint = Color.LightGray, modifier = Modifier.size(14.dp))
+                    Icon(imageVector = Icons.Default.LocationOn, contentDescription = null, tint = GrayText, modifier = Modifier.size(14.dp))
                     Spacer(modifier = Modifier.width(4.dp))
-                    Text(text = event.location, fontSize = 12.sp, color = Color.LightGray)
+                    Text(text = event.location, fontSize = 12.sp, color = GrayText)
                 }
 
                 Spacer(modifier = Modifier.height(8.dp))

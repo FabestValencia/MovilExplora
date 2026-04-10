@@ -12,6 +12,8 @@ import com.example.movilexplora.domain.repository.UserRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.launch
 
 @HiltViewModel
 class ModeratorViewModel @Inject constructor(
@@ -40,12 +42,14 @@ class ModeratorViewModel @Inject constructor(
 
     fun loginAdmin() {
         if (isFormValid) {
-            val user = userRepository.login(email.value, password.value)
-            
-            if (user != null && user.role == UserRole.ADMIN) {
-                _accessResult.value = RequestResult.Success("Acceso concedido")
-            } else {
-                _accessResult.value = RequestResult.Failure("Credenciales de moderador incorrectas")
+            viewModelScope.launch {
+                val user = userRepository.login(email.value, password.value)
+
+                if (user != null && user.role == UserRole.ADMIN) {
+                    _accessResult.value = RequestResult.Success("Acceso concedido")
+                } else {
+                    _accessResult.value = RequestResult.Failure("Credenciales de moderador incorrectas")
+                }
             }
         }
     }

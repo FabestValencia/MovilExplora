@@ -49,16 +49,16 @@ class LoginViewModel @Inject constructor(
 
     fun login() {
         if (isFormValid) {
-            val user = userRepository.login(email.value, password.value)
-            
-            if (user != null) {
-                // Save session in DataStore
-                viewModelScope.launch {
+            viewModelScope.launch {
+                val user = userRepository.login(email.value, password.value)
+
+                if (user != null) {
+                    // Save session in DataStore
                     sessionDataStore.saveSession(userId = user.id, role = user.role)
                     _loginResult.value = RequestResult.Success(resources.getString(R.string.login_success))
+                } else {
+                    _loginResult.value = RequestResult.Failure(resources.getString(R.string.login_failure))
                 }
-            } else {
-                _loginResult.value = RequestResult.Failure(resources.getString(R.string.login_failure))
             }
         }
     }

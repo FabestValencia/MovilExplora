@@ -12,6 +12,8 @@ import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.launch
 
 @HiltViewModel
 class RegisterViewModel @Inject constructor(
@@ -61,8 +63,10 @@ class RegisterViewModel @Inject constructor(
                 address = "",
                 profilePictureUrl = ""
             )
-            userRepository.save(newUser)
-            _registerResult.value = RequestResult.Success("Usuario registrado exitosamente")
+            viewModelScope.launch {
+                userRepository.save(newUser)
+                _registerResult.value = RequestResult.Success("Usuario registrado exitosamente")
+            }
         }
     }
 

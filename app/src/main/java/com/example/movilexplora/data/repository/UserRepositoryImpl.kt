@@ -1,34 +1,55 @@
 package com.example.movilexplora.data.repository
 
+import com.example.movilexplora.data.local.dao.UserDao
+import com.example.movilexplora.data.local.entity.toDomainModel
+import com.example.movilexplora.data.local.entity.toEntity
 import com.example.movilexplora.domain.model.User
 import com.example.movilexplora.domain.model.UserRole
 import com.example.movilexplora.domain.repository.UserRepository
-import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class UserRepositoryImpl @Inject constructor() : UserRepository {
+class UserRepositoryImpl @Inject constructor(
+    private val userDao: UserDao
+) : UserRepository {
 
-    private val _users = MutableStateFlow<List<User>>(emptyList())
-    override val users: StateFlow<List<User>> = _users.asStateFlow()
+    private val coroutineScope = CoroutineScope(Dispatchers.IO)
+
+    override val users: StateFlow<List<User>> = userDao.getAllUsers()
+        .map { entities -> entities.map { it.toDomainModel() } }
+        .stateIn(
+            scope = coroutineScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
+        )
 
     init {
-        _users.value = fetchUsers()
+        // Populate initial mock users if DB is empty
+        coroutineScope.launch {
+            if (userDao.getUserById("1") == null) {
+                fetchUsers().forEach { userDao.insertUser(it.toEntity()) }
+            }
+        }
     }
 
-    override fun save(user: User) {
-        _users.value += user
+    override suspend fun save(user: User) {
+        userDao.insertUser(user.toEntity())
     }
 
-    override fun findById(id: String): User? {
-        return _users.value.firstOrNull { it.id == id }
+    override suspend fun findById(id: String): User? {
+        return userDao.getUserById(id)?.toDomainModel()
     }
 
-    override fun login(email: String, password: String): User? {
-        return _users.value.firstOrNull { it.email == email && it.password == password }
+    override suspend fun login(email: String, password: String): User? {
+        return userDao.login(email, password)?.toDomainModel()
     }
 
     private fun fetchUsers(): List<User> {

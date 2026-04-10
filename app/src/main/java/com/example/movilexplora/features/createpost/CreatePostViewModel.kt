@@ -10,10 +10,12 @@ import com.example.movilexplora.core.utils.ValidatedField
 import com.example.movilexplora.domain.model.Post
 import com.example.movilexplora.domain.model.PostStatus
 import com.example.movilexplora.domain.repository.PostRepository
+import com.example.movilexplora.data.datastore.SessionDataStore
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 
 data class CreatePostState(
@@ -25,7 +27,8 @@ data class CreatePostState(
 
 @HiltViewModel
 class CreatePostViewModel @Inject constructor(
-    private val postRepository: PostRepository
+    private val postRepository: PostRepository,
+    private val sessionDataStore: SessionDataStore
 ) : ViewModel() {
     val title = ValidatedField("") { value ->
         if (value.isEmpty()) "El título es obligatorio" else null
@@ -56,6 +59,7 @@ class CreatePostViewModel @Inject constructor(
     fun publish() {
         if (title.isValid && description.isValid && _state.value.selectedCategory != null) {
             viewModelScope.launch {
+                val userId = sessionDataStore.sessionFlow.firstOrNull()?.userId ?: "1" // Defaulting if null
                 val newPost = Post(
                     id = System.currentTimeMillis().toString(),
                     title = title.value,
@@ -66,7 +70,8 @@ class CreatePostViewModel @Inject constructor(
                     status = PostStatus.PENDIENTE,
                     imageUrl = "",
                     likedBy = emptySet(),
-                    distance = 5f
+                    distance = 5f,
+                    creatorId = userId
                 )
                 postRepository.addPost(newPost)
                 _publishResult.value = RequestResult.Success("Publicación creada correctamente")

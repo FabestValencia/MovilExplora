@@ -4,12 +4,17 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.example.movilexplora.domain.model.Notification
 import com.example.movilexplora.domain.model.NotificationType
+import com.example.movilexplora.domain.repository.PostRepository
+import com.example.movilexplora.data.datastore.SessionDataStore
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 
 data class NotificationsState(
     val recentNotifications: List<Notification> = emptyList(),
@@ -17,59 +22,72 @@ data class NotificationsState(
 )
 
 @HiltViewModel
-class NotificationsViewModel @Inject constructor() : ViewModel() {
+class NotificationsViewModel @Inject constructor(
+    private val sessionDataStore: SessionDataStore,
+    private val postRepository: PostRepository
+) : ViewModel() {
     private val _state = MutableStateFlow(NotificationsState())
     val state: StateFlow<NotificationsState> = _state.asStateFlow()
 
     init {
-        // Mock data based on the image
-        _state.update {
-            it.copy(
-                recentNotifications = listOf(
-                    Notification(
-                        id = "1",
-                        type = NotificationType.NEW_PLACE,
-                        title = "¡Nuevo lugar cerca!",
-                        description = "\"Cueva del Esplendor\" ha sido verificado.",
-                        time = "Hace 5 min",
-                        isNew = true
-                    ),
-                    Notification(
-                        id = "2",
-                        type = NotificationType.COMMENT,
-                        title = "Comentarios recibidos",
-                        description = "Alejandro G. comentó en tu publicación \"Museo del Oro\".",
-                        time = "Hace 20 min",
-                        isNew = true
+        loadNotifications()
+    }
+
+    private fun loadNotifications() {
+        viewModelScope.launch {
+            val userId = sessionDataStore.sessionFlow.firstOrNull()?.userId ?: return@launch
+            val userPosts = postRepository.getPosts().firstOrNull()?.filter { it.creatorId == userId } ?: emptyList()
+
+            val dynamicRecent = mutableListOf<Notification>()
+            val dynamicOlder = mutableListOf<Notification>()
+
+            var notificationId = 1
+            userPosts.forEach { post ->
+                if (post.status.name == "VERIFICADO" || post.status.name == "ACTIVO") {
+                    dynamicRecent.add(
+                        Notification(
+                            id = notificationId++.toString(),
+                            type = NotificationType.NEW_PLACE,
+                            title = "Publicación aprobada",
+                            description = "Tu publicación \"${post.title}\" ha sido verificada.",
+                            time = "Reciente",
+                            isNew = true
+                        )
                     )
-                ),
-                olderNotifications = listOf(
+                } else if (post.status.name == "PENDIENTE") {
+                    dynamicOlder.add(
+                        Notification(
+                            id = notificationId++.toString(),
+                            type = NotificationType.NEARBY_POINTS,
+                            title = "Publicación en revisión",
+                            description = "Tu publicación \"${post.title}\" está siendo revisada.",
+                            time = "Pendiente",
+                            isNew = false
+                        )
+                    )
+                }
+            }
+
+            // Generate an achievement notification if they have any posts
+            if (userPosts.isNotEmpty()) {
+                dynamicOlder.add(
                     Notification(
-                        id = "3",
-                        type = NotificationType.NEARBY_POINTS,
-                        title = "Nuevos puntos cercanos",
-                        description = "Se han descubierto 3 nuevos senderos en tu área de exploración.",
-                        time = "Hace 2 h",
-                        isNew = false
-                    ),
-                    Notification(
-                        id = "4",
+                        id = notificationId++.toString(),
                         type = NotificationType.ACHIEVEMENT,
-                        title = "Logro desbloqueado",
-                        description = "Has alcanzado el nivel \"Explorador de Plata\". ¡Sigue así!",
+                        title = "Nuevos logros",
+                        description = "Sigue publicando para aumentar tu reputación exploradora.",
                         time = "Ayer",
-                        isNew = false
-                    ),
-                    Notification(
-                        id = "5",
-                        type = NotificationType.COMMENT,
-                        title = "Comentarios recibidos",
-                        description = "Elena R. te preguntó sobre el clima en \"Páramo de Iguaque\".",
-                        time = "Hace 2 días",
                         isNew = false
                     )
                 )
-            )
+            }
+
+            _state.update {
+                it.copy(
+                    recentNotifications = dynamicRecent.reversed(),
+                    olderNotifications = dynamicOlder.reversed()
+                )
+            }
         }
     }
 

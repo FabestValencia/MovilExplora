@@ -71,12 +71,12 @@ fun EventDetailScreen(
                     .fillMaxSize()
                     .padding(paddingValues)
                     .verticalScroll(rememberScrollState())
-                    .background(Color.White)
+                    .background(MaterialTheme.colorScheme.background)
             ) {
                 // Header Image
-                Box(modifier = Modifier.height(240.dp).fillMaxWidth().background(Color.LightGray)) {
-                    Text("Imagen del Evento", modifier = Modifier.align(Alignment.Center))
-                    
+                Box(modifier = Modifier.height(240.dp).fillMaxWidth().background(MaterialTheme.colorScheme.surfaceVariant)) {
+                    Text("Imagen del Evento", color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.align(Alignment.Center))
+
                     val categoryColor = getCategoryColor(event.category)
                     Surface(
                         modifier = Modifier
@@ -164,9 +164,9 @@ fun EventDetailScreen(
                             .fillMaxWidth()
                             .height(150.dp)
                             .clip(RoundedCornerShape(16.dp))
-                            .background(Color.LightGray)
+                            .background(MaterialTheme.colorScheme.surfaceVariant)
                     ) {
-                        Text(stringResource(R.string.common_map_view), modifier = Modifier.align(Alignment.Center))
+                        Text(stringResource(R.string.common_map_view), color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.align(Alignment.Center))
                     }
                 }
             }

@@ -3,6 +3,7 @@ package com.example.movilexplora.features.feed
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.movilexplora.domain.model.Post
+import com.example.movilexplora.domain.model.PostStatus
 import com.example.movilexplora.domain.repository.PostRepository
 import com.example.movilexplora.domain.repository.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -24,8 +25,9 @@ data class Category(val name: String)
 data class FeedState(
     val userName: String = "",
     val filterState: FilterState = FilterState(), // Añadimos state del filtro
+    val searchQuery: String = "",
     val categories: List<Category> = listOf(
-        Category("Gastronomía"),
+        Category("Gastronomia"),
         Category("Cultura"),
         Category("Naturaleza"),
         Category("Entretenimiento"),
@@ -51,15 +53,25 @@ class FeedViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     // Combine logs
-    val posts: StateFlow<List<Post>> = combine(_allPosts, _state) { allPosts, currentState ->
+    val posts: StateFlow<List<Post>> = combine(_allPosts, _state, _currentUserId) { allPosts, currentState, userId ->
         val filters = currentState.filterState
+        val query = currentState.searchQuery
         val filteredList = allPosts.filter { post ->
             val matchesCategory = filters.selectedCategory == null || post.category == filters.selectedCategory
             val matchesPrice = filters.selectedPriceRange == 4 || (post.price.count { it == '$' } <= filters.selectedPriceRange)
             val matchesDistance = post.distance <= filters.distance
-            matchesCategory && matchesPrice && matchesDistance
+            val matchesSearch = query.isBlank() || post.title.contains(query, ignoreCase = true)
+
+            val matchesVisibility = post.status == PostStatus.VERIFICADO || post.creatorId == userId
+
+            matchesCategory && matchesPrice && matchesDistance && matchesSearch && matchesVisibility
         }
-        filteredList.sortedByDescending { it.likedBy.size }
+
+        // Sort verified by likes, but bump user's own new pending posts to the top or sort by a stable metric
+        filteredList.sortedWith(
+            compareByDescending<Post> { it.creatorId == userId } // Show own posts first
+            .thenByDescending { it.likedBy.size }
+        )
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
@@ -115,6 +127,10 @@ class FeedViewModel @Inject constructor(
                 )
             )
         }
+    }
+
+    fun updateSearchQuery(query: String) {
+        _state.update { it.copy(searchQuery = query) }
     }
 
     suspend fun getCurrentUserId(): String {

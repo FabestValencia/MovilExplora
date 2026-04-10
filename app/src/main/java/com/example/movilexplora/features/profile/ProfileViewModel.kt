@@ -10,6 +10,7 @@ import com.example.movilexplora.domain.model.ReputationLevel
 import com.example.movilexplora.domain.model.UserProfile
 import com.example.movilexplora.data.datastore.SessionDataStore
 import com.example.movilexplora.domain.repository.UserRepository
+import com.example.movilexplora.domain.repository.PostRepository
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,7 +22,8 @@ import kotlinx.coroutines.flow.update
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
     private val sessionDataStore: SessionDataStore,
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val postRepository: PostRepository
 ) : ViewModel() {
     private val _userProfile = MutableStateFlow<UserProfile?>(null)
     val userProfile: StateFlow<UserProfile?> = _userProfile.asStateFlow()
@@ -58,28 +60,52 @@ class ProfileViewModel @Inject constructor(
                 else -> "EMBAJADOR LOCAL"
             }
 
+            val userPosts = postRepository.getPosts().firstOrNull()?.filter { it.creatorId == userId } ?: emptyList()
+
+            var activeCount = 0
+            var finishedCount = 0
+            var pendingCount = 0
+            var dynamicPoints = 0
+
+            userPosts.forEach { post ->
+                when (post.status.name) {
+                    "ACTIVO", "VERIFICADO" -> {
+                        activeCount++
+                        dynamicPoints += 100
+                    }
+                    "FINALIZADO" -> finishedCount++
+                    "PENDIENTE" -> {
+                        pendingCount++
+                        dynamicPoints += 50
+                    }
+                }
+            }
+
+            val postCount = userPosts.size
+
             _userProfile.value = UserProfile(
                 name = user.name,
                 email = user.email,
                 role = roleMapping,
-                activePosts = 12,
-                finishedPosts = 48,
-                pendingPosts = 3,
-                currentXp = 1250,
+                activePosts = activeCount,
+                finishedPosts = finishedCount,
+                pendingPosts = pendingCount,
+                currentXp = dynamicPoints.coerceAtLeast(10), // minimum 10 if no posts
                 maxXp = 2000,
                 reputationLevel = ReputationLevel.EMBAJADOR,
                 achievements = listOf(
-                    Achievement("Primera Publicación", "¡Tu primera aventura compartida!", "celebration", true),
-                    Achievement("10 Publicaciones", "Comunidad confiable y activa", "verified", true),
-                    Achievement("Maestro del Mapa", "Experto en navegación local", "map", true),
-                    Achievement("Explorador del Mes", "Sé el más activo este mes", "stars", false)
+                    Achievement("Primera Publicación", "¡Tu primera aventura compartida!", "celebration", postCount >= 1),
+                    Achievement("10 Publicaciones", "Comunidad confiable y activa", "verified", postCount >= 10),
+                    Achievement("Maestro del Mapa", "Experto en navegación local", "map", activeCount >= 5),
+                    Achievement("Explorador del Mes", "Sé el más activo este mes", "stars", postCount >= 20)
                 )
             )
         }
     }
 
     fun deleteAccount() {
-        // TODO Logic to delete account
+        // TODO Logic to delete account, la idea es que sea una eliminacion logica, no real, pues necesitamos
+        //toda la informacion para
     }
 
     fun deleteEvent(eventId: String) {

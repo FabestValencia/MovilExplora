@@ -23,6 +23,7 @@ data class MapMarker(
 )
 
 data class MapState(
+    val posts: List<Post> = emptyList(),
     val markers: List<MapMarker> = emptyList(),
     val searchQuery: String = "",
     val selectedFilter: String = "Cercanos",
@@ -34,7 +35,14 @@ class MapViewModel @Inject constructor(
     private val postRepository: PostRepository
 ) : ViewModel() {
 
-    private val _state = MutableStateFlow(MapState())
+    private val _state = MutableStateFlow(MapState(
+        posts = listOf(
+            Post("1", "Belcanto Experience", "Chiado, Lisbon", 4.9, "Gastronomia", "$$$ • Caro", PostStatus.VERIFICADO, ""),
+            Post("2", "Historic Old Town", "Lisbon, Portugal", 4.8, "Historia", "$$ • Moderado", PostStatus.VERIFICADO, ""),
+            Post("3", "Serra da Estrela", "Guarda, Portugal", 4.7, "Naturaleza", "Gratis", PostStatus.VERIFICADO, ""),
+            Post("4", "Mirador del Valle", "Toledo, España", 4.8, "Naturaleza", "Gratis", PostStatus.VERIFICADO, "")
+        )
+    ))
     val state: StateFlow<MapState> = _state.asStateFlow()
 
     val posts: StateFlow<List<Post>> = postRepository.getPosts()
@@ -48,7 +56,7 @@ class MapViewModel @Inject constructor(
         // Mocking coordinates for the posts
         val mockMarkers = listOf(
             MapMarker(
-                Post("1", "Belcanto Experience", "Chiado, Lisbon", 4.9, "Gastronomía", "$$$ • Caro", PostStatus.VERIFICADO, ""),
+                Post("1", "Belcanto Experience", "Chiado, Lisbon", 4.9, "Gastronomia", "$$$ • Caro", PostStatus.VERIFICADO, ""),
                 LatLng(41.3851, 2.1734) // Barcelona center
             ),
             MapMarker(

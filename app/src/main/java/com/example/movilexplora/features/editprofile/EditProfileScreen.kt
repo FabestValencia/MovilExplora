@@ -70,6 +70,7 @@ fun EditProfileScreen(
     val isDarkMode by viewModel.isDarkMode.collectAsState()
     val notificationsEnabled by viewModel.notificationsEnabled.collectAsState()
     val photoUri by viewModel.photoUri.collectAsState()
+    val photoUrl by viewModel.photoUrl.collectAsState()
 
     var showDeleteDialog by remember { mutableStateOf(false) }
     var showBottomSheet by remember { mutableStateOf(false) }
@@ -151,6 +152,16 @@ fun EditProfileScreen(
                     if (photoUri != null) {
                         AsyncImage(
                             model = photoUri,
+                            contentDescription = "Profile Picture",
+                            modifier = Modifier
+                                .size(100.dp)
+                                .border(2.dp, MaterialTheme.colorScheme.onBackground, CircleShape)
+                                .clip(CircleShape),
+                            contentScale = ContentScale.Crop
+                        )
+                    } else if (photoUrl.isNotEmpty()) {
+                        AsyncImage(
+                            model = photoUrl,
                             contentDescription = "Profile Picture",
                             modifier = Modifier
                                 .size(100.dp)

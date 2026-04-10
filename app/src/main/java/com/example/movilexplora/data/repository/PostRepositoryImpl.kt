@@ -32,19 +32,19 @@ class PostRepositoryImpl @Inject constructor(
         listOf(
             Post(
                 "1", "Belcanto Experience", "Chiado, Lisbon", 4.9, 
-                "Gastronomía", "$$$ € Caro", PostStatus.VERIFICADO, "https://example.com/food.jpg", emptySet(), 12f
+                "Gastronomia", "$$$ € Caro", PostStatus.VERIFICADO, "https://example.com/food.jpg", emptySet(), 12f, "1"
             ),
             Post(
                 "2", "Historic Old Town", "Lisbon, Portugal", 4.8, 
-                "Historia", "$$ € Moderado", PostStatus.VERIFICADO, "https://example.com/town.jpg", emptySet(), 5f
+                "Historia", "$$ € Moderado", PostStatus.VERIFICADO, "https://example.com/town.jpg", emptySet(), 5f, "1"
             ),
             Post(
                 "3", "Serra da Estrela", "Guarda, Portugal", 4.7, 
-                "Naturaleza", "Gratis", PostStatus.VERIFICADO, "https://example.com/mountain.jpg", emptySet(), 30f
+                "Naturaleza", "Gratis", PostStatus.VERIFICADO, "https://example.com/mountain.jpg", emptySet(), 30f, "2"
             ),
             Post(
                 "4", "Cascada Oculta", "Antioquia, Colombia", 4.5,
-                "Naturaleza", "Gratis", PostStatus.PENDIENTE, "", emptySet(), 45f
+                "Naturaleza", "Gratis", PostStatus.PENDIENTE, "", emptySet(), 45f, "1"
             )
         )
     )
@@ -90,5 +90,13 @@ class PostRepositoryImpl @Inject constructor(
 
     override suspend fun addPost(post: Post) {
         _posts.update { it + post }
+    }
+
+    override suspend fun updatePostStatus(postId: String, status: PostStatus) {
+        _posts.update { posts ->
+            posts.map {
+                if (it.id == postId) it.copy(status = status) else it
+            }
+        }
     }
 }

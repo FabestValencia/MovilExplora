@@ -14,18 +14,23 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
 import androidx.lifecycle.viewModelScope
+import com.example.movilexplora.data.datastore.SessionDataStore
+import com.example.movilexplora.domain.repository.UserRepository
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import android.net.Uri
 
 @HiltViewModel
 class EditProfileViewModel @Inject constructor(
-    private val settingsDataStore: SettingsDataStore
+    private val settingsDataStore: SettingsDataStore,
+    private val sessionDataStore: SessionDataStore,
+    private val userRepository: UserRepository
 ) : ViewModel() {
-    val name = ValidatedField("Jean Botsito") { value ->
+    val name = ValidatedField("") { value ->
         if (value.isEmpty()) "El nombre es obligatorio" else null
     }
 
-    val email = ValidatedField("bot.vaquero@example.com") { value ->
+    val email = ValidatedField("") { value ->
         when {
             value.isEmpty() -> "El email es obligatorio"
             !Patterns.EMAIL_ADDRESS.matcher(value).matches() -> "Ingresa un email válido"
@@ -35,12 +40,32 @@ class EditProfileViewModel @Inject constructor(
     
     val description = ValidatedField("") { _ -> null } // Opcional
     
-    val location = ValidatedField("Bogotá, Colombia") { value ->
+    val location = ValidatedField("") { value ->
         if (value.isEmpty()) "La ubicación es obligatoria" else null
     }
 
+    private val _photoUrl = MutableStateFlow<String>("")
+    val photoUrl: StateFlow<String> = _photoUrl.asStateFlow()
+
     private val _photoUri = MutableStateFlow<Uri?>(null)
     val photoUri: StateFlow<Uri?> = _photoUri.asStateFlow()
+
+    init {
+        viewModelScope.launch {
+            sessionDataStore.sessionFlow.collect { session ->
+                if (session != null) {
+                    val user = userRepository.findById(session.userId)
+                    if (user != null) {
+                        if (name.value.isEmpty()) name.onChange(user.name)
+                        if (email.value.isEmpty()) email.onChange(user.email)
+                        if (location.value.isEmpty()) location.onChange(user.city)
+                        if (description.value.isEmpty()) description.onChange(user.address)
+                        _photoUrl.value = user.profilePictureUrl
+                    }
+                }
+            }
+        }
+    }
 
     fun onPhotoSelected(uri: Uri?) {
         _photoUri.value = uri
@@ -54,8 +79,23 @@ class EditProfileViewModel @Inject constructor(
 
     fun updateProfile() {
         if (isFormValid) {
-            // Simulación de actualización usando todos los campos
-            _updateResult.value = RequestResult.Success("Perfil actualizado correctamente")
+            viewModelScope.launch {
+                val session = sessionDataStore.sessionFlow.firstOrNull()
+                if (session != null) {
+                    val user = userRepository.findById(session.userId)
+                    if (user != null) {
+                        val updatedUser = user.copy(
+                            name = name.value,
+                            email = email.value,
+                            city = location.value,
+                            address = description.value,
+                            profilePictureUrl = _photoUri.value?.toString() ?: _photoUrl.value
+                        )
+                        userRepository.save(updatedUser)
+                        _updateResult.value = RequestResult.Success("Perfil actualizado correctamente")
+                    }
+                }
+            }
         }
     }
 

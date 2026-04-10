@@ -86,7 +86,12 @@ fun FeedScreen(
         }
     ) { paddingValues ->
         Column(modifier = Modifier.padding(paddingValues).fillMaxSize()) {
-            HeaderSection(userName = state.userName, onMapClick = onNavigateToMap)
+            HeaderSection(
+                userName = state.userName, 
+                searchQuery = state.searchQuery,
+                onSearchQueryChange = { viewModel.updateSearchQuery(it) },
+                onMapClick = onNavigateToMap
+            )
             
             FilterToggleSection(
                 onFilterClick = { showFilterSheet = true },
@@ -122,35 +127,69 @@ fun FeedScreen(
 }
 
 @Composable
-fun HeaderSection(userName: String, onMapClick: () -> Unit) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Box(
-                modifier = Modifier
-                    .size(48.dp)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.primary)
-            ) {
-                // Profile image placeholder
-            }
-            Spacer(modifier = Modifier.width(12.dp))
-            Column {
-                Text(text = stringResource(R.string.feedscreen_hola_0), fontSize = 14.sp, color = GrayText)
-                Text(text = userName, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
-            }
+fun HeaderSection(userName: String, searchQuery: String, onSearchQueryChange: (String) -> Unit, onMapClick: () -> Unit) {
+    var isSearchActive by remember { mutableStateOf(false) }
+
+    if (isSearchActive) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            OutlinedTextField(
+                value = searchQuery,
+                onValueChange = onSearchQueryChange,
+                modifier = Modifier.weight(1f),
+                placeholder = { Text(stringResource(R.string.feedscreen_search_6), color = GrayText) },
+                singleLine = true,
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = Turquoise,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant
+                ),
+                leadingIcon = {
+                    Icon(imageVector = Icons.Default.Search, contentDescription = null, tint = Turquoise)
+                },
+                trailingIcon = {
+                    IconButton(onClick = { 
+                        isSearchActive = false 
+                        onSearchQueryChange("")
+                    }) {
+                        Icon(imageVector = Icons.Default.Close, contentDescription = "Cerrar", tint = MaterialTheme.colorScheme.onBackground)
+                    }
+                }
+            )
         }
-        Row {
-            IconButton(onClick = onMapClick) {
-                Icon(imageVector = Icons.Default.Map, contentDescription = stringResource(R.string.feedscreen_map_5), tint = MaterialTheme.colorScheme.onBackground)
+    } else {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(
+                    modifier = Modifier
+                        .size(48.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.primary)
+                ) {
+                    // Profile image placeholder
+                }
+                Spacer(modifier = Modifier.width(12.dp))
+                Column {
+                    Text(text = stringResource(R.string.feedscreen_hola_0), fontSize = 14.sp, color = GrayText)
+                    Text(text = userName, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
+                }
             }
-            IconButton(onClick = { /* Search */ }) {
-                Icon(imageVector = Icons.Default.Search, contentDescription = stringResource(R.string.feedscreen_search_6), tint = MaterialTheme.colorScheme.onBackground)
+            Row {
+                IconButton(onClick = onMapClick) {
+                    Icon(imageVector = Icons.Default.Map, contentDescription = stringResource(R.string.feedscreen_map_5), tint = MaterialTheme.colorScheme.onBackground)
+                }
+                IconButton(onClick = { isSearchActive = true }) {
+                    Icon(imageVector = Icons.Default.Search, contentDescription = stringResource(R.string.feedscreen_search_6), tint = MaterialTheme.colorScheme.onBackground)
+                }
             }
         }
     }

@@ -60,7 +60,8 @@ class ReputationViewModel @Inject constructor(
             // Calculamos puntos dinamicamente basados en los posts totales publicados.
             // Asi evitamos "quemar" los 1250 estticos y lo hacemos por publicacin,
             // cada publicacin activa vale por ejemplo 50 puntos en nuestro modelo.
-            val posts = postRepository.getPosts().firstOrNull() ?: emptyList()
+            val allPosts = postRepository.getPosts().firstOrNull() ?: emptyList()
+            val posts = allPosts.filter { it.creatorId == userId }
             // Supondremos que cada publicacion verificada aporta 100 ptos, pendientes 50 pts, para aplicar lgica real
             var dynamicPoints = 0
             val recentPoints = mutableListOf<RecentPoint>()

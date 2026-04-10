@@ -22,7 +22,8 @@ import com.example.movilexplora.domain.repository.EventRepository
 
 data class EventsState(
     val events: List<Event> = emptyList(),
-    val selectedFilter: String = "Todo"
+    val selectedFilter: String = "Todo",
+    val searchQuery: String = ""
 )
 
 @HiltViewModel
@@ -43,10 +44,13 @@ class EventsViewModel @Inject constructor(
         }
         
         viewModelScope.launch {
-            combine(eventRepository.getEvents(), likeDao.getAllEventLikes()) { events, likes ->
+            combine(eventRepository.getEvents(), likeDao.getAllEventLikes(), _state) { events, likes, currentState ->
+                val query = currentState.searchQuery
                 events.map { event ->
                     val eventLikes = likes.filter { it.itemId == event.id }.map { it.userId }.toSet()
                     event.copy(likedBy = eventLikes)
+                }.filter { event ->
+                    query.isBlank() || event.title.contains(query, ignoreCase = true)
                 }.sortedByDescending { it.likedBy.size }
             }.collect { combinedEvents ->
                 _state.value = _state.value.copy(events = combinedEvents)
@@ -74,5 +78,9 @@ class EventsViewModel @Inject constructor(
 
     fun onFilterSelected(filter: String) {
         _state.update { it.copy(selectedFilter = filter) }
+    }
+
+    fun updateSearchQuery(query: String) {
+        _state.update { it.copy(searchQuery = query) }
     }
 }

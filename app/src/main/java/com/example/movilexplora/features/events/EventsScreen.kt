@@ -1,5 +1,6 @@
 package com.example.movilexplora.features.events
 
+import android.R.attr.bottom
 import androidx.compose.ui.res.stringResource
 import com.example.movilexplora.R
 import androidx.compose.foundation.background
@@ -47,7 +48,8 @@ fun EventsScreen(
             FloatingActionButton(
                 onClick = onNavigateToCreateEvent,
                 containerColor = Turquoise,
-                contentColor = Color.White
+                contentColor = Color.White,
+                modifier = Modifier.padding(bottom = 36.dp)
             ) {
                 Icon(Icons.Default.Add, contentDescription = stringResource(R.string.eventsscreen_crear_evento_4))
             }
@@ -69,7 +71,11 @@ fun EventsScreen(
                 .padding(paddingValues)
                 .background(MaterialTheme.colorScheme.background)
         ) {
-            HeaderSection(onMapClick = onNavigateToMap)
+            HeaderSection(
+                searchQuery = state.searchQuery,
+                onSearchQueryChange = { viewModel.updateSearchQuery(it) },
+                onMapClick = onNavigateToMap
+            )
 
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -102,23 +108,57 @@ fun EventsScreen(
 }
 
 @Composable
-fun HeaderSection(onMapClick: () -> Unit) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(text = stringResource(R.string.eventsscreen_explora_1), fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Turquoise)
+fun HeaderSection(searchQuery: String, onSearchQueryChange: (String) -> Unit, onMapClick: () -> Unit) {
+    var isSearchActive by remember { mutableStateOf(false) }
+
+    if (isSearchActive) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            OutlinedTextField(
+                value = searchQuery,
+                onValueChange = onSearchQueryChange,
+                modifier = Modifier.weight(1f),
+                placeholder = { Text(stringResource(R.string.eventsscreen_search_6), color = GrayText) },
+                singleLine = true,
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = Turquoise,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant
+                ),
+                leadingIcon = {
+                    Icon(imageVector = Icons.Default.Search, contentDescription = null, tint = Turquoise)
+                },
+                trailingIcon = {
+                    IconButton(onClick = {
+                        isSearchActive = false
+                        onSearchQueryChange("")
+                    }) {
+                        Icon(imageVector = Icons.Default.Close, contentDescription = "Cerrar", tint = MaterialTheme.colorScheme.onBackground)
+                    }
+                }
+            )
         }
-        Row {
-            IconButton(onClick = onMapClick) {
-                Icon(imageVector = Icons.Default.Map, contentDescription = stringResource(R.string.eventsscreen_map_5), tint = MaterialTheme.colorScheme.onBackground)
+    } else {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(text = stringResource(R.string.eventsscreen_explora_1), fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Turquoise)
             }
-            IconButton(onClick = { /* Search */ }) {
-                Icon(imageVector = Icons.Default.Search, contentDescription = stringResource(R.string.eventsscreen_search_6), tint = MaterialTheme.colorScheme.onBackground)
+            Row {
+                IconButton(onClick = onMapClick) {
+                    Icon(imageVector = Icons.Default.Map, contentDescription = stringResource(R.string.eventsscreen_map_5), tint = MaterialTheme.colorScheme.onBackground)
+                }
+                IconButton(onClick = { isSearchActive = true }) {
+                    Icon(imageVector = Icons.Default.Search, contentDescription = stringResource(R.string.eventsscreen_search_6), tint = MaterialTheme.colorScheme.onBackground)
+                }
             }
         }
     }

@@ -68,7 +68,7 @@ fun PostDetailScreen(
                 actions = {
                     Spacer(modifier = Modifier.width(48.dp)) // To balance the back button
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface)
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background)
             )
         },
         bottomBar = {
@@ -88,13 +88,13 @@ fun PostDetailScreen(
                     .fillMaxSize()
                     .padding(paddingValues)
                     .verticalScroll(rememberScrollState())
-                    .background(Color.White)
+                    .background(MaterialTheme.colorScheme.background)
             ) {
                 // Header Image & Title
                 Box(modifier = Modifier.height(260.dp).fillMaxWidth()) {
                     // Placeholder for main image
                     Box(modifier = Modifier.fillMaxSize().background(Color.LightGray)) {
-                        Text("Imagen de la Cueva", modifier = Modifier.align(Alignment.Center))
+                        Text("Imagen de la Cueva", modifier = Modifier.align(Alignment.Center), color = Color.DarkGray)
                     }
                     
                     Column(
@@ -134,8 +134,8 @@ fun PostDetailScreen(
                         DetailBadge(
                             text = post.price,
                             icon = Icons.Default.AttachMoney,
-                            containerColor = Color.Black,
-                            contentColor = Color.White
+                            containerColor = MaterialTheme.colorScheme.onBackground,
+                            contentColor = MaterialTheme.colorScheme.background
                         )
                         val categoryCol = getCategoryColor(post.category)
                         DetailBadge(
@@ -146,8 +146,8 @@ fun PostDetailScreen(
                         DetailBadge(
                             text = "${post.rating} (1.2k)",
                             icon = Icons.Default.Star,
-                            containerColor = Color.Black,
-                            contentColor = Color.White
+                            containerColor = MaterialTheme.colorScheme.onBackground,
+                            contentColor = MaterialTheme.colorScheme.background
                         )
                     }
 
@@ -157,7 +157,7 @@ fun PostDetailScreen(
                     Text(
                         text = state.description,
                         fontSize = 16.sp,
-                        color = GrayText.copy(alpha = 0.8f),
+                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.8f),
                         lineHeight = 22.sp
                     )
 
@@ -179,9 +179,9 @@ fun PostDetailScreen(
                                 .fillMaxWidth()
                                 .height(150.dp)
                                 .clip(RoundedCornerShape(16.dp))
-                                .background(Color.LightGray)
+                                .background(MaterialTheme.colorScheme.surfaceVariant)
                         ) {
-                            Text(stringResource(R.string.common_map_view), modifier = Modifier.align(Alignment.Center))
+                            Text(stringResource(R.string.common_map_view), color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.align(Alignment.Center))
                         }
                     }
                 }
@@ -216,8 +216,8 @@ fun PostDetailScreen(
                     },
                     shape = RoundedCornerShape(24.dp),
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedContainerColor = Color(0xFFF7F8F9),
-                        unfocusedContainerColor = Color(0xFFF7F8F9),
+                        focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                        unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
                         unfocusedBorderColor = Color.Transparent
                     )
                 )
@@ -261,7 +261,7 @@ fun CommentItem(comment: Comment) {
             modifier = Modifier
                 .size(40.dp)
                 .clip(CircleShape)
-                .background(Color.LightGray)
+                .background(MaterialTheme.colorScheme.surfaceVariant)
         )
         Spacer(modifier = Modifier.width(12.dp))
         Column(modifier = Modifier.weight(1f)) {
@@ -270,12 +270,12 @@ fun CommentItem(comment: Comment) {
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(text = comment.userName, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
-                Text(text = comment.date, fontSize = 12.sp, color = GrayText.copy(alpha = 0.5f))
+                Text(text = comment.date, fontSize = 12.sp, color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f))
             }
             Text(
                 text = comment.content,
                 fontSize = 14.sp,
-                color = GrayText.copy(alpha = 0.8f),
+                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.8f),
                 lineHeight = 18.sp
             )
         }
@@ -291,7 +291,7 @@ fun BottomActionButtons(
         modifier = Modifier
             .fillMaxWidth()
             .padding(16.dp)
-            .background(Color.White)
+            .background(MaterialTheme.colorScheme.background)
     ) {
         Button(
             onClick = onToggleFavorite,
@@ -372,7 +372,7 @@ fun ModeratorActionButtons() {
         modifier = Modifier
             .fillMaxWidth()
             .padding(16.dp)
-            .background(Color.White)
+            .background(MaterialTheme.colorScheme.background)
     ) {
         Button(
             onClick = { showRejectDialog = true },

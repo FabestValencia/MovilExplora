@@ -27,6 +27,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.movilexplora.domain.model.Comment
 import com.example.movilexplora.ui.theme.GrayText
 import com.example.movilexplora.ui.theme.Turquoise
 import com.example.movilexplora.ui.theme.VerifiedBlue
@@ -74,7 +75,10 @@ fun PostDetailScreen(
             if (isModerator) {
                 ModeratorActionButtons()
             } else {
-                BottomActionButtons()
+                BottomActionButtons(
+                    isFavorite = state.post?.isFavorite ?: false,
+                    onToggleFavorite = { viewModel.toggleFavorite(postId) }
+                )
             }
         }
     ) { paddingValues ->
@@ -203,14 +207,32 @@ fun PostDetailScreen(
 
                 Spacer(modifier = Modifier.height(32.dp))
 
-                // Comments Section (Mocked)
+                // Comments Section
                 Text(text = stringResource(R.string.postdetailscreen_comentarios_4), fontSize = 18.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
                 Spacer(modifier = Modifier.height(12.dp))
+
+                state.comments.forEach { comment ->
+                    CommentItem(comment)
+                    Spacer(modifier = Modifier.height(16.dp))
+                }
+
+                var commentText by remember { mutableStateOf("") }
+
                 OutlinedTextField(
-                    value = "",
-                    onValueChange = {},
+                    value = commentText,
+                    onValueChange = { commentText = it },
                     modifier = Modifier.fillMaxWidth(),
                     placeholder = { Text(stringResource(R.string.post_detail_add_comment), fontSize = 14.sp) },
+                    trailingIcon = {
+                        IconButton(onClick = {
+                            if (commentText.isNotBlank()) {
+                                viewModel.addComment(postId, commentText)
+                                commentText = ""
+                            }
+                        }) {
+                            Icon(imageVector = Icons.AutoMirrored.Filled.Send, contentDescription = "Send", tint = Turquoise)
+                        }
+                    },
                     shape = RoundedCornerShape(24.dp),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedContainerColor = Color(0xFFF7F8F9),
@@ -280,7 +302,10 @@ fun CommentItem(comment: Comment) {
 }
 
 @Composable
-fun BottomActionButtons() {
+fun BottomActionButtons(
+    isFavorite: Boolean = false,
+    onToggleFavorite: () -> Unit = {}
+) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -288,22 +313,29 @@ fun BottomActionButtons() {
             .background(Color.White)
     ) {
         Button(
-            onClick = { /* Estoy interesado */ },
+            onClick = onToggleFavorite,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(56.dp),
             shape = RoundedCornerShape(28.dp),
             colors = ButtonDefaults.buttonColors(containerColor = Turquoise)
         ) {
-            Icon(imageVector = Icons.Outlined.BookmarkBorder, contentDescription = null)
+            Icon(
+                imageVector = if (isFavorite) Icons.Filled.Bookmark else Icons.Outlined.BookmarkBorder,
+                contentDescription = null
+            )
             Spacer(modifier = Modifier.width(8.dp))
-            Text(text = stringResource(R.string.postdetailscreen_estoy_interesando_5), fontSize = 16.sp, fontWeight = FontWeight.Bold)
+            Text(
+                text = if (isFavorite) stringResource(R.string.postdetailscreen_marcar_como_visitado_6).replace("Marcar", "Marcado") else stringResource(R.string.postdetailscreen_estoy_interesando_5), 
+                fontSize = 16.sp, 
+                fontWeight = FontWeight.Bold
+            )
         }
         
         Spacer(modifier = Modifier.height(12.dp))
         
         Button(
-            onClick = { /* Marcar como visitado */ },
+            onClick = { /* Marcar como visitado map */ },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(56.dp),

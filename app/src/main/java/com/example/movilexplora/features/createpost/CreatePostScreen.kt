@@ -1,7 +1,8 @@
 package com.example.movilexplora.features.createpost
 
-import androidx.compose.ui.res.stringResource
-import com.example.movilexplora.R
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -15,17 +16,20 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import coil.compose.AsyncImage
+import com.example.movilexplora.R
 import com.example.movilexplora.ui.theme.GrayText
 import com.example.movilexplora.ui.theme.Turquoise
 import com.example.movilexplora.ui.theme.getCategoryColor
@@ -40,12 +44,54 @@ fun CreatePostScreen(
 ) {
     val state by viewModel.state.collectAsState()
     val publishResult by viewModel.publishResult.collectAsState()
+    
+    // Estado para la imagen seleccionada localmente
+    var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
+    
+    // Estado para el Pop-up de éxito
+    var showSuccessDialog by remember { mutableStateOf(false) }
+    var publishedTitle by remember { mutableStateOf("") }
+
+    // Lanzador para la galería
+    val galleryLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        selectedImageUri = uri
+        // Opcional: pasar el URI al viewModel si este lo requiere para subirlo
+    }
 
     LaunchedEffect(publishResult) {
         if (publishResult is com.example.movilexplora.core.utils.RequestResult.Success) {
-            onPublishSuccess()
+            publishedTitle = viewModel.title.value
+            showSuccessDialog = true
             viewModel.resetResult()
         }
+    }
+
+    // Pop-up de éxito
+    if (showSuccessDialog) {
+        AlertDialog(
+            onDismissRequest = { /* No permitir cerrar fuera */ },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        showSuccessDialog = false
+                        onPublishSuccess()
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = Turquoise)
+                ) {
+                    Text("Entendido")
+                }
+            },
+            title = {
+                Text(text = "¡Publicación Creada!", fontWeight = FontWeight.Bold)
+            },
+            text = {
+                Text(text = "Tu publicación \"$publishedTitle\" ha sido creada exitosamente y pronto estará disponible para la comunidad.")
+            },
+            shape = RoundedCornerShape(16.dp),
+            containerColor = Color.White
+        )
     }
 
     Scaffold(
@@ -81,7 +127,7 @@ fun CreatePostScreen(
         ) {
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Image Picker Placeholder
+            // Image Picker
             Text(text = stringResource(R.string.createpostscreen_imagen_del_lugar_1), fontSize = 14.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
             Spacer(modifier = Modifier.height(8.dp))
             Box(
@@ -91,12 +137,34 @@ fun CreatePostScreen(
                     .border(1.dp, Color.LightGray.copy(alpha = 0.5f), RoundedCornerShape(16.dp))
                     .clip(RoundedCornerShape(16.dp))
                     .background(Color(0xFFF7F8F9))
-                    .clickable { /* Pick Image */ },
+                    .clickable { galleryLauncher.launch("image/*") },
                 contentAlignment = Alignment.Center
             ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Icon(imageVector = Icons.Default.AddPhotoAlternate, contentDescription = null, tint = Turquoise, modifier = Modifier.size(40.dp))
-                    Text(text = stringResource(R.string.createpostscreen_a_adir_foto_2), color = GrayText.copy(alpha = 0.5f), fontSize = 14.sp)
+                if (selectedImageUri != null) {
+                    AsyncImage(
+                        model = selectedImageUri,
+                        contentDescription = "Imagen seleccionada",
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
+                    )
+                    // Icono para indicar que se puede cambiar
+                    Surface(
+                        modifier = Modifier.align(Alignment.TopEnd).padding(8.dp),
+                        shape = CircleShape,
+                        color = Color.Black.copy(alpha = 0.4f)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Edit,
+                            contentDescription = "Editar",
+                            tint = Color.White,
+                            modifier = Modifier.padding(6.dp).size(16.dp)
+                        )
+                    }
+                } else {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Icon(imageVector = Icons.Default.AddPhotoAlternate, contentDescription = null, tint = Turquoise, modifier = Modifier.size(40.dp))
+                        Text(text = stringResource(R.string.createpostscreen_a_adir_foto_2), color = GrayText.copy(alpha = 0.5f), fontSize = 14.sp)
+                    }
                 }
             }
 

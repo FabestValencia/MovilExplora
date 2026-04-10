@@ -30,6 +30,8 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Event
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.LightMode
+import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.RateReview
 import androidx.compose.material.icons.filled.Storefront
@@ -69,15 +71,18 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.movilexplora.R
 import com.example.movilexplora.domain.model.VerificationItem
 import com.example.movilexplora.ui.theme.Turquoise
+import com.example.movilexplora.core.navigation.ThemeViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ModeratorFeedScreen(
     onLogout: () -> Unit,
     onNavigateToHistory: () -> Unit = {},
-    viewModel: ModeratorFeedViewModel = hiltViewModel()
+    viewModel: ModeratorFeedViewModel = hiltViewModel(),
+    themeViewModel: ThemeViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
+    val isDarkMode by themeViewModel.isDarkMode.collectAsState()
     var selectedItem by remember { mutableStateOf<VerificationItem?>(null) }
     var showSortMenu by remember { mutableStateOf(false) }
 
@@ -125,6 +130,13 @@ fun ModeratorFeedScreen(
                     }
                 },
                 actions = {
+                    IconButton(onClick = { themeViewModel.toggleTheme() }) {
+                        Icon(
+                            imageVector = if (isDarkMode) Icons.Default.LightMode else Icons.Default.DarkMode,
+                            contentDescription = if (isDarkMode) "Modo Claro" else "Modo Oscuro",
+                            tint = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
                     IconButton(onClick = onNavigateToHistory) {
                         Icon(
                             imageVector = Icons.Default.History,

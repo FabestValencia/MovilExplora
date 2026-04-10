@@ -60,7 +60,7 @@ fun ModeratorHistoryScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .background(Color.White),
+                .background(MaterialTheme.colorScheme.background),
             contentPadding = PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
@@ -126,8 +126,8 @@ fun ModeratorHistoryItemCard(item: HistoryItem) {
     ) {
         Column {
             Box(modifier = Modifier.height(180.dp).fillMaxWidth()) {
-                Box(modifier = Modifier.fillMaxSize().background(Color.LightGray)) {
-                    Text(stringResource(R.string.image_placeholder), modifier = Modifier.align(Alignment.Center))
+                Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surfaceVariant)) {
+                    Text(stringResource(R.string.image_placeholder), color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.align(Alignment.Center))
                 }
 
                 // Badge

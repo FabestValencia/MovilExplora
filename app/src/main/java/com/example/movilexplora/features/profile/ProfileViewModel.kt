@@ -11,6 +11,7 @@ import com.example.movilexplora.domain.model.UserProfile
 import com.example.movilexplora.data.datastore.SessionDataStore
 import com.example.movilexplora.domain.repository.UserRepository
 import com.example.movilexplora.domain.repository.PostRepository
+import com.example.movilexplora.domain.repository.EventRepository
 import androidx.lifecycle.viewModelScope
 import com.example.movilexplora.core.utils.ResourceProvider
 import com.example.movilexplora.R
@@ -26,6 +27,7 @@ class ProfileViewModel @Inject constructor(
     private val sessionDataStore: SessionDataStore,
     private val userRepository: UserRepository,
     private val postRepository: PostRepository,
+    private val eventRepository: EventRepository,
     private val resourceProvider: ResourceProvider
 ) : ViewModel() {
     private val _userProfile = MutableStateFlow<UserProfile?>(null)
@@ -71,6 +73,17 @@ class ProfileViewModel @Inject constructor(
 
             val postCount = userPosts.size
 
+            val userEventsList = eventRepository.getEvents().firstOrNull()?.filter { it.creatorId == userId } ?: emptyList()
+            _userEvents.value = userEventsList
+
+            val actualPoints = user.points
+            val (calculatedLevel, calcTarget) = when {
+                actualPoints < 100 -> Pair(ReputationLevel.TURISTA, 100)
+                actualPoints < 500 -> Pair(ReputationLevel.EXPLORADOR, 500)
+                actualPoints < 1000 -> Pair(ReputationLevel.AVENTURERO, 1000)
+                else -> Pair(ReputationLevel.EMBAJADOR, 2000)
+            }
+
             _userProfile.value = UserProfile(
                 name = user.name,
                 email = user.email,
@@ -78,9 +91,9 @@ class ProfileViewModel @Inject constructor(
                 activePosts = activeCount,
                 finishedPosts = finishedCount,
                 pendingPosts = pendingCount,
-                currentXp = user.points.coerceAtLeast(10), // minimum 10 if no explicit points
-                maxXp = 2000,
-                reputationLevel = ReputationLevel.EMBAJADOR,
+                currentXp = actualPoints,
+                maxXp = calcTarget,
+                reputationLevel = calculatedLevel,
                 achievements = listOf(
                     Achievement(resourceProvider.getString(R.string.achievement_1_title), resourceProvider.getString(R.string.achievement_1_desc), "celebration", postCount >= 1),
                     Achievement(resourceProvider.getString(R.string.achievement_2_title), resourceProvider.getString(R.string.achievement_2_desc), "verified", postCount >= 10),

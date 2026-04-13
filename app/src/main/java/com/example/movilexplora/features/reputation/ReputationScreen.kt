@@ -226,10 +226,11 @@ fun ReputationScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             val earnOptions = listOf(
-                EarnOption(stringResource(R.string.reputation_earn_post_title), stringResource(R.string.reputation_earn_post_desc), "+10 pts", Icons.Default.EditNote),
-                EarnOption(stringResource(R.string.reputation_earn_comment_title), stringResource(R.string.reputation_earn_comment_desc), "+2 pts", Icons.AutoMirrored.Filled.Chat),
-                EarnOption(stringResource(R.string.reputation_earn_vote_title), stringResource(R.string.reputation_earn_vote_desc), "+5 pts", Icons.Default.ThumbUp),
-                EarnOption(stringResource(R.string.reputation_earn_visit_title), stringResource(R.string.reputation_earn_visit_desc), "+20 pts", Icons.Default.LocationOn)
+                EarnOption(stringResource(R.string.reputation_earn_post_title), stringResource(R.string.reputation_earn_post_desc), stringResource(R.string.reputation_earn_post_pts), Icons.Default.EditNote),
+                EarnOption(stringResource(R.string.reputation_earn_verify_title), stringResource(R.string.reputation_earn_verify_desc), stringResource(R.string.reputation_earn_verify_pts), Icons.Default.Verified),
+                EarnOption(stringResource(R.string.reputation_earn_comment_title), stringResource(R.string.reputation_earn_comment_desc), stringResource(R.string.reputation_earn_comment_pts), Icons.AutoMirrored.Filled.Chat),
+                EarnOption(stringResource(R.string.reputation_earn_vote_title), stringResource(R.string.reputation_earn_vote_desc), stringResource(R.string.reputation_earn_vote_pts), Icons.Default.ThumbUp),
+                EarnOption(stringResource(R.string.reputation_earn_visit_title), stringResource(R.string.reputation_earn_visit_desc), stringResource(R.string.reputation_earn_visit_pts), Icons.Default.LocationOn)
             )
 
             Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
@@ -240,6 +241,10 @@ fun ReputationScreen(
                 Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                     EarnCard(earnOptions[2], Modifier.weight(1f))
                     EarnCard(earnOptions[3], Modifier.weight(1f))
+                }
+                Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                    EarnCard(earnOptions[4], Modifier.weight(1f))
+                    Spacer(modifier = Modifier.weight(1f)) // Empty block to align grid
                 }
             }
 

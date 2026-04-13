@@ -303,14 +303,25 @@
 
     <string name="reputation_earn_post_title">Post Places</string>
     <string name="reputation_earn_post_desc">Share new discoveries with the community.</string>
+    <string name="reputation_earn_post_pts">+50 pts</string>
+
+    <string name="reputation_earn_verify_title">Verified Places</string>
+    <string name="reputation_earn_verify_desc">When your posts are approved and visible.</string>
+    <string name="reputation_earn_verify_pts">+50 pts</string>
+
     <string name="reputation_earn_comment_title">Comment</string>
     <string name="reputation_earn_comment_desc">Interact with posts from other explorers.</string>
+    <string name="reputation_earn_comment_pts">+10 pts</string>
+
     <string name="reputation_earn_vote_title">Receive Votes</string>
     <string name="reputation_earn_vote_desc">Get likes on your content contributions.</string>
+    <string name="reputation_earn_vote_pts">+5 pts</string>
+
     <string name="reputation_earn_visit_title">Visit Places</string>
     <string name="reputation_earn_visit_desc">Log your visit at verified points of interest.</string>
+    <string name="reputation_earn_visit_pts">+20 pts</string>
 
-    <string name="reputation_recent_post">New Post: Hidden Waterfall</string>
+    <string name="reputation_recent_post">New Post: %1$s</string>
     <string name="reputation_recent_comment">Comment received</string>
     <string name="reputation_recent_visit">Visited: Central Square</string>
     <string name="reputation_time_2_hours">2 hours ago</string>

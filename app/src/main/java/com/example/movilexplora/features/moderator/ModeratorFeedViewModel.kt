@@ -10,6 +10,7 @@ import com.example.movilexplora.domain.model.VerificationType
 import com.example.movilexplora.domain.model.PostStatus
 import com.example.movilexplora.domain.repository.PostRepository
 import com.example.movilexplora.domain.repository.EventRepository
+import com.example.movilexplora.domain.repository.UserRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -18,6 +19,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.firstOrNull
 
 data class ModeratorFeedState(
     val items: List<VerificationItem> = emptyList(),
@@ -29,7 +31,8 @@ data class ModeratorFeedState(
 @HiltViewModel
 class ModeratorFeedViewModel @Inject constructor(
     private val postRepository: PostRepository,
-    private val eventRepository: EventRepository
+    private val eventRepository: EventRepository,
+    private val userRepository: UserRepository
 ) : ViewModel() {
     private val _state = MutableStateFlow(ModeratorFeedState())
     val state: StateFlow<ModeratorFeedState> = _state.asStateFlow()
@@ -132,7 +135,11 @@ class ModeratorFeedViewModel @Inject constructor(
         viewModelScope.launch {
             if (itemId.startsWith("POST_")) {
                 val realId = itemId.removePrefix("POST_")
+                val postToUpdate = postRepository.getPosts().firstOrNull()?.find { it.id == realId }
                 postRepository.updatePostStatus(realId, status, reason)
+                if (status == PostStatus.VERIFICADO && postToUpdate != null) {
+                    userRepository.addPoints(postToUpdate.creatorId, 50)
+                }
             } else if (itemId.startsWith("EVENT_")) {
                 val realId = itemId.removePrefix("EVENT_")
                 eventRepository.updateEventStatus(realId, status, reason)

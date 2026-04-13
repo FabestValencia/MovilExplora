@@ -76,12 +76,26 @@ class PostDetailViewModel @Inject constructor(
                 content = content
             )
             postRepository.addComment(newComment)
+            userRepository.addPoints(currentUserId, 10) // 10 points for commenting
         }
     }
 
     fun toggleFavorite(postId: String) {
         viewModelScope.launch {
-            postRepository.toggleFavorite(postId, currentUserId)
+            val currentPost = _state.value.post
+            if (currentPost != null) {
+                val wasLiked = currentPost.likedBy.contains(currentUserId)
+                postRepository.toggleFavorite(postId, currentUserId)
+                if (!wasLiked && currentPost.creatorId != currentUserId) {
+                    userRepository.addPoints(currentPost.creatorId, 5) // 5 points to creator if it's a new like
+                }
+            }
+        }
+    }
+
+    fun markAsVisited() {
+        viewModelScope.launch {
+            userRepository.addPoints(currentUserId, 20) // 20 points for visiting verified places
         }
     }
 

@@ -98,12 +98,11 @@ class StatisticsViewModel @Inject constructor(
                     pendingPosts = pendingCount,
                     totalMonthPosts = total,
                     recentActivities = recentActivities.takeLast(5).reversed(),
-                    // Keep mocked changes for UI visualization
-                    activePostsChange = "+2%",
+                    activePostsChange = "${if (activeCount > 0) "+" else ""}0%",
                     isActivePostsPositive = true,
-                    finishedPostsChange = "+5%",
+                    finishedPostsChange = "${if (finishedCount > 0) "+" else ""}0%",
                     isFinishedPostsPositive = true,
-                    pendingPostsChange = "0%",
+                    pendingPostsChange = "${if (pendingCount > 0) "+" else ""}0%",
                     isPendingPostsPositive = true
                 )
             }

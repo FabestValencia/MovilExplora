@@ -72,12 +72,19 @@ class ReputationViewModel @Inject constructor(
                     com.example.movilexplora.domain.model.PostStatus.RECHAZADO -> resourceProvider.getString(R.string.stat_recent_rejected, post.title)
                     else -> resourceProvider.getString(R.string.stat_recent_created, post.title)
                 }
+
+                val pointsText = when (post.status) {
+                    com.example.movilexplora.domain.model.PostStatus.VERIFICADO -> "+100 pts"
+                    com.example.movilexplora.domain.model.PostStatus.RECHAZADO -> "+0 pts"
+                    else -> "+50 pts"
+                }
+
                 recentPoints.add(
                     RecentPoint(
                         id = post.id,
                         title = titleText,
                         time = resourceProvider.getString(R.string.stat_time_recent),
-                        points = "+100 pts", // Los puntos base otorgados al momento de publicar
+                        points = pointsText,
                         type = PointType.POST
                     )
                 )
@@ -86,7 +93,7 @@ class ReputationViewModel @Inject constructor(
             // Limitamos a los más recientes
             val sortedRecentPoints = recentPoints.asReversed().take(10)
 
-            val actualPoints = user.points.coerceAtLeast(10)
+            val actualPoints = user.points
             
             val (calculatedLevel, calcNextLevel, calcTarget) = when {
                 actualPoints < 100 -> Triple(ReputationLevel.TURISTA, ReputationLevel.EXPLORADOR.displayName, 100)

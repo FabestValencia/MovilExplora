@@ -303,12 +303,23 @@
 
     <string name="reputation_earn_post_title">Publicar Lugares</string>
     <string name="reputation_earn_post_desc">Comparte nuevos descubrimientos con la comunidad.</string>
+    <string name="reputation_earn_post_pts">+50 pts</string>
+
+    <string name="reputation_earn_verify_title">Lugares Verificados</string>
+    <string name="reputation_earn_verify_desc">Cuando tus publicaciones son aprobadas y visibles.</string>
+    <string name="reputation_earn_verify_pts">+50 pts</string>
+
     <string name="reputation_earn_comment_title">Comentar</string>
     <string name="reputation_earn_comment_desc">Interactúa con las publicaciones de otros exploradores.</string>
+    <string name="reputation_earn_comment_pts">+10 pts</string>
+
     <string name="reputation_earn_vote_title">Recibir Votos</string>
     <string name="reputation_earn_vote_desc">Recibe \'me gusta\' en tus aportaciones de contenido.</string>
+    <string name="reputation_earn_vote_pts">+5 pts</string>
+
     <string name="reputation_earn_visit_title">Visitar Lugares</string>
     <string name="reputation_earn_visit_desc">Registra tu visita en puntos de interés verificados.</string>
+    <string name="reputation_earn_visit_pts">+20 pts</string>
 
     <string name="reputation_recent_post">Nueva Publicación: %1$s</string>
     <string name="reputation_recent_comment">Comentario recibido</string>

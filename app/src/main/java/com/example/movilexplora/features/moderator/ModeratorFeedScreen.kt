@@ -42,6 +42,9 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
@@ -88,8 +91,60 @@ fun ModeratorFeedScreen(
     var selectedItem by remember { mutableStateOf<VerificationItem?>(null) }
     var showSortMenu by remember { mutableStateOf(false) }
 
+    var showRejectDialog by remember { mutableStateOf(false) }
+    var rejectReason by remember { mutableStateOf("") }
+    var itemToReject by remember { mutableStateOf<String?>(null) }
+
     BackHandler(enabled = selectedItem != null) {
         selectedItem = null
+    }
+
+    if (showRejectDialog && itemToReject != null) {
+        AlertDialog(
+            onDismissRequest = { 
+                showRejectDialog = false
+                itemToReject = null
+                rejectReason = ""
+            },
+            title = { Text(text = "Motivo de rechazo", fontWeight = FontWeight.Bold) },
+            text = {
+                OutlinedTextField(
+                    value = rejectReason,
+                    onValueChange = { rejectReason = it },
+                    label = { Text("Ingresa el motivo (requerido)") },
+                    modifier = Modifier.fillMaxWidth(),
+                    minLines = 3
+                )
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        if (rejectReason.isNotBlank()) {
+                            viewModel.rejectItem(itemToReject!!, rejectReason)
+                            showRejectDialog = false
+                            itemToReject = null
+                            rejectReason = ""
+                            selectedItem = null
+                        }
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
+                    enabled = rejectReason.isNotBlank()
+                ) {
+                    Text("Rechazar")
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = { 
+                        showRejectDialog = false
+                        itemToReject = null
+                        rejectReason = ""
+                    }
+                ) {
+                    Text("Cancelar")
+                }
+            }
+        )
     }
 
     if (selectedItem != null) {
@@ -105,8 +160,8 @@ fun ModeratorFeedScreen(
                 selectedItem = null
             },
             onReject = {
-                viewModel.rejectItem(it)
-                selectedItem = null
+                itemToReject = it
+                showRejectDialog = true
             }
         )
         return
@@ -263,7 +318,10 @@ fun ModeratorFeedScreen(
                     onClick = { selectedItem = item },
                     onVerify = { viewModel.verifyItem(item.id) },
                     onApprove = { viewModel.approveItem(item.id) },
-                    onReject = { viewModel.rejectItem(item.id) }
+                    onReject = { 
+                        itemToReject = item.id
+                        showRejectDialog = true
+                    }
                 )
             }
         }

@@ -124,18 +124,18 @@ class ModeratorFeedViewModel @Inject constructor(
         updateStatus(itemId, PostStatus.VERIFICADO)
     }
 
-    fun rejectItem(itemId: String) {
-        updateStatus(itemId, PostStatus.RECHAZADO)
+    fun rejectItem(itemId: String, reason: String) {
+        updateStatus(itemId, PostStatus.RECHAZADO, reason)
     }
     
-    private fun updateStatus(itemId: String, status: PostStatus) {
+    private fun updateStatus(itemId: String, status: PostStatus, reason: String? = null) {
         viewModelScope.launch {
             if (itemId.startsWith("POST_")) {
                 val realId = itemId.removePrefix("POST_")
-                postRepository.updatePostStatus(realId, status)
+                postRepository.updatePostStatus(realId, status, reason)
             } else if (itemId.startsWith("EVENT_")) {
                 val realId = itemId.removePrefix("EVENT_")
-                eventRepository.updateEventStatus(realId, status)
+                eventRepository.updateEventStatus(realId, status, reason)
             }
         }
     }

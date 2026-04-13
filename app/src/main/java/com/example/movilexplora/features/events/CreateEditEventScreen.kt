@@ -308,10 +308,15 @@ fun CreateEditEventScreen(
                     onSaveSuccess()
                 },
                 modifier = Modifier.fillMaxWidth().height(56.dp),
+                enabled = title.isNotBlank() && startDate.isNotBlank() && endDate.isNotBlank(), // Validación
                 shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Turquoise)
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Turquoise,
+                    disabledContainerColor = Turquoise.copy(alpha = 0.5f),
+                    disabledContentColor = Color.White.copy(alpha = 0.5f)
+                )
             ) {
-                Icon(imageVector = Icons.AutoMirrored.Outlined.Send, contentDescription = null, tint = Color.White)
+                Icon(imageVector = Icons.AutoMirrored.Outlined.Send, contentDescription = null, tint = if (title.isNotBlank() && startDate.isNotBlank() && endDate.isNotBlank()) Color.White else Color.White.copy(alpha = 0.5f))
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
                     text = if (isEditing) "Guardar cambios" else "Publicar evento",

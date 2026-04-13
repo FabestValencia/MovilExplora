@@ -53,6 +53,11 @@ class RegisterViewModel @Inject constructor(
     val registerResult: StateFlow<RequestResult?> = _registerResult.asStateFlow()
 
     fun register() {
+        nombre.markAsDirty()
+        email.markAsDirty()
+        password.markAsDirty()
+        confirmPassword.markAsDirty()
+
         if (isFormValid) {
             val newUser = User(
                 id = UUID.randomUUID().toString(),

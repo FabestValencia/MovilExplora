@@ -59,12 +59,20 @@ class ModeratorFeedViewModel @Inject constructor(
             }
             
             val pendingEvents = events.filter { it.status == PostStatus.PENDIENTE }.map { event ->
+                val publishDate = try {
+                    val timeInMillis = event.id.toLong()
+                    val formatter = java.text.SimpleDateFormat("dd/MM/yyyy HH:mm", java.util.Locale.getDefault())
+                    formatter.format(java.util.Date(timeInMillis))
+                } catch (e: Exception) {
+                    "Desconocida"
+                }
+
                 VerificationItem(
                     id = "EVENT_${event.id}",
                     title = event.title,
                     author = "Organización",
                     timeAgo = "Reciente",
-                    description = "${event.date} • ${event.time}\n${event.location}\n\n${event.description}",
+                    description = "${event.date} • ${event.endDate.ifBlank { "TBD" }}\nPublicado: $publishDate\n${event.location}\n\n${event.description}",
                     imageUrl = event.imageUrl,
                     type = VerificationType.EVENT,
                     badgeText = "New Event"

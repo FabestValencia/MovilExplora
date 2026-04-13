@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.movilexplora.R
+import com.example.movilexplora.core.utils.RequestResult
 import com.example.movilexplora.core.utils.ValidatedField
 import com.example.movilexplora.ui.theme.GrayText
 import com.example.movilexplora.ui.theme.Turquoise
@@ -35,6 +36,21 @@ fun RegisterScreen(
     onNavigateToLogin: () -> Unit,
     viewModel: RegisterViewModel = hiltViewModel()
 ) {
+    val registerResult by viewModel.registerResult.collectAsState()
+
+    LaunchedEffect(registerResult) {
+        when (registerResult) {
+            is RequestResult.Success -> {
+                viewModel.resetRegisterResult()
+                onNavigateToLogin()
+            }
+            is RequestResult.Failure -> {
+                // Handle error if needed
+            }
+            else -> {}
+        }
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(

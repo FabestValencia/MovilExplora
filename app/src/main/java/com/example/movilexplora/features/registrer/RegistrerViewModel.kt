@@ -59,13 +59,17 @@ class RegisterViewModel @Inject constructor(
         confirmPassword.markAsDirty()
 
         if (isFormValid) {
+            // TODO: Eliminar direcciones (lat/lon quemadas mediante String) cuando se agregue mapa al registro de usuario.
+            val randomLat = (Math.random() * 0.8) - 0.4
+            val randomLon = (Math.random() * 0.8) - 0.4
+
             val newUser = User(
                 id = UUID.randomUUID().toString(),
                 name = nombre.value,
                 email = email.value,
                 password = password.value,
-                city = "",
-                address = "",
+                city = "Ciudad Ficticia",
+                address = "Lat: $randomLat, Lon: $randomLon",
                 profilePictureUrl = ""
             )
             viewModelScope.launch {

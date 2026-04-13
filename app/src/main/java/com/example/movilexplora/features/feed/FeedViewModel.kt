@@ -54,6 +54,44 @@ class FeedViewModel @Inject constructor(
     private val _pageSize = 10
     private val _loadedCount = MutableStateFlow(_pageSize)
 
+    // TODO: Eliminar este mapa de ubicaciones quemadas y la lógica de cálculo de
+    // distancia apenas se apliquen los mapas correctamente.
+    // Se deben borrar los mapas `mockUserLocations` y `mockPostLocations`,
+    // y las funciones `calculateDistanceKm`, `getMockLocationForUser` y `getMockLocationForPost`.
+    // También se debe reemplazar el uso de `calcDistance` en `matchesDistance`
+    // por la lógica final de ubicación del dispositivo real, sin dañar los filtros existentes.
+    private val mockUserLocations = mutableMapOf<String, Pair<Double, Double>>()
+    private val mockPostLocations = mutableMapOf<String, Pair<Double, Double>>()
+
+    private fun getMockLocationForUser(userId: String): Pair<Double, Double> {
+        return mockUserLocations.getOrPut(userId) {
+            // Genera lat/lon aleatorias (entre -0.4 y 0.4) para simular ubicaciones entre 0 y ~60 km de distacia del centro
+            val lat = (Math.random() * 0.8) - 0.4
+            val lon = (Math.random() * 0.8) - 0.4
+            Pair(lat, lon)
+        }
+    }
+
+    private fun getMockLocationForPost(postId: String, lat: Double, lon: Double): Pair<Double, Double> {
+        if (lat != 0.0 || lon != 0.0) return Pair(lat, lon) // Si ya tiene una real, la usa
+        return mockPostLocations.getOrPut(postId) {
+            val randomLat = (Math.random() * 0.8) - 0.4
+            val randomLon = (Math.random() * 0.8) - 0.4
+            Pair(randomLat, randomLon)
+        }
+    }
+
+    private fun calculateDistanceKm(lat1: Double, lon1: Double, lat2: Double, lon2: Double): Float {
+        val r = 6371.0 // Radio de la tierra en km
+        val dLat = Math.toRadians(lat2 - lat1)
+        val dLon = Math.toRadians(lon2 - lon1)
+        val a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2)) *
+                Math.sin(dLon / 2) * Math.sin(dLon / 2)
+        val c = 2 * Math.atan2(java.lang.Math.sqrt(a), java.lang.Math.sqrt(1 - a))
+        return (r * c).toFloat()
+    }
+
     // Lista real del repo
     private val _allPosts: StateFlow<List<Post>> = postRepository.getPosts()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
@@ -67,11 +105,14 @@ class FeedViewModel @Inject constructor(
     ) { allPosts, currentState, userId, loadedCount ->
         val filters = currentState.filterState
         val query = currentState.searchQuery
+        val userLocation = getMockLocationForUser(userId)
 
         val filteredList = allPosts.filter { post ->
             val matchesCategory = filters.selectedCategory == null || post.category == filters.selectedCategory
             val matchesPrice = filters.selectedPriceRange == 4 || (post.price.count { it == '$' } <= filters.selectedPriceRange)
-            val matchesDistance = post.distance <= filters.distance
+            val postLocation = getMockLocationForPost(post.id, post.latitude, post.longitude)
+            val calcDistance = calculateDistanceKm(userLocation.first, userLocation.second, postLocation.first, postLocation.second)
+            val matchesDistance = calcDistance <= filters.distance
             val matchesSearch = query.isBlank() || post.title.contains(query, ignoreCase = true)
 
             // REGLA DE VISIBILIDAD: Verificados O creados por el usuario actual

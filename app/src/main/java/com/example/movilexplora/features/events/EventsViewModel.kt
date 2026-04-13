@@ -46,11 +46,14 @@ class EventsViewModel @Inject constructor(
         viewModelScope.launch {
             combine(eventRepository.getEvents(), likeDao.getAllEventLikes(), _state) { events, likes, currentState ->
                 val query = currentState.searchQuery
+                val currentId = _currentUserId.value
                 events.map { event ->
                     val eventLikes = likes.filter { it.itemId == event.id }.map { it.userId }.toSet()
                     event.copy(likedBy = eventLikes)
                 }.filter { event ->
-                    query.isBlank() || event.title.contains(query, ignoreCase = true)
+                    val matchesVisibility = event.status == PostStatus.VERIFICADO || event.creatorId == currentId
+                    val matchesSearch = query.isBlank() || event.title.contains(query, ignoreCase = true)
+                    matchesVisibility && matchesSearch
                 }.sortedByDescending { it.likedBy.size }
             }.collect { combinedEvents ->
                 _state.value = _state.value.copy(events = combinedEvents)

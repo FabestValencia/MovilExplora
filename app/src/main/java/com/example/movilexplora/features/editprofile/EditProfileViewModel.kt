@@ -56,10 +56,18 @@ class EditProfileViewModel @Inject constructor(
                 if (session != null) {
                     val user = userRepository.findById(session.userId)
                     if (user != null) {
+                        // TODO: Eliminar mocking de location y address si están vacíos al integrar mapas
+                        val mockCity = user.city.ifEmpty { "Ciudad Ficticia" }
+                        val mockAddress = user.address.ifEmpty {
+                            val randomLat = (Math.random() * 0.8) - 0.4
+                            val randomLon = (Math.random() * 0.8) - 0.4
+                            "Lat: $randomLat, Lon: $randomLon"
+                        }
+
                         if (name.value.isEmpty()) name.onChange(user.name)
                         if (email.value.isEmpty()) email.onChange(user.email)
-                        if (location.value.isEmpty()) location.onChange(user.city)
-                        if (description.value.isEmpty()) description.onChange(user.address)
+                        if (location.value.isEmpty()) location.onChange(mockCity)
+                        if (description.value.isEmpty()) description.onChange(mockAddress)
                         _photoUrl.value = user.profilePictureUrl
                     }
                 }

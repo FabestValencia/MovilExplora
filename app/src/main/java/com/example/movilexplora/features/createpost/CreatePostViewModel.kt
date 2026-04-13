@@ -62,6 +62,11 @@ class CreatePostViewModel @Inject constructor(
         if (title.isValid && description.isValid && _state.value.selectedCategory != null) {
             viewModelScope.launch {
                 val userId = sessionDataStore.sessionFlow.firstOrNull()?.userId ?: "1" // Defaulting if null
+
+                // TODO: Eliminar generación aleatoria de latitud y longitud una vez que se integre el mapa interactivo.
+                val randomLat = (Math.random() * 0.8) - 0.4
+                val randomLon = (Math.random() * 0.8) - 0.4
+
                 val newPost = Post(
                     id = System.currentTimeMillis().toString(),
                     title = title.value,
@@ -72,8 +77,8 @@ class CreatePostViewModel @Inject constructor(
                     status = PostStatus.PENDIENTE,
                     imageUrl = "",
                     description = description.value,
-                    latitude = 0.0,
-                    longitude = 0.0,
+                    latitude = randomLat,
+                    longitude = randomLon,
                     likedBy = emptySet(),
                     distance = 5f,
                     creatorId = userId

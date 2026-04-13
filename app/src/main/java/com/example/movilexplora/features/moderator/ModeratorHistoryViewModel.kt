@@ -6,11 +6,13 @@ import com.example.movilexplora.domain.model.PostStatus
 import com.example.movilexplora.domain.model.VerificationItem
 import com.example.movilexplora.domain.model.VerificationType
 import com.example.movilexplora.domain.repository.PostRepository
+import com.example.movilexplora.domain.repository.EventRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.onEach
 import javax.inject.Inject
 
@@ -33,7 +35,8 @@ data class HistoryItem(
 
 @HiltViewModel
 class ModeratorHistoryViewModel @Inject constructor(
-    private val postRepository: PostRepository
+    private val postRepository: PostRepository,
+    private val eventRepository: EventRepository
 ) : ViewModel() {
     private val _state = MutableStateFlow(ModeratorHistoryState())
     val state: StateFlow<ModeratorHistoryState> = _state.asStateFlow()
@@ -45,13 +48,15 @@ class ModeratorHistoryViewModel @Inject constructor(
     }
 
     private fun loadHistory() {
-        postRepository.getPosts().onEach { posts ->
+        combine(
+            postRepository.getPosts(),
+            eventRepository.getEvents()
+        ) { posts, events ->
             val processedPosts = posts.filter { it.status == PostStatus.VERIFICADO || it.status == PostStatus.RECHAZADO }
-
-            allItems = processedPosts.map { post ->
+            val postHistoryItems = processedPosts.map { post ->
                 HistoryItem(
-                    id = post.id,
-                    type = VerificationType.LOCATION, // Simplified for now since type isn't fully defined in Post
+                    id = "POST_${post.id}",
+                    type = VerificationType.LOCATION,
                     badgeText = post.category.uppercase(),
                     title = post.title,
                     author = post.creatorId.ifEmpty { "Usuario" },
@@ -59,8 +64,23 @@ class ModeratorHistoryViewModel @Inject constructor(
                     description = post.description.ifEmpty { "Sin descripción" },
                     status = if (post.status == PostStatus.VERIFICADO) "Aceptado" else "Rechazado"
                 )
-            }.reversed() // Show newest first
+            }
 
+            val processedEvents = events.filter { it.status == PostStatus.VERIFICADO || it.status == PostStatus.RECHAZADO }
+            val eventHistoryItems = processedEvents.map { event ->
+                HistoryItem(
+                    id = "EVENT_${event.id}",
+                    type = VerificationType.EVENT,
+                    badgeText = "EVENTO",
+                    title = event.title,
+                    author = "Organización",
+                    timeAgo = "Reciente",
+                    description = event.description.ifEmpty { "Sin descripción" },
+                    status = if (event.status == PostStatus.VERIFICADO) "Aceptado" else "Rechazado"
+                )
+            }
+
+            allItems = (postHistoryItems + eventHistoryItems).reversed() // Show newest first
             updateState()
         }.launchIn(viewModelScope)
     }

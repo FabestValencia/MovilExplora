@@ -1,14 +1,18 @@
 package com.example.movilexplora.features.notifications
 
+import android.content.Context
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 
+import com.example.movilexplora.R
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.movilexplora.domain.model.Notification
 import com.example.movilexplora.domain.model.NotificationType
 import com.example.movilexplora.domain.repository.PostRepository
 import com.example.movilexplora.data.datastore.SessionDataStore
+import com.example.movilexplora.domain.model.PostStatus
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -24,7 +28,8 @@ data class NotificationsState(
 @HiltViewModel
 class NotificationsViewModel @Inject constructor(
     private val sessionDataStore: SessionDataStore,
-    private val postRepository: PostRepository
+    private val postRepository: PostRepository,
+    @ApplicationContext private val context: Context
 ) : ViewModel() {
     private val _state = MutableStateFlow(NotificationsState())
     val state: StateFlow<NotificationsState> = _state.asStateFlow()
@@ -43,28 +48,43 @@ class NotificationsViewModel @Inject constructor(
 
             var notificationId = 1
             userPosts.forEach { post ->
-                if (post.status.name == "VERIFICADO" || post.status.name == "ACTIVO") {
-                    dynamicRecent.add(
-                        Notification(
-                            id = notificationId++.toString(),
-                            type = NotificationType.NEW_PLACE,
-                            title = "Publicación aprobada",
-                            description = "Tu publicación \"${post.title}\" ha sido verificada.",
-                            time = "Reciente",
-                            isNew = true
+                when (post.status) {
+                    PostStatus.VERIFICADO -> {
+                        dynamicRecent.add(
+                            Notification(
+                                id = (notificationId++).toString(),
+                                type = NotificationType.NEW_PLACE,
+                                title = context.getString(R.string.notification_approved_title),
+                                description = context.getString(R.string.notification_approved_desc, post.title),
+                                time = context.getString(R.string.notification_time_recent),
+                                isNew = true
+                            )
                         )
-                    )
-                } else if (post.status.name == "PENDIENTE") {
-                    dynamicOlder.add(
-                        Notification(
-                            id = notificationId++.toString(),
-                            type = NotificationType.NEARBY_POINTS,
-                            title = "Publicación en revisión",
-                            description = "Tu publicación \"${post.title}\" está siendo revisada.",
-                            time = "Pendiente",
-                            isNew = false
+                    }
+                    PostStatus.PENDIENTE -> {
+                        dynamicOlder.add(
+                            Notification(
+                                id = (notificationId++).toString(),
+                                type = NotificationType.NEARBY_POINTS,
+                                title = context.getString(R.string.notification_pending_title),
+                                description = context.getString(R.string.notification_pending_desc, post.title),
+                                time = context.getString(R.string.notification_time_pending),
+                                isNew = false
+                            )
                         )
-                    )
+                    }
+                    PostStatus.RECHAZADO -> {
+                        dynamicOlder.add(
+                            Notification(
+                                id = (notificationId++).toString(),
+                                type = NotificationType.NEARBY_POINTS,
+                                title = context.getString(R.string.notification_rejected_title),
+                                description = context.getString(R.string.notification_rejected_desc, post.title),
+                                time = context.getString(R.string.notification_time_recent),
+                                isNew = false
+                            )
+                        )
+                    }
                 }
             }
 
@@ -72,11 +92,11 @@ class NotificationsViewModel @Inject constructor(
             if (userPosts.isNotEmpty()) {
                 dynamicOlder.add(
                     Notification(
-                        id = notificationId++.toString(),
+                        id = (notificationId++).toString(),
                         type = NotificationType.ACHIEVEMENT,
-                        title = "Nuevos logros",
-                        description = "Sigue publicando para aumentar tu reputación exploradora.",
-                        time = "Ayer",
+                        title = context.getString(R.string.notification_achievement_title),
+                        description = context.getString(R.string.notification_achievement_desc),
+                        time = context.getString(R.string.notification_time_yesterday),
                         isNew = false
                     )
                 )

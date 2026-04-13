@@ -114,6 +114,11 @@ fun FeedScreen(
                 modifier = Modifier.weight(1f)
             ) {
                 items(posts) { post ->
+                    if (post.id == posts.lastOrNull()?.id) {
+                        SideEffect {
+                            viewModel.loadMore()
+                        }
+                    }
                     PostCard(
                         post = post, 
                         currentUserId = currentUserId,
@@ -285,11 +290,14 @@ fun PostCard(
     ) {
         Column {
             Box(modifier = Modifier.height(200.dp).fillMaxWidth()) {
-                // Placeholder for Image
-                Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surfaceVariant)) {
-                    Text("Imagen", color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.align(Alignment.Center))
-                }
-                
+                // Header Image
+                coil.compose.AsyncImage(
+                    model = post.imageUrl,
+                    contentDescription = null,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = androidx.compose.ui.layout.ContentScale.Crop
+                )
+
                 // Verified Badge
                 if (post.isVerified) {
                     Row(

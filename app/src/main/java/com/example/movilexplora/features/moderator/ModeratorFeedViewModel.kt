@@ -48,7 +48,7 @@ class ModeratorFeedViewModel @Inject constructor(
                     title = post.title,
                     author = post.creatorId,
                     timeAgo = "Reciente", 
-                    description = "${post.location} - ${post.category}\n\nPrice: ${post.price}",
+                    description = "${post.location} - ${post.category}\nPrecio: ${post.price}\n\nDescripción:\n${post.description.ifEmpty { "Sin descripción" }}",
                     imageUrl = post.imageUrl,
                     type = VerificationType.LOCATION, // Or differentiate later
                     badgeText = "New Location"

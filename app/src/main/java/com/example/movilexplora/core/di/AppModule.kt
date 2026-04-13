@@ -40,6 +40,10 @@ object AppModule {
 
     @Provides
     @Singleton
+    fun providePostDao(database: AppDatabase) = database.postDao
+
+    @Provides
+    @Singleton
     fun provideResourceProvider(
         @ApplicationContext context: Context
     ): ResourceProvider = ResourceProviderImpl(context)

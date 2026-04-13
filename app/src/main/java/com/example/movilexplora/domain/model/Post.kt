@@ -15,9 +15,13 @@ data class Post(
     val price: String,
     val status: PostStatus = PostStatus.PENDIENTE,
     val imageUrl: String,
-   val likedBy: Set<String> = emptySet(),
+    val description: String = "",
+    val latitude: Double = 0.0,
+    val longitude: Double = 0.0,
+    val likedBy: Set<String> = emptySet(),
     val distance: Float = 5f,
-    val creatorId: String = ""
+    val creatorId: String = "",
+    val rejectionReason: String? = null
 ) {
     val isVerified: Boolean get() = status == PostStatus.VERIFICADO
 

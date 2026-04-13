@@ -24,6 +24,12 @@
     <!-- Moderator Screen -->
     <string name="moderator_title">Moderador</string>
     <string name="logout_desc">Salir</string>
+    <string name="modo_claro">Modo Claro</string>
+    <string name="modo_oscuro">Modo Oscuro</string>
+    <string name="ver_historial">Ver Historial</string>
+    <string name="fechas_mas_recientes">Fechas: Más recientes</string>
+    <string name="fechas_mas_antiguos">Fechas: Más antiguos</string>
+    <string name="regresar">Regresar</string>
     <string name="pending_verification_title">Por verificar</string>
     <string name="filter_button">Filtrar</string>
     <string name="filter_all">Todo</string>

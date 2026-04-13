@@ -11,5 +11,5 @@ interface PostRepository {
     suspend fun addComment(comment: Comment)
     suspend fun toggleFavorite(postId: String, userId: String)
     suspend fun addPost(post: Post)
-    suspend fun updatePostStatus(postId: String, status: com.example.movilexplora.domain.model.PostStatus)
+    suspend fun updatePostStatus(postId: String, status: com.example.movilexplora.domain.model.PostStatus, rejectionReason: String? = null)
 }

@@ -72,6 +72,8 @@ import com.example.movilexplora.R
 import com.example.movilexplora.domain.model.VerificationItem
 import com.example.movilexplora.ui.theme.Turquoise
 import com.example.movilexplora.core.navigation.ThemeViewModel
+import coil.compose.AsyncImage
+import androidx.compose.ui.layout.ContentScale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -140,7 +142,7 @@ fun ModeratorFeedScreen(
                     IconButton(onClick = onNavigateToHistory) {
                         Icon(
                             imageVector = Icons.Default.History,
-                            contentDescription = "Ver Historial",
+                            contentDescription = stringResource(R.string.ver_historial),
                             tint = MaterialTheme.colorScheme.onSurface
                         )
                     }
@@ -187,7 +189,7 @@ fun ModeratorFeedScreen(
                             modifier = Modifier.background(MaterialTheme.colorScheme.surface)
                         ) {
                             DropdownMenuItem(
-                                text = { Text("Fechas: Más recientes", color = MaterialTheme.colorScheme.onSurface) },
+                                text = { Text(stringResource(R.string.fechas_mas_recientes), color = MaterialTheme.colorScheme.onSurface) },
                                 onClick = {
                                     viewModel.onSortOrderChanged(sortByRecent = true)
                                     showSortMenu = false
@@ -197,7 +199,7 @@ fun ModeratorFeedScreen(
                                 }
                             )
                             DropdownMenuItem(
-                                text = { Text("Fechas: Más antiguos", color = MaterialTheme.colorScheme.onSurface) },
+                                text = { Text(stringResource(R.string.fechas_mas_antiguos), color = MaterialTheme.colorScheme.onSurface) },
                                 onClick = {
                                     viewModel.onSortOrderChanged(sortByRecent = false)
                                     showSortMenu = false
@@ -283,7 +285,7 @@ fun ModeratorItemDetailScreen(
                 title = { Text(stringResource(R.string.eventdetailscreen_detalle_del_evento_0), fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Regresar", tint = MaterialTheme.colorScheme.onSurface)
+                        Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.regresar), tint = MaterialTheme.colorScheme.onSurface)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface)
@@ -297,9 +299,30 @@ fun ModeratorItemDetailScreen(
                 .background(MaterialTheme.colorScheme.background)
         ) {
             Box(modifier = Modifier.height(260.dp).fillMaxWidth()) {
-                Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surfaceVariant)) {
-                    Text(stringResource(R.string.image_placeholder), color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.align(Alignment.Center))
+                if (item.imageUrl.isNotBlank()) {
+                    AsyncImage(
+                        model = item.imageUrl,
+                        contentDescription = null,
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
+                    )
+                    // Optional gradient to make badge readable
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(
+                                androidx.compose.ui.graphics.Brush.verticalGradient(
+                                    colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.4f)),
+                                    startY = 300f
+                                )
+                            )
+                    )
+                } else {
+                    Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surfaceVariant)) {
+                        Text(stringResource(R.string.image_placeholder), color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.align(Alignment.Center))
+                    }
                 }
+
                 Surface(
                     modifier = Modifier.padding(16.dp),
                     shape = RoundedCornerShape(8.dp),
@@ -434,9 +457,17 @@ fun ModeratorItemCard(
     ) {
         Column {
             Box(modifier = Modifier.height(200.dp).fillMaxWidth()) {
-                // Image Placeholder
-                Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surfaceVariant)) {
-                    Text(stringResource(R.string.image_placeholder), color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.align(Alignment.Center))
+                if (item.imageUrl.isNotBlank()) {
+                    AsyncImage(
+                        model = item.imageUrl,
+                        contentDescription = null,
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
+                    )
+                } else {
+                    Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surfaceVariant)) {
+                        Text(stringResource(R.string.image_placeholder), color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.align(Alignment.Center))
+                    }
                 }
                 
                 // Badge

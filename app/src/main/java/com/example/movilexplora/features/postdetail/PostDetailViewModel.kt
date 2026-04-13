@@ -41,13 +41,11 @@ class PostDetailViewModel @Inject constructor(
     }
 
     fun loadPostDetail(postId: String) {
-        val mockDescription = "Experimente las fascinantes aguas azules de esta cueva marina natural. La luz del sol, al atravesar una cavidad submarina, crea un reflejo azul que ilumina la caverna. Ideal para nadar y realizar excursiones guiadas en barco."
-
         viewModelScope.launch {
             postRepository.getPost(postId).collect { post ->
                 _state.value = _state.value.copy(
                     post = post,
-                    description = mockDescription
+                    description = post?.description ?: ""
                 )
             }
         }

@@ -27,6 +27,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import coil.compose.AsyncImage
 import com.example.movilexplora.domain.model.Comment
 import com.example.movilexplora.ui.theme.GrayText
 import com.example.movilexplora.ui.theme.Turquoise
@@ -92,10 +93,24 @@ fun PostDetailScreen(
             ) {
                 // Header Image & Title
                 Box(modifier = Modifier.height(260.dp).fillMaxWidth()) {
-                    // Placeholder for main image
-                    Box(modifier = Modifier.fillMaxSize().background(Color.LightGray)) {
-                        Text("Imagen de la Cueva", modifier = Modifier.align(Alignment.Center), color = Color.DarkGray)
-                    }
+                    AsyncImage(
+                        model = post.imageUrl,
+                        contentDescription = null,
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
+                    )
+                    
+                    // Gradient overlay to make text readable
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(
+                                androidx.compose.ui.graphics.Brush.verticalGradient(
+                                    colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.7f)),
+                                    startY = 300f
+                                )
+                            )
+                    )
                     
                     Column(
                         modifier = Modifier
@@ -169,7 +184,11 @@ fun PostDetailScreen(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(imageVector = Icons.Default.LocationOn, contentDescription = null, tint = Turquoise, modifier = Modifier.size(16.dp))
                         Spacer(modifier = Modifier.width(4.dp))
-                        Text(text = stringResource(R.string.postdetailscreen_40_5594__n__14_2045__e_3), fontSize = 14.sp, color = MaterialTheme.colorScheme.onBackground)
+                        Text(
+                            text = "${post.latitude}° N, ${post.longitude}° E",
+                            fontSize = 14.sp,
+                            color = MaterialTheme.colorScheme.onBackground
+                        )
                     }
                     Spacer(modifier = Modifier.height(12.dp))
 

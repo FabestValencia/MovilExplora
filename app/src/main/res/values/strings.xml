@@ -22,8 +22,14 @@
     <string name="login_failure">Invalid credentials</string>
 
     <!-- Moderator Screen -->
-    <string name="moderator_title">Moderator</string>
-    <string name="logout_desc">Logout</string>
+    <string name="moderator_title">Moderator Area</string>
+    <string name="logout_desc">Log out</string>
+    <string name="modo_claro">Light Mode</string>
+    <string name="modo_oscuro">Dark Mode</string>
+    <string name="ver_historial">View History</string>
+    <string name="fechas_mas_recientes">Dates: Newest</string>
+    <string name="fechas_mas_antiguos">Dates: Oldest</string>
+    <string name="regresar">Back</string>
     <string name="pending_verification_title">Pending verification</string>
     <string name="filter_button">Filter</string>
     <string name="filter_all">All</string>
@@ -312,5 +318,18 @@
 
     <string name="reputation_percentage_msg">Top 15%% of explorers in your city</string>
     <string name="reputation_max_level">Max Level</string>
+
+    <!-- Notifications -->
+    <string name="notification_approved_title">Publicación aprobada</string>
+    <string name="notification_approved_desc">Tu publicación \"%1$s\" ha sido verificada y ya es visible para todos.</string>
+    <string name="notification_pending_title">Publicación en revisión</string>
+    <string name="notification_pending_desc">Tu publicación \"%1$s\" está siendo revisada por nuestro equipo.</string>
+    <string name="notification_rejected_title">Publicación rechazada</string>
+    <string name="notification_rejected_desc">Lo sentimos, tu publicación \"%1$s\" no cumple con nuestras guías.</string>
+    <string name="notification_time_recent">Reciente</string>
+    <string name="notification_time_pending">Pendiente</string>
+    <string name="notification_achievement_title">¡Nuevos logros!</string>
+    <string name="notification_achievement_desc">Sigue compartiendo tus lugares favoritos para subir de nivel.</string>
+    <string name="notification_time_yesterday">Ayer</string>
 
 </resources>

@@ -8,7 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.navArgument
+import androidx.navigation.toRoute
 import com.example.movilexplora.features.createpost.CreatePostScreen
 import com.example.movilexplora.features.editprofile.EditProfileScreen
 import com.example.movilexplora.features.feed.FeedScreen
@@ -36,6 +36,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.movilexplora.core.navigation.SessionViewModel
 import com.example.movilexplora.core.navigation.SessionState
 import com.example.movilexplora.core.navigation.ThemeViewModel
+import com.example.movilexplora.core.navigation.*
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.foundation.layout.Box
@@ -81,7 +82,7 @@ fun AppNavigation(
                     CircularProgressIndicator()
                 }
             }
-            is SessionState.NotAuthenticated -> AuthNavigation(sessionViewModel)
+            is SessionState.NotAuthenticated -> AuthNavigation()
             is SessionState.Authenticated -> MainNavigation(
                 session = state.session,
                 onLogout = sessionViewModel::logout
@@ -91,55 +92,55 @@ fun AppNavigation(
 }
 
 @Composable
-private fun AuthNavigation(sessionViewModel: SessionViewModel) {
+private fun AuthNavigation() {
     val navController = rememberNavController()
 
-    NavHost(navController = navController, startDestination = "home") {
-        composable("home") {
+    NavHost(navController = navController, startDestination = Home) {
+        composable<Home> {
             HomeScreen(
-                onNavigateToRegister = { navController.navigate("register") },
-                onNavigateToLogin = { navController.navigate("login") }
+                onNavigateToRegister = { navController.navigate(Register) },
+                onNavigateToLogin = { navController.navigate(Login) }
             )
         }
-        composable("login") {
+        composable<Login> {
             LoginScreen(
                 onNavigateBack = { navController.popBackStack() },
-                onNavigateToForgotPassword = { navController.navigate("forgot_password") },
-                onNavigateToModerator = { navController.navigate("moderator") }
+                onNavigateToForgotPassword = { navController.navigate(ForgotPassword) },
+                onNavigateToModerator = { navController.navigate(Moderator) }
             )
         }
-        composable("register") {
+        composable<Register> {
             RegisterScreen(
                 onNavigateBack = { navController.popBackStack() },
-                onNavigateToLogin = { navController.navigate("login") }
+                onNavigateToLogin = { navController.navigate(Login) }
             )
         }
-        composable("forgot_password") {
+        composable<ForgotPassword> {
             ForgotPasswordScreen(
                 onNavigateBack = { navController.popBackStack() },
-                onNavigateToVerifyCode = { navController.navigate("verification_code") }
+                onNavigateToVerifyCode = { navController.navigate(VerificationCode) }
             )
         }
-        composable("verification_code") {
+        composable<VerificationCode> {
             VerificationCodeScreen(
                 onNavigateBack = { navController.popBackStack() },
-                onVerifySuccess = { navController.navigate("reset_password") }
+                onVerifySuccess = { navController.navigate(ResetPassword) }
             )
         }
-        composable("reset_password") {
+        composable<ResetPassword> {
             ResetPasswordScreen(
                 onNavigateBack = { navController.popBackStack() },
-                onResetSuccess = { navController.navigate("success") }
+                onResetSuccess = { navController.navigate(Success) }
             )
         }
-        composable("success") {
+        composable<Success> {
             SuccessScreen(
                 onNavigateToLogin = {
-                    navController.navigate("login") { popUpTo("home") { inclusive = false } }
+                    navController.navigate(Login) { popUpTo(Home) { inclusive = false } }
                 }
             )
         }
-        composable("moderator") {
+        composable<Moderator> {
             ModeratorScreen(
                 onNavigateBack = { navController.popBackStack() },
                 onAccessGranted = {
@@ -156,131 +157,124 @@ private fun MainNavigation(
     onLogout: () -> Unit
 ) {
     val navController = rememberNavController()
-    val startDestination = when (session.role) {
-        UserRole.MODERATOR, UserRole.ADMIN -> "moderator_feed"
-        else -> "feed"
-    }
-
-    NavHost(navController = navController, startDestination = startDestination) {
+    
+    NavHost(navController = navController, startDestination = if (session.role == UserRole.MODERATOR || session.role == UserRole.ADMIN) ModeratorFeed else Feed) {
         if (session.role == UserRole.MODERATOR || session.role == UserRole.ADMIN) {
             // Admin / Moderator Routes
-            composable("moderator_feed") {
+            composable<ModeratorFeed> {
                 ModeratorFeedScreen(
                     onLogout = { onLogout() },
-                    onNavigateToHistory = { navController.navigate("moderator_history") }
+                    onNavigateToHistory = { navController.navigate(ModeratorHistory) }
                 )
             }
-            composable("moderator_history") {
+            composable<ModeratorHistory> {
                 ModeratorHistoryScreen(
                     onNavigateBack = { navController.popBackStack() }
                 )
             }
         } else {
             // User Routes
-            composable("feed") {
+            composable<Feed> {
                 FeedScreen(
-                    onNavigateToDetail = { postId -> navController.navigate("post_detail/$postId") },
-                    onNavigateToCreatePost = { navController.navigate("create_post") },
-                    onNavigateToMap = { navController.navigate("map") },
-                    onNavigateToEvents = { navController.navigate("events") },
-                    onNavigateToNotifications = { navController.navigate("notifications") },
-                    onNavigateToProfile = { navController.navigate("profile") }
+                    onNavigateToDetail = { postId -> navController.navigate(PostDetail(postId)) },
+                    onNavigateToCreatePost = { navController.navigate(CreatePost) },
+                    onNavigateToMap = { navController.navigate(MapRoute) },
+                    onNavigateToEvents = { navController.navigate(Events) },
+                    onNavigateToNotifications = { navController.navigate(Notifications) },
+                    onNavigateToProfile = { navController.navigate(Profile) }
                 )
             }
-            composable("events") {
+            composable<Events> {
                 EventsScreen(
-                    onNavigateToEventDetail = { eventId -> navController.navigate("event_detail/$eventId") },
-                    onNavigateToCreatePost = { navController.navigate("create_post") },
-                    onNavigateToCreateEvent = { navController.navigate("create_edit_event") },
-                    onNavigateToHome = { navController.navigate("feed") },
-                    onNavigateToMap = { navController.navigate("map") },
-                    onNavigateToNotifications = { navController.navigate("notifications") },
-                    onNavigateToProfile = { navController.navigate("profile") }
+                    onNavigateToEventDetail = { eventId -> navController.navigate(EventDetail(eventId)) },
+                    onNavigateToCreatePost = { navController.navigate(CreatePost) },
+                    onNavigateToCreateEvent = { navController.navigate(CreateEditEvent(null)) },
+                    onNavigateToHome = { navController.navigate(Feed) },
+                    onNavigateToMap = { navController.navigate(MapRoute) },
+                    onNavigateToNotifications = { navController.navigate(Notifications) },
+                    onNavigateToProfile = { navController.navigate(Profile) }
                 )
             }
-            composable("map") {
+            composable<MapRoute> {
                 MapScreen(
-                    onNavigateToCreatePost = { navController.navigate("create_post") },
-                    onNavigateToFeed = { navController.navigate("feed") },
-                    onNavigateToDetail = { postId -> navController.navigate("post_detail/$postId") }
+                    onNavigateToCreatePost = { navController.navigate(CreatePost) },
+                    onNavigateToFeed = { navController.navigate(Feed) },
+                    onNavigateToDetail = { postId -> navController.navigate(PostDetail(postId)) }
                 )
             }
-            composable("create_post") {
+            composable<CreatePost> {
                 CreatePostScreen(
                     onNavigateBack = { navController.popBackStack() },
                     onPublishSuccess = { navController.popBackStack() }
                 )
             }
-            composable(
-                route = "create_edit_event?eventId={eventId}",
-                arguments = listOf(navArgument("eventId") { nullable = true })
-            ) { backStackEntry ->
-                val eventId = backStackEntry.arguments?.getString("eventId")
+            composable<CreateEditEvent> { backStackEntry ->
+                val args = backStackEntry.toRoute<CreateEditEvent>()
                 com.example.movilexplora.features.events.CreateEditEventScreen(
-                    eventId = eventId,
+                    eventId = args.eventId,
                     onNavigateBack = { navController.popBackStack() },
                     onSaveSuccess = { navController.popBackStack() }
                 )
             }
-            composable("post_detail/{postId}") { backStackEntry ->
-                val postId = backStackEntry.arguments?.getString("postId") ?: ""
+            composable<PostDetail> { backStackEntry ->
+                val args = backStackEntry.toRoute<PostDetail>()
                 PostDetailScreen(
-                    postId = postId,
+                    postId = args.postId,
                     onNavigateBack = { navController.popBackStack() }
                 )
             }
-            composable("event_detail/{eventId}") { backStackEntry ->
-                val eventId = backStackEntry.arguments?.getString("eventId") ?: ""
+            composable<EventDetail> { backStackEntry ->
+                val args = backStackEntry.toRoute<EventDetail>()
                 EventDetailScreen(
-                    eventId = eventId,
+                    eventId = args.eventId,
                     onNavigateBack = { navController.popBackStack() }
                 )
             }
-            composable("statistics") {
+            composable<Statistics> {
                 StatisticsScreen(
                     onNavigateBack = { navController.popBackStack() },
-                    onNavigateToCreatePost = { navController.navigate("create_post") },
-                    onNavigateToHome = { navController.navigate("feed") },
-                    onNavigateToEvents = { navController.navigate("events") },
-                    onNavigateToNotifications = { navController.navigate("notifications") },
-                    onNavigateToProfile = { navController.navigate("profile") }
+                    onNavigateToCreatePost = { navController.navigate(CreatePost) },
+                    onNavigateToHome = { navController.navigate(Feed) },
+                    onNavigateToEvents = { navController.navigate(Events) },
+                    onNavigateToNotifications = { navController.navigate(Notifications) },
+                    onNavigateToProfile = { navController.navigate(Profile) }
                 )
             }
-            composable("profile") {
+            composable<Profile> {
                 ProfileScreen(
-                    onNavigateToCreatePost = { navController.navigate("create_post") },
-                    onNavigateToHome = { navController.navigate("feed") },
-                    onNavigateToEvents = { navController.navigate("events") },
-                    onNavigateToNotifications = { navController.navigate("notifications") },
-                    onEditData = { navController.navigate("edit_profile") },
-                    onNavigateToEditEvent = { eventId -> navController.navigate("create_edit_event?eventId=$eventId") },
-                    onNavigateToReputation = { navController.navigate("reputation") },
-                    onNavigateToBadges = { navController.navigate("badges") },
-                    onNavigateToStatistics = { navController.navigate("statistics") },
+                    onNavigateToCreatePost = { navController.navigate(CreatePost) },
+                    onNavigateToHome = { navController.navigate(Feed) },
+                    onNavigateToEvents = { navController.navigate(Events) },
+                    onNavigateToNotifications = { navController.navigate(Notifications) },
+                    onEditData = { navController.navigate(EditProfile) },
+                    onNavigateToEditEvent = { eventId -> navController.navigate(CreateEditEvent(eventId)) },
+                    onNavigateToReputation = { navController.navigate(Reputation) },
+                    onNavigateToBadges = { navController.navigate(Badges) },
+                    onNavigateToStatistics = { navController.navigate(Statistics) },
                     onLogout = onLogout
                 )
             }
-            composable("edit_profile") {
+            composable<EditProfile> {
                 EditProfileScreen(
                     onNavigateBack = { navController.popBackStack() },
                     onUpdateSuccess = { navController.popBackStack() }
                 )
             }
-            composable("notifications") {
+            composable<Notifications> {
                 NotificationsScreen(
                     onNavigateBack = { navController.popBackStack() },
-                    onNavigateToCreatePost = { navController.navigate("create_post") },
-                    onNavigateToHome = { navController.navigate("feed") },
-                    onNavigateToEvents = { navController.navigate("events") },
-                    onNavigateToProfile = { navController.navigate("profile") }
+                    onNavigateToCreatePost = { navController.navigate(CreatePost) },
+                    onNavigateToHome = { navController.navigate(Feed) },
+                    onNavigateToEvents = { navController.navigate(Events) },
+                    onNavigateToProfile = { navController.navigate(Profile) }
                 )
             }
-            composable("reputation") {
+            composable<Reputation> {
                 ReputationScreen(
                     onNavigateBack = { navController.popBackStack() }
                 )
             }
-            composable("badges") {
+            composable<Badges> {
                 BadgesScreen(
                     onNavigateBack = { navController.popBackStack() }
                 )

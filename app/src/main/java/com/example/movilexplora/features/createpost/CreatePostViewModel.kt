@@ -69,6 +69,9 @@ class CreatePostViewModel @Inject constructor(
                     price = "$".repeat(_state.value.selectedPriceRange),
                     status = PostStatus.PENDIENTE,
                     imageUrl = "",
+                    description = description.value,
+                    latitude = 0.0,
+                    longitude = 0.0,
                     likedBy = emptySet(),
                     distance = 5f,
                     creatorId = userId

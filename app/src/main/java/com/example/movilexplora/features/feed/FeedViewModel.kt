@@ -48,30 +48,42 @@ class FeedViewModel @Inject constructor(
     private val _currentUserId = MutableStateFlow("guest")
     val currentUserId: StateFlow<String> = _currentUserId.asStateFlow()
 
+    // Variable para controlar la carga paginada (simulada o real según el repo)
+    private val _pageSize = 10
+    private val _loadedCount = MutableStateFlow(_pageSize)
+
     // Lista real del repo
     private val _allPosts: StateFlow<List<Post>> = postRepository.getPosts()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     // Combine logs
-    val posts: StateFlow<List<Post>> = combine(_allPosts, _state, _currentUserId) { allPosts, currentState, userId ->
+    val posts: StateFlow<List<Post>> = combine(
+        _allPosts,
+        _state,
+        _currentUserId,
+        _loadedCount
+    ) { allPosts, currentState, userId, loadedCount ->
         val filters = currentState.filterState
         val query = currentState.searchQuery
+
         val filteredList = allPosts.filter { post ->
             val matchesCategory = filters.selectedCategory == null || post.category == filters.selectedCategory
             val matchesPrice = filters.selectedPriceRange == 4 || (post.price.count { it == '$' } <= filters.selectedPriceRange)
             val matchesDistance = post.distance <= filters.distance
             val matchesSearch = query.isBlank() || post.title.contains(query, ignoreCase = true)
 
+            // REGLA DE VISIBILIDAD: Verificados O creados por el usuario actual
             val matchesVisibility = post.status == PostStatus.VERIFICADO || post.creatorId == userId
 
             matchesCategory && matchesPrice && matchesDistance && matchesSearch && matchesVisibility
         }
 
-        // Sort verified by likes, but bump user's own new pending posts to the top or sort by a stable metric
+        // Ordenar y limitar para el scroll
         filteredList.sortedWith(
-            compareByDescending<Post> { it.creatorId == userId } // Show own posts first
+            compareByDescending<Post> { it.creatorId == userId }
+            .thenByDescending { it.status == PostStatus.VERIFICADO }
             .thenByDescending { it.likedBy.size }
-        )
+        ).take(loadedCount)
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
@@ -131,6 +143,10 @@ class FeedViewModel @Inject constructor(
 
     fun updateSearchQuery(query: String) {
         _state.update { it.copy(searchQuery = query) }
+    }
+
+    fun loadMore() {
+        _loadedCount.update { it + _pageSize }
     }
 
     suspend fun getCurrentUserId(): String {

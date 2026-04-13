@@ -1,12 +1,17 @@
 package com.example.movilexplora.features.moderator
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.example.movilexplora.domain.model.PostStatus
 import com.example.movilexplora.domain.model.VerificationItem
 import com.example.movilexplora.domain.model.VerificationType
+import com.example.movilexplora.domain.repository.PostRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import javax.inject.Inject
 
 data class ModeratorHistoryState(
@@ -27,7 +32,9 @@ data class HistoryItem(
 )
 
 @HiltViewModel
-class ModeratorHistoryViewModel @Inject constructor() : ViewModel() {
+class ModeratorHistoryViewModel @Inject constructor(
+    private val postRepository: PostRepository
+) : ViewModel() {
     private val _state = MutableStateFlow(ModeratorHistoryState())
     val state: StateFlow<ModeratorHistoryState> = _state.asStateFlow()
 
@@ -38,41 +45,24 @@ class ModeratorHistoryViewModel @Inject constructor() : ViewModel() {
     }
 
     private fun loadHistory() {
-        // Mock data for history to show traceability of admin actions
-        allItems = listOf(
-            HistoryItem(
-                id = "1",
-                type = VerificationType.EVENT,
-                badgeText = "EVENTO",
-                title = "Rally Deportivo de Ciudad 1",
-                author = "DeportesCiudad1",
-                timeAgo = "1 d",
-                description = "Gran recorrido atlético por el parque central de la ciudad.",
-                status = "Aceptado"
-            ),
-            HistoryItem(
-                id = "2",
-                type = VerificationType.LOCATION,
-                badgeText = "NUEVO LUGAR",
-                title = "Restaurante La Casona",
-                author = "Juan Cocina",
-                timeAgo = "3 d",
-                description = "Falta claridad en la dirección. Imágenes un poco borrosas.",
-                status = "Rechazado"
-            ),
-            HistoryItem(
-                id = "3",
-                type = VerificationType.PHOTO,
-                badgeText = "FOTOGRAFÍA",
-                title = "Atardecer en el Río",
-                author = "FedeFotos",
-                timeAgo = "1 w",
-                description = "Hermosa postal de nuestro río durante el atardecer.",
-                status = "Aceptado"
-            )
-        )
+        postRepository.getPosts().onEach { posts ->
+            val processedPosts = posts.filter { it.status == PostStatus.VERIFICADO || it.status == PostStatus.RECHAZADO }
 
-        updateState()
+            allItems = processedPosts.map { post ->
+                HistoryItem(
+                    id = post.id,
+                    type = VerificationType.LOCATION, // Simplified for now since type isn't fully defined in Post
+                    badgeText = post.category.uppercase(),
+                    title = post.title,
+                    author = post.creatorId.ifEmpty { "Usuario" },
+                    timeAgo = "Reciente",
+                    description = post.description.ifEmpty { "Sin descripción" },
+                    status = if (post.status == PostStatus.VERIFICADO) "Aceptado" else "Rechazado"
+                )
+            }.reversed() // Show newest first
+
+            updateState()
+        }.launchIn(viewModelScope)
     }
 
     fun onFilterSelected(filter: String) {
@@ -99,4 +89,3 @@ class ModeratorHistoryViewModel @Inject constructor() : ViewModel() {
         )
     }
 }
-

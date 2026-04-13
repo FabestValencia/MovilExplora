@@ -15,7 +15,8 @@ data class Event(
     val likedBy: Set<String> = emptySet(), // Added for likes
     val category: String,
     val creatorId: String = "admin", // For identifying who created it
-    val status: PostStatus = PostStatus.PENDIENTE
+    val status: PostStatus = PostStatus.PENDIENTE,
+    val rejectionReason: String? = null
 ) {
     val isVerified: Boolean get() = status == PostStatus.VERIFICADO
 }

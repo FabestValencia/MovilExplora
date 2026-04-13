@@ -50,6 +50,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.compose.runtime.collectAsState
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.ui.layout.ContentScale
@@ -105,14 +106,29 @@ fun CreateEditEventScreen(
 
     val isEditing = eventId != null && eventId != "{eventId}"
 
-    LaunchedEffect(isEditing) {
-        if (isEditing) {
-            title = "Festival de Gastronomía"
-            description = "Un evento para disfrutar de la mejor comida..."
-            location = "Plaza Central"
-            category = "Gastronomía"
-            startDate = "12/15/2026, 10:00 AM"
-            endDate = "12/15/2026, 06:00 PM"
+    val eventToEdit by viewModel.eventToEdit.collectAsState()
+
+    LaunchedEffect(isEditing, eventId) {
+        if (isEditing && eventId != null) {
+            viewModel.loadEvent(eventId)
+        }
+    }
+
+    LaunchedEffect(eventToEdit) {
+        eventToEdit?.let { event ->
+            title = event.title
+            description = event.description
+            location = event.location
+            category = event.category
+            startDate = event.date
+            endDate = event.endDate
+            if (event.imageUrl.isNotEmpty()) {
+                try {
+                    imageUri = Uri.parse(event.imageUrl)
+                } catch (e: Exception) {
+                    // Ignore parsing error
+                }
+            }
         }
     }
 

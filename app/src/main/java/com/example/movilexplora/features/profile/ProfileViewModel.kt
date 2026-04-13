@@ -12,6 +12,8 @@ import com.example.movilexplora.data.datastore.SessionDataStore
 import com.example.movilexplora.domain.repository.UserRepository
 import com.example.movilexplora.domain.repository.PostRepository
 import androidx.lifecycle.viewModelScope
+import com.example.movilexplora.core.utils.ResourceProvider
+import com.example.movilexplora.R
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -23,7 +25,8 @@ import kotlinx.coroutines.flow.update
 class ProfileViewModel @Inject constructor(
     private val sessionDataStore: SessionDataStore,
     private val userRepository: UserRepository,
-    private val postRepository: PostRepository
+    private val postRepository: PostRepository,
+    private val resourceProvider: ResourceProvider
 ) : ViewModel() {
     private val _userProfile = MutableStateFlow<UserProfile?>(null)
     val userProfile: StateFlow<UserProfile?> = _userProfile.asStateFlow()
@@ -34,20 +37,8 @@ class ProfileViewModel @Inject constructor(
     init {
         loadUserProfile()
 
-        _userEvents.value = listOf(
-            Event(
-                id = "evt_1",
-                title = "Limpieza de Parque del Este",
-                description = "Voluntariado para limpiar el parque central del barrio.",
-                date = "22 de Diciembre",
-                time = "08:00 AM",
-                location = "Parque del Este",
-                imageUrl = "",
-                attendeesCount = 14,
-                category = "Voluntariado",
-                creatorId = "user_current"
-            )
-        )
+        // Removiendo los datos quemados a solicitud del usuario. Los eventos ahora
+        // vendran organicos si se añaden o puedes enlazarlos con EventRepository
     }
 
     private fun loadUserProfile() {
@@ -55,9 +46,9 @@ class ProfileViewModel @Inject constructor(
             val userId = sessionDataStore.sessionFlow.firstOrNull()?.userId ?: return@launch
             val user = userRepository.findById(userId) ?: return@launch
             val roleMapping = when (user.role.name) {
-                "ADMIN" -> "ADMINISTRADOR"
-                "MODERATOR" -> "MODERADOR"
-                else -> "EMBAJADOR LOCAL"
+                "ADMIN" -> resourceProvider.getString(R.string.role_admin)
+                "MODERATOR" -> resourceProvider.getString(R.string.role_moderator)
+                else -> resourceProvider.getString(R.string.role_local_ambassador)
             }
 
             val userPosts = postRepository.getPosts().firstOrNull()?.filter { it.creatorId == userId } ?: emptyList()
@@ -65,18 +56,15 @@ class ProfileViewModel @Inject constructor(
             var activeCount = 0
             var finishedCount = 0
             var pendingCount = 0
-            var dynamicPoints = 0
 
             userPosts.forEach { post ->
                 when (post.status.name) {
                     "ACTIVO", "VERIFICADO" -> {
                         activeCount++
-                        dynamicPoints += 100
                     }
                     "FINALIZADO" -> finishedCount++
                     "PENDIENTE" -> {
                         pendingCount++
-                        dynamicPoints += 50
                     }
                 }
             }
@@ -90,14 +78,14 @@ class ProfileViewModel @Inject constructor(
                 activePosts = activeCount,
                 finishedPosts = finishedCount,
                 pendingPosts = pendingCount,
-                currentXp = dynamicPoints.coerceAtLeast(10), // minimum 10 if no posts
+                currentXp = user.points.coerceAtLeast(10), // minimum 10 if no explicit points
                 maxXp = 2000,
                 reputationLevel = ReputationLevel.EMBAJADOR,
                 achievements = listOf(
-                    Achievement("Primera Publicación", "¡Tu primera aventura compartida!", "celebration", postCount >= 1),
-                    Achievement("10 Publicaciones", "Comunidad confiable y activa", "verified", postCount >= 10),
-                    Achievement("Maestro del Mapa", "Experto en navegación local", "map", activeCount >= 5),
-                    Achievement("Explorador del Mes", "Sé el más activo este mes", "stars", postCount >= 20)
+                    Achievement(resourceProvider.getString(R.string.achievement_1_title), resourceProvider.getString(R.string.achievement_1_desc), "celebration", postCount >= 1),
+                    Achievement(resourceProvider.getString(R.string.achievement_2_title), resourceProvider.getString(R.string.achievement_2_desc), "verified", postCount >= 10),
+                    Achievement(resourceProvider.getString(R.string.achievement_3_title), resourceProvider.getString(R.string.achievement_3_desc), "map", activeCount >= 5),
+                    Achievement(resourceProvider.getString(R.string.achievement_4_title), resourceProvider.getString(R.string.achievement_4_desc), "stars", postCount >= 20)
                 )
             )
         }

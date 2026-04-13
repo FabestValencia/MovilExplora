@@ -15,6 +15,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import com.example.movilexplora.R
+import com.example.movilexplora.core.utils.ResourceProvider
 
 data class RecentPoint(
     val id: String,
@@ -43,7 +45,8 @@ data class ReputationState(
 class ReputationViewModel @Inject constructor(
     private val sessionDataStore: SessionDataStore,
     private val userRepository: UserRepository,
-    private val postRepository: PostRepository
+    private val postRepository: PostRepository,
+    private val resourceProvider: ResourceProvider
 ) : ViewModel() {
     private val _state = MutableStateFlow(ReputationState())
     val state: StateFlow<ReputationState> = _state.asStateFlow()
@@ -57,52 +60,49 @@ class ReputationViewModel @Inject constructor(
             val userId = sessionDataStore.sessionFlow.firstOrNull()?.userId ?: return@launch
             val user = userRepository.findById(userId) ?: return@launch
 
-            // Calculamos puntos dinamicamente basados en los posts totales publicados.
-            // Asi evitamos "quemar" los 1250 estticos y lo hacemos por publicacin,
-            // cada publicacin activa vale por ejemplo 50 puntos en nuestro modelo.
+            // Cargamos dinámicamente basados en los posts creados por el usuario
             val allPosts = postRepository.getPosts().firstOrNull() ?: emptyList()
             val posts = allPosts.filter { it.creatorId == userId }
-            // Supondremos que cada publicacion verificada aporta 100 ptos, pendientes 50 pts, para aplicar lgica real
-            var dynamicPoints = 0
+
             val recentPoints = mutableListOf<RecentPoint>()
 
             posts.forEach { post ->
-                if (post.status == com.example.movilexplora.domain.model.PostStatus.VERIFICADO) {
-                    dynamicPoints += 100
-                    recentPoints.add(
-                        RecentPoint(
-                            id = post.id,
-                            title = "Publicación verificada: ${post.title}",
-                            time = "Reciente",
-                            points = "+100 pts",
-                            type = PointType.POST
-                        )
-                    )
-                } else {
-                    dynamicPoints += 50
-                    recentPoints.add(
-                        RecentPoint(
-                            id = post.id,
-                            title = "Publicación pendiente: ${post.title}",
-                            time = "Reciente",
-                            points = "+50 pts",
-                            type = PointType.POST
-                        )
-                    )
+                val titleText = when (post.status) {
+                    com.example.movilexplora.domain.model.PostStatus.VERIFICADO -> resourceProvider.getString(R.string.stat_recent_approved, post.title)
+                    com.example.movilexplora.domain.model.PostStatus.RECHAZADO -> resourceProvider.getString(R.string.stat_recent_rejected, post.title)
+                    else -> resourceProvider.getString(R.string.stat_recent_created, post.title)
                 }
+                recentPoints.add(
+                    RecentPoint(
+                        id = post.id,
+                        title = titleText,
+                        time = resourceProvider.getString(R.string.stat_time_recent),
+                        points = "+100 pts", // Los puntos base otorgados al momento de publicar
+                        type = PointType.POST
+                    )
+                )
             }
             
-            // Limitamos a los ms recientes o todos si lo deseamos. Aca cargamos el historial real de los pts
+            // Limitamos a los más recientes
             val sortedRecentPoints = recentPoints.asReversed().take(10)
+
+            val actualPoints = user.points.coerceAtLeast(10)
+            
+            val (calculatedLevel, calcNextLevel, calcTarget) = when {
+                actualPoints < 100 -> Triple(ReputationLevel.TURISTA, ReputationLevel.EXPLORADOR.displayName, 100)
+                actualPoints < 500 -> Triple(ReputationLevel.EXPLORADOR, ReputationLevel.AVENTURERO.displayName, 500)
+                actualPoints < 1000 -> Triple(ReputationLevel.AVENTURERO, ReputationLevel.EMBAJADOR.displayName, 1000)
+                else -> Triple(ReputationLevel.EMBAJADOR, "Nivel Máximo", 2000)
+            }
 
             _state.update {
                 it.copy(
                     userName = user.name,
                     profilePictureUrl = user.profilePictureUrl,
-                    currentPoints = dynamicPoints.coerceAtLeast(10), // minimum 10 if no posts
-                    targetPoints = 2000,
-                    currentLevel = ReputationLevel.EMBAJADOR,
-                    nextLevelName = "Nivel Máximo",
+                    currentPoints = actualPoints, // usamos los puntos REALES basados en la BD
+                    targetPoints = calcTarget,
+                    currentLevel = calculatedLevel,
+                    nextLevelName = calcNextLevel,
                     recentPoints = sortedRecentPoints
                 )
             }

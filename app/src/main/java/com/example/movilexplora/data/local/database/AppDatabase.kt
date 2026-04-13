@@ -11,7 +11,7 @@ import com.example.movilexplora.data.local.entity.CommentEntity
 import com.example.movilexplora.data.local.entity.LikeEntity
 import com.example.movilexplora.data.local.entity.PostEntity
 
-@Database(entities = [UserEntity::class, CommentEntity::class, LikeEntity::class, PostEntity::class], version = 4, exportSchema = false)
+@Database(entities = [UserEntity::class, CommentEntity::class, LikeEntity::class, PostEntity::class], version = 7, exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
     abstract val userDao: UserDao
     abstract val commentDao: CommentDao

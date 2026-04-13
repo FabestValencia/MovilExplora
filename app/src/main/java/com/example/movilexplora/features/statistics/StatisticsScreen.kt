@@ -245,10 +245,19 @@ fun RecentActivityList(activities: List<ActivityItemModel>) {
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp).fillMaxWidth()) {
-            activities.forEachIndexed { index, activity ->
-                ActivityItem(title = activity.title, time = activity.time)
-                if (index < activities.size - 1) {
-                    Spacer(modifier = Modifier.height(16.dp))
+            if (activities.isEmpty()) {
+                Text(
+                    text = stringResource(R.string.statistics_empty_state),
+                    fontSize = 14.sp,
+                    color = GrayText,
+                    modifier = Modifier.padding(vertical = 8.dp)
+                )
+            } else {
+                activities.forEachIndexed { index, activity ->
+                    ActivityItem(title = activity.title, time = activity.time)
+                    if (index < activities.size - 1) {
+                        Spacer(modifier = Modifier.height(16.dp))
+                    }
                 }
             }
         }

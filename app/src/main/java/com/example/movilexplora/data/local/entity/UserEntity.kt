@@ -15,28 +15,34 @@ data class UserEntity(
     val email: String,
     val password: String,
     val profilePictureUrl: String,
-    val role: String
+    val role: String,
+    val points: Int = 0
 )
 
-fun UserEntity.toDomainModel() = User(
-    id = id,
-    name = name,
-    city = city,
-    address = address,
-    email = email,
-    password = password,
-    profilePictureUrl = profilePictureUrl,
-    role = UserRole.valueOf(role)
-)
+fun UserEntity.toDomainModel(): User {
+    return User(
+        id = id,
+        name = name,
+        city = city,
+        address = address,
+        email = email,
+        password = password,
+        profilePictureUrl = profilePictureUrl,
+        role = UserRole.valueOf(role),
+        points = points
+    )
+}
 
-fun User.toEntity() = UserEntity(
-    id = id,
-    name = name,
-    city = city,
-    address = address,
-    email = email,
-    password = password ?: "",
-    profilePictureUrl = profilePictureUrl,
-    role = role.name
-)
-
+fun User.toEntity(): UserEntity {
+    return UserEntity(
+        id = id,
+        name = name,
+        city = city,
+        address = address,
+        email = email,
+        password = password ?: "",
+        profilePictureUrl = profilePictureUrl,
+        role = role.name,
+        points = points
+    )
+}

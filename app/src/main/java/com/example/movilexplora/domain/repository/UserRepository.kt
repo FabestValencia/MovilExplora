@@ -8,4 +8,5 @@ interface UserRepository {
     suspend fun save(user: User)
     suspend fun findById(id: String): User?
     suspend fun login(email: String, password: String): User?
+    suspend fun addPoints(userId: String, points: Int)
 }

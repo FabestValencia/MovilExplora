@@ -19,6 +19,7 @@ import kotlinx.coroutines.flow.firstOrNull
 import com.example.movilexplora.features.filters.FilterState
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.map
 
 data class Category(val name: String)
 
@@ -45,8 +46,9 @@ class FeedViewModel @Inject constructor(
     private val _state = MutableStateFlow(FeedState())
     val state: StateFlow<FeedState> = _state.asStateFlow()
 
-    private val _currentUserId = MutableStateFlow("guest")
-    val currentUserId: StateFlow<String> = _currentUserId.asStateFlow()
+    val currentUserId: StateFlow<String> = sessionDataStore.sessionFlow
+        .map { it?.userId ?: "guest" }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "guest")
 
     // Variable para controlar la carga paginada (simulada o real según el repo)
     private val _pageSize = 10
@@ -60,7 +62,7 @@ class FeedViewModel @Inject constructor(
     val posts: StateFlow<List<Post>> = combine(
         _allPosts,
         _state,
-        _currentUserId,
+        currentUserId,
         _loadedCount
     ) { allPosts, currentState, userId, loadedCount ->
         val filters = currentState.filterState
@@ -92,14 +94,14 @@ class FeedViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            val userId = sessionDataStore.sessionFlow.firstOrNull()?.userId ?: "guest"
-            _currentUserId.value = userId
-            
-            if (userId != "guest") {
-                val user = userRepository.findById(userId)
-                if (user != null) {
-                    val firstName = user.name.split(" ").firstOrNull() ?: ""
-                    _state.value = _state.value.copy(userName = firstName)
+            sessionDataStore.sessionFlow.collect { session ->
+                val userId = session?.userId ?: "guest"
+                if (userId.isNotBlank() && userId != "guest") {
+                    val user = userRepository.findById(userId)
+                    if (user != null) {
+                        val firstName = user.name.split(" ").firstOrNull() ?: ""
+                        _state.value = _state.value.copy(userName = firstName)
+                    }
                 }
             }
         }

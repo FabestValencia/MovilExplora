@@ -49,7 +49,12 @@ class UserRepositoryImpl @Inject constructor(
     }
 
     override suspend fun login(email: String, password: String): User? {
-        return userDao.login(email, password)?.toDomainModel()
+        val userEntity = userDao.login(email, password)
+        return userEntity?.toDomainModel()
+    }
+
+    override suspend fun addPoints(userId: String, points: Int) {
+        userDao.addPoints(userId, points)
     }
 
     private fun fetchUsers(): List<User> {

@@ -11,6 +11,7 @@ import com.example.movilexplora.domain.model.Post
 import com.example.movilexplora.domain.model.PostStatus
 import com.example.movilexplora.domain.repository.PostRepository
 import com.example.movilexplora.data.datastore.SessionDataStore
+import com.example.movilexplora.domain.repository.UserRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -28,7 +29,8 @@ data class CreatePostState(
 @HiltViewModel
 class CreatePostViewModel @Inject constructor(
     private val postRepository: PostRepository,
-    private val sessionDataStore: SessionDataStore
+    private val sessionDataStore: SessionDataStore,
+    private val userRepository: UserRepository
 ) : ViewModel() {
     val title = ValidatedField("") { value ->
         if (value.isEmpty()) "El título es obligatorio" else null
@@ -77,7 +79,8 @@ class CreatePostViewModel @Inject constructor(
                     creatorId = userId
                 )
                 postRepository.addPost(newPost)
-                _publishResult.value = RequestResult.Success("Publicación creada correctamente")
+                userRepository.addPoints(userId, 50) // Granting initial 50 points
+                _publishResult.value = RequestResult.Success("Publicación creada correctamente (+50 pts)")
             }
         }
     }

@@ -250,15 +250,7 @@ fun ReputationScreen(
 
 @Composable
 fun getTranslatedPointText(original: String): String {
-    return when (original) {
-        "Nueva Publicación: Cascada Oculta" -> stringResource(R.string.reputation_recent_post)
-        "Comentario recibido" -> stringResource(R.string.reputation_recent_comment)
-        "Visitado: Plaza Central" -> stringResource(R.string.reputation_recent_visit)
-        "Hace 2 horas" -> stringResource(R.string.reputation_time_2_hours)
-        "Hace 5 horas" -> stringResource(R.string.reputation_time_5_hours)
-        "Ayer" -> stringResource(R.string.reputation_time_yesterday)
-        else -> original
-    }
+    return original
 }
 
 @Composable

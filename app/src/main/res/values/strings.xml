@@ -279,6 +279,7 @@
     <string name="statistics_finished_posts">Finished Posts</string>
     <string name="statistics_pending_posts">Pending Verification</string>
     <string name="statistics_total_month">Total: %1$s this month</string>
+    <string name="statistics_empty_state">There is no recent activity yet.</string>
     <string name="statistics_chart_active">ACTIVE</string>
     <string name="statistics_chart_finished">FINISHED</string>
     <string name="statistics_chart_pending">PENDING</string>
@@ -326,10 +327,34 @@
     <string name="notification_pending_desc">Tu publicación \"%1$s\" está siendo revisada por nuestro equipo.</string>
     <string name="notification_rejected_title">Publicación rechazada</string>
     <string name="notification_rejected_desc">Lo sentimos, tu publicación \"%1$s\" no cumple con nuestras guías.</string>
-    <string name="notification_time_recent">Reciente</string>
-    <string name="notification_time_pending">Pendiente</string>
-    <string name="notification_achievement_title">¡Nuevos logros!</string>
-    <string name="notification_achievement_desc">Sigue compartiendo tus lugares favoritos para subir de nivel.</string>
-    <string name="notification_time_yesterday">Ayer</string>
+    <string name="notification_time_recent">Recent</string>
+    <string name="notification_time_pending">Pending</string>
+    <string name="notification_achievement_title">New achievements!</string>
+    <string name="notification_achievement_desc">Keep sharing your favorite places to level up.</string>
+    <string name="notification_time_yesterday">Yesterday</string>
 
+    <!-- Statistics Default/Recent -->
+    <string name="stat_recent_approved">Approved post: %1$s</string>
+    <string name="stat_recent_rejected">Rejected post: %1$s</string>
+    <string name="stat_recent_created">Created post: %1$s</string>
+    <string name="stat_time_recent">Recent</string>
+
+    <!-- Profile ViewModel Strings -->
+    <string name="role_admin">ADMINISTRATOR</string>
+    <string name="role_moderator">MODERATOR</string>
+    <string name="role_local_ambassador">LOCAL AMBASSADOR</string>
+    <string name="mock_event_title">East Park Cleanup</string>
+    <string name="mock_event_desc">Volunteering to clean the neighborhood central park.</string>
+    <string name="mock_event_date">December 22</string>
+    <string name="mock_event_time">08:00 AM</string>
+    <string name="mock_event_location">East Park</string>
+    <string name="mock_event_category">Volunteering</string>
+    <string name="achievement_1_title">First Post</string>
+    <string name="achievement_1_desc">Your first shared adventure!</string>
+    <string name="achievement_2_title">10 Posts</string>
+    <string name="achievement_2_desc">Reliable and active community</string>
+    <string name="achievement_3_title">Master of the Map</string>
+    <string name="achievement_3_desc">Expert in local navigation</string>
+    <string name="achievement_4_title">Explorer of the Month</string>
+    <string name="achievement_4_desc">Be the most active this month</string>
 </resources>

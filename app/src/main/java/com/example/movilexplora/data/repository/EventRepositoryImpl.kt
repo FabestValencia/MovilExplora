@@ -1,34 +1,37 @@
 package com.example.movilexplora.data.repository
+
 import com.example.movilexplora.domain.model.Event
 import com.example.movilexplora.domain.model.PostStatus
 import com.example.movilexplora.domain.repository.EventRepository
+import com.example.movilexplora.data.local.dao.EventDao
+import com.example.movilexplora.data.local.entity.toEntity
+import com.example.movilexplora.data.local.entity.toDomainModel
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
+
 @Singleton
-class EventRepositoryImpl @Inject constructor() : EventRepository {
-    private val _events = MutableStateFlow<List<Event>>(
-        emptyList()
-    )
-    override fun getEvents(): Flow<List<Event>> = _events.asStateFlow()
+class EventRepositoryImpl @Inject constructor(
+    private val eventDao: EventDao
+) : EventRepository {
+    override fun getEvents(): Flow<List<Event>> = eventDao.getAllEvents().map { entities ->
+        entities.map { it.toDomainModel() }
+    }
+
     override suspend fun addEvent(event: Event) {
-        _events.update { it + event }
+        eventDao.insertEvent(event.toEntity())
     }
 
     override suspend fun updateEvent(event: Event) {
-        _events.update { events ->
-            events.map { if (it.id == event.id) event else it }
-        }
+        eventDao.updateEvent(event.toEntity())
     }
 
     override suspend fun updateEventStatus(eventId: String, status: PostStatus, rejectionReason: String?) {
-        _events.update { events ->
-            events.map {
-                if (it.id == eventId) it.copy(status = status, rejectionReason = rejectionReason) else it
-            }
+        if (rejectionReason != null) {
+            eventDao.updateEventStatusWithReason(eventId, status.name, rejectionReason)
+        } else {
+            eventDao.updateEventStatus(eventId, status.name)
         }
     }
 }

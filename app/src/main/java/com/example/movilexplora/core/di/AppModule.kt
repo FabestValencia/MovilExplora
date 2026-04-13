@@ -44,6 +44,10 @@ object AppModule {
 
     @Provides
     @Singleton
+    fun provideEventDao(database: AppDatabase) = database.eventDao
+
+    @Provides
+    @Singleton
     fun provideResourceProvider(
         @ApplicationContext context: Context
     ): ResourceProvider = ResourceProviderImpl(context)

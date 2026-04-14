@@ -170,6 +170,8 @@
     <string name="postdetailscreen_verificar_8">Verify</string>
     <string name="postdetailscreen_resolver_9">Resolve</string>
     <string name="postdetailscreen_back_10">Back</string>
+    <string name="postdetailscreen_me_interesa">I\'m interested</string>
+    <string name="postdetailscreen_visitado">Visited</string>
     <string name="profilescreen_niveles_de_reputaci_n_0">Reputation levels</string>
     <string name="profilescreen_ver_detalles_1">See details</string>
     <string name="profilescreen_logros_2">Achievements</string>
@@ -368,4 +370,9 @@
     <string name="achievement_3_desc">Expert in local navigation</string>
     <string name="achievement_4_title">Explorer of the Month</string>
     <string name="achievement_4_desc">Be the most active this month</string>
+
+    <string name="reject_reason_title">Rejection reason</string>
+    <string name="reject_reason_hint">Write the reason here...</string>
+    <string name="confirm_button">Confirm</string>
+    <string name="cancel_button">Cancel</string>
 </resources>

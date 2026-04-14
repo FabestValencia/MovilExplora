@@ -159,8 +159,8 @@ fun PostDetailScreen(
                             contentColor = categoryCol
                         )
                         DetailBadge(
-                            text = "${post.rating} (1.2k)",
-                            icon = Icons.Default.Star,
+                            text = "${post.likedBy.size}",
+                            icon = Icons.Default.Favorite,
                             containerColor = MaterialTheme.colorScheme.onBackground,
                             contentColor = MaterialTheme.colorScheme.background
                         )
@@ -306,45 +306,62 @@ fun BottomActionButtons(
     isFavorite: Boolean = false,
     onToggleFavorite: () -> Unit = {}
 ) {
-    Column(
+    // Add internal state for visual toggle of "Visited" until functionality is hooked up
+    var isVisited by remember { mutableStateOf(false) }
+
+    Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(16.dp)
-            .background(MaterialTheme.colorScheme.background)
+            .background(MaterialTheme.colorScheme.background),
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         Button(
             onClick = onToggleFavorite,
             modifier = Modifier
-                .fillMaxWidth()
+                .weight(1f)
                 .height(56.dp),
             shape = RoundedCornerShape(28.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Turquoise)
+            colors = ButtonDefaults.buttonColors(
+                containerColor = if (isFavorite) Turquoise else MaterialTheme.colorScheme.surfaceVariant,
+                contentColor = if (isFavorite) Color.White else Turquoise
+            )
         ) {
             Icon(
-                imageVector = if (isFavorite) Icons.Filled.Bookmark else Icons.Outlined.BookmarkBorder,
+                imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
                 contentDescription = null
             )
             Spacer(modifier = Modifier.width(8.dp))
             Text(
-                text = if (isFavorite) stringResource(R.string.postdetailscreen_marcar_como_visitado_6).replace("Marcar", "Marcado") else stringResource(R.string.postdetailscreen_estoy_interesando_5), 
-                fontSize = 16.sp, 
-                fontWeight = FontWeight.Bold
+                text = stringResource(R.string.postdetailscreen_me_interesa),
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Bold,
+                maxLines = 1
             )
         }
-        
-        Spacer(modifier = Modifier.height(12.dp))
-        
+
         Button(
-            onClick = { /* Marcar como visitado map */ },
+            onClick = { isVisited = !isVisited },
             modifier = Modifier
-                .fillMaxWidth()
+                .weight(1f)
                 .height(56.dp),
             shape = RoundedCornerShape(28.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Turquoise)
+            colors = ButtonDefaults.buttonColors(
+                containerColor = if (isVisited) Turquoise else MaterialTheme.colorScheme.surfaceVariant,
+                contentColor = if (isVisited) Color.White else Turquoise
+            )
         ) {
-            Icon(imageVector = Icons.Outlined.Map, contentDescription = null)
+            Icon(
+                imageVector = if (isVisited) Icons.Default.CheckCircle else Icons.Default.CheckCircleOutline,
+                contentDescription = null
+            )
             Spacer(modifier = Modifier.width(8.dp))
-            Text(text = stringResource(R.string.postdetailscreen_marcar_como_visitado_6), fontSize = 16.sp, fontWeight = FontWeight.Bold)
+            Text(
+                text = stringResource(R.string.postdetailscreen_visitado),
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Bold,
+                maxLines = 1
+            )
         }
     }
 }
@@ -358,14 +375,14 @@ fun ModeratorActionButtons() {
         AlertDialog(
             onDismissRequest = { showRejectDialog = false },
             title = {
-                Text(text = "Motivo de rechazo", fontWeight = FontWeight.Bold)
+                Text(text = stringResource(R.string.reject_reason_title), fontWeight = FontWeight.Bold)
             },
             text = {
                 OutlinedTextField(
                     value = rejectReason,
                     onValueChange = { rejectReason = it },
                     modifier = Modifier.fillMaxWidth(),
-                    label = { Text("Escribe la razón aquí...") },
+                    label = { Text(stringResource(R.string.reject_reason_hint)) },
                     minLines = 3
                 )
             },
@@ -376,12 +393,12 @@ fun ModeratorActionButtons() {
                         showRejectDialog = false
                     }
                 ) {
-                    Text(text = "Confirmar", color = Color.Red)
+                    Text(text = stringResource(R.string.confirm_button), color = Color.Red)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showRejectDialog = false }) {
-                    Text("Cancelar")
+                    Text(stringResource(R.string.cancel_button))
                 }
             }
         )

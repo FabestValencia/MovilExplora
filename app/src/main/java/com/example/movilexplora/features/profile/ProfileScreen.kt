@@ -271,9 +271,9 @@ fun ProfileScreen(
                                         Column(modifier = Modifier.weight(1f)) {
                                             Text(text = event.title, fontWeight = FontWeight.Bold, fontSize = 16.sp, color = MaterialTheme.colorScheme.onBackground)
                                             Spacer(modifier = Modifier.height(4.dp))
-                                            Text(text = "${stringResource(R.string.profile_event_start)} ${event.date} • ${event.time}", fontSize = 12.sp, color = GrayText)
-                                            if (event.endDate.isNotEmpty() && event.endTime.isNotEmpty()) {
-                                                Text(text = "${stringResource(R.string.profile_event_end)} ${event.endDate} • ${event.endTime}", fontSize = 12.sp, color = GrayText)
+                                            Text(text = "${stringResource(R.string.profile_event_start)} ${event.date}", fontSize = 12.sp, color = GrayText)
+                                            if (event.endDate.isNotEmpty()) {
+                                                Text(text = "${stringResource(R.string.profile_event_end)} ${event.endDate}", fontSize = 12.sp, color = GrayText)
                                             }
                                             Spacer(modifier = Modifier.height(4.dp))
                                             Text(text = event.location, fontSize = 12.sp, color = Turquoise)
@@ -505,7 +505,7 @@ fun MyEventCard(event: com.example.movilexplora.domain.model.Event, onEditClick:
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(Icons.Default.CalendarToday, contentDescription = null, tint = Turquoise, modifier = Modifier.size(16.dp))
                 Spacer(modifier = Modifier.width(4.dp))
-                Text(text = "${event.date} • ${event.time}", fontSize = 12.sp, color = GrayText)
+                Text(text = event.date, fontSize = 12.sp, color = GrayText)
             }
             Spacer(modifier = Modifier.height(16.dp))
             Row(
@@ -620,7 +620,7 @@ fun ReputationTimeline(currentLevel: ReputationLevel) {
                 }
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = level.displayName,
+                    text = stringResource(level.displayNameRes),
                     fontSize = 10.sp,
                     fontWeight = if (isCurrent) FontWeight.Bold else FontWeight.Normal,
                     color = if (isReached) levelColor else GrayText

@@ -1,5 +1,7 @@
 package com.example.movilexplora.domain.model
 
+import com.example.movilexplora.R
+
 data class UserProfile(
     val name: String,
     val email: String,
@@ -13,11 +15,11 @@ data class UserProfile(
     val achievements: List<Achievement>
 )
 
-enum class ReputationLevel(val displayName: String) {
-    TURISTA("Turista"),
-    EXPLORADOR("Explorador"),
-    AVENTURERO("Aventurero"),
-    EMBAJADOR("Embajador")
+enum class ReputationLevel(val displayNameRes: Int) {
+    TURISTA(R.string.reputation_level_turista),
+    EXPLORADOR(R.string.reputation_level_explorador),
+    AVENTURERO(R.string.reputation_level_aventurero),
+    EMBAJADOR(R.string.reputation_level_embajador)
 }
 
 data class Achievement(

@@ -96,10 +96,10 @@ class ReputationViewModel @Inject constructor(
             val actualPoints = user.points
             
             val (calculatedLevel, calcNextLevel, calcTarget) = when {
-                actualPoints < 100 -> Triple(ReputationLevel.TURISTA, ReputationLevel.EXPLORADOR.displayName, 100)
-                actualPoints < 500 -> Triple(ReputationLevel.EXPLORADOR, ReputationLevel.AVENTURERO.displayName, 500)
-                actualPoints < 1000 -> Triple(ReputationLevel.AVENTURERO, ReputationLevel.EMBAJADOR.displayName, 1000)
-                else -> Triple(ReputationLevel.EMBAJADOR, "Nivel Máximo", 2000)
+                actualPoints < 100 -> Triple(ReputationLevel.TURISTA, resourceProvider.getString(ReputationLevel.EXPLORADOR.displayNameRes), 100)
+                actualPoints < 500 -> Triple(ReputationLevel.EXPLORADOR, resourceProvider.getString(ReputationLevel.AVENTURERO.displayNameRes), 500)
+                actualPoints < 1000 -> Triple(ReputationLevel.AVENTURERO, resourceProvider.getString(ReputationLevel.EMBAJADOR.displayNameRes), 1000)
+                else -> Triple(ReputationLevel.EMBAJADOR, resourceProvider.getString(R.string.reputation_max_level), 2000)
             }
 
             _state.update {

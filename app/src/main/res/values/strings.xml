@@ -375,4 +375,8 @@
     <string name="reject_reason_hint">Write the reason here...</string>
     <string name="confirm_button">Confirm</string>
     <string name="cancel_button">Cancel</string>
+    <string name="reputation_level_turista">Tourist</string>
+    <string name="reputation_level_explorador">Explorer</string>
+    <string name="reputation_level_aventurero">Adventurer</string>
+    <string name="reputation_level_embajador">Ambassador</string>
 </resources>

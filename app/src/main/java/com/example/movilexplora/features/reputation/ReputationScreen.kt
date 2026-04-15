@@ -110,7 +110,7 @@ fun ReputationScreen(
                 modifier = Modifier.padding(vertical = 8.dp)
             ) {
                 Text(
-                    text = state.currentLevel.displayName.uppercase(),
+                    text = stringResource(state.currentLevel.displayNameRes).uppercase(),
                     color = levelColor,
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Bold,

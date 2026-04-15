@@ -48,26 +48,28 @@ class FeedViewModel @Inject constructor(
 
     val currentUserId: StateFlow<String> = sessionDataStore.sessionFlow
         .map { it?.userId ?: "guest" }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "guest")
+        .stateIn(viewModelScope, SharingStarted.Eagerly, "guest")
 
     // Variable para controlar la carga paginada (simulada o real según el repo)
     private val _pageSize = 10
     private val _loadedCount = MutableStateFlow(_pageSize)
 
-    // TODO: Eliminar este mapa de ubicaciones quemadas y la lógica de cálculo de
-    // distancia apenas se apliquen los mapas correctamente.
-    // Se deben borrar los mapas `mockUserLocations` y `mockPostLocations`,
-    // y las funciones `calculateDistanceKm`, `getMockLocationForUser` y `getMockLocationForPost`.
-    // También se debe reemplazar el uso de `calcDistance` en `matchesDistance`
-    // por la lógica final de ubicación del dispositivo real, sin dañar los filtros existentes.
-    private val mockUserLocations = mutableMapOf<String, Pair<Double, Double>>()
-    private val mockPostLocations = mutableMapOf<String, Pair<Double, Double>>()
+    companion object {
+        // TODO: Eliminar este mapa de ubicaciones quemadas y la lógica de cálculo de
+        // distancia apenas se apliquen los mapas correctamente.
+        // Se deben borrar los mapas `mockUserLocations` y `mockPostLocations`,
+        // y las funciones `calculateDistanceKm`, `getMockLocationForUser` y `getMockLocationForPost`.
+        // También se debe reemplazar el uso de `calcDistance` en `matchesDistance`
+        // por la lógica final de ubicación del dispositivo real, sin dañar los filtros existentes.
+        private val mockUserLocations = mutableMapOf<String, Pair<Double, Double>>()
+        private val mockPostLocations = mutableMapOf<String, Pair<Double, Double>>()
+    }
 
     private fun getMockLocationForUser(userId: String): Pair<Double, Double> {
         return mockUserLocations.getOrPut(userId) {
-            // Genera lat/lon aleatorias (entre -0.4 y 0.4) para simular ubicaciones entre 0 y ~60 km de distacia del centro
-            val lat = (Math.random() * 0.8) - 0.4
-            val lon = (Math.random() * 0.8) - 0.4
+            // Genera lat/lon aleatorias (entre -0.1 y 0.1) para simular ubicaciones cerca de la distancia predeterminada.
+            val lat = (Math.random() * 0.2) - 0.1
+            val lon = (Math.random() * 0.2) - 0.1
             Pair(lat, lon)
         }
     }
@@ -75,8 +77,8 @@ class FeedViewModel @Inject constructor(
     private fun getMockLocationForPost(postId: String, lat: Double, lon: Double): Pair<Double, Double> {
         if (lat != 0.0 || lon != 0.0) return Pair(lat, lon) // Si ya tiene una real, la usa
         return mockPostLocations.getOrPut(postId) {
-            val randomLat = (Math.random() * 0.8) - 0.4
-            val randomLon = (Math.random() * 0.8) - 0.4
+            val randomLat = (Math.random() * 0.2) - 0.1
+            val randomLon = (Math.random() * 0.2) - 0.1
             Pair(randomLat, randomLon)
         }
     }
@@ -94,7 +96,7 @@ class FeedViewModel @Inject constructor(
 
     // Lista real del repo
     private val _allPosts: StateFlow<List<Post>> = postRepository.getPosts()
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     // Combine logs
     val posts: StateFlow<List<Post>> = combine(
@@ -129,7 +131,7 @@ class FeedViewModel @Inject constructor(
         ).take(loadedCount)
     }.stateIn(
         scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
+        started = SharingStarted.Eagerly,
         initialValue = emptyList()
     )
 

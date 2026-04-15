@@ -109,7 +109,7 @@ fun CreateEditEventScreen(
     val eventToEdit by viewModel.eventToEdit.collectAsState()
 
     LaunchedEffect(isEditing, eventId) {
-        if (isEditing && eventId != null) {
+        if (isEditing) {
             viewModel.loadEvent(eventId)
         }
     }

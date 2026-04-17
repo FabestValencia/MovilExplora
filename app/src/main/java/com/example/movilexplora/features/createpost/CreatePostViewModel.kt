@@ -4,12 +4,20 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.example.movilexplora.core.utils.RequestResult
 import com.example.movilexplora.core.utils.ValidatedField
+import com.example.movilexplora.domain.model.Post
+import com.example.movilexplora.domain.model.PostStatus
+import com.example.movilexplora.domain.repository.PostRepository
+import com.example.movilexplora.data.datastore.SessionDataStore
+import com.example.movilexplora.domain.repository.UserRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.launch
 
 data class CreatePostState(
     val selectedCategory: String? = null,
@@ -19,7 +27,11 @@ data class CreatePostState(
 )
 
 @HiltViewModel
-class CreatePostViewModel @Inject constructor() : ViewModel() {
+class CreatePostViewModel @Inject constructor(
+    private val postRepository: PostRepository,
+    private val sessionDataStore: SessionDataStore,
+    private val userRepository: UserRepository
+) : ViewModel() {
     val title = ValidatedField("") { value ->
         if (value.isEmpty()) "El título es obligatorio" else null
     }
@@ -48,8 +60,33 @@ class CreatePostViewModel @Inject constructor() : ViewModel() {
 
     fun publish() {
         if (title.isValid && description.isValid && _state.value.selectedCategory != null) {
-            // Simulación de publicación
-            _publishResult.value = RequestResult.Success("Publicación creada correctamente")
+            viewModelScope.launch {
+                val userId = sessionDataStore.sessionFlow.firstOrNull()?.userId ?: "1" // Defaulting if null
+
+                // TODO: Eliminar generación aleatoria de latitud y longitud una vez que se integre el mapa interactivo.
+                val randomLat = (Math.random() * 0.8) - 0.4
+                val randomLon = (Math.random() * 0.8) - 0.4
+
+                val newPost = Post(
+                    id = System.currentTimeMillis().toString(),
+                    title = title.value,
+                    location = _state.value.address.ifEmpty { "Ubicación no especificada" },
+                    rating = 0.0,
+                    category = _state.value.selectedCategory!!,
+                    price = "$".repeat(_state.value.selectedPriceRange),
+                    status = PostStatus.PENDIENTE,
+                    imageUrl = "",
+                    description = description.value,
+                    latitude = randomLat,
+                    longitude = randomLon,
+                    likedBy = emptySet(),
+                    distance = 5f,
+                    creatorId = userId
+                )
+                postRepository.addPost(newPost)
+                userRepository.addPoints(userId, 50) // Granting initial 50 points
+                _publishResult.value = RequestResult.Success("Publicación creada correctamente (+50 pts)")
+            }
         }
     }
 

@@ -18,19 +18,27 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.movilexplora.ui.theme.Turquoise
 import com.example.movilexplora.ui.theme.GrayText
+import com.example.movilexplora.ui.theme.getTranslatedCategoryName
 import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FilterBottomSheet(
+    initialState: FilterState,
     onDismiss: () -> Unit,
-    onApplyFilters: (FilterState) -> Unit,
-    viewModel: FilterViewModel = hiltViewModel()
+    onApplyFilters: (FilterState) -> Unit
 ) {
-    val state by viewModel.state.collectAsState()
+    var state by remember { mutableStateOf(initialState) }
+
+    fun updateCount(currentState: FilterState): FilterState {
+        var count = 0
+        if (currentState.distance != 50f) count++
+        if (currentState.selectedCategory != null) count++
+        if (currentState.selectedPriceRange != 4) count++
+        return currentState.copy(filterCount = count)
+    }
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -64,7 +72,7 @@ fun FilterBottomSheet(
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onBackground
                 )
-                TextButton(onClick = { viewModel.clearFilters() }) {
+                TextButton(onClick = { state = FilterState() }) {
                     Text(text = "Limpiar", color = Turquoise, fontSize = 14.sp)
                 }
             }
@@ -77,13 +85,13 @@ fun FilterBottomSheet(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(text = "Distance", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
+                Text(text = "Distancia", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
                 Text(text = "${state.distance.roundToInt()} km", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Turquoise)
             }
             
             Slider(
                 value = state.distance,
-                onValueChange = { viewModel.updateDistance(it) },
+                onValueChange = { state = updateCount(state.copy(distance = it)) },
                 valueRange = 1f..50f,
                 colors = SliderDefaults.colors(
                     thumbColor = Color.White,
@@ -104,9 +112,9 @@ fun FilterBottomSheet(
             Spacer(modifier = Modifier.height(24.dp))
 
             // Category Section
-            Text(text = "Categoria", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
+            Text(text = "Categoría", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
             Text(
-                text = "Select the category that best fits the place.",
+                text = "Seleccione la categoría que mejor describa el lugar.",
                 fontSize = 12.sp,
                 color = GrayText.copy(alpha = 0.5f),
                 modifier = Modifier.padding(vertical = 4.dp)
@@ -115,16 +123,19 @@ fun FilterBottomSheet(
             val categories = listOf("Gastronomía", "Cultura", "Naturaleza", "Entretenimiento", "Historia")
             categories.forEach { category ->
                 CategoryItem(
-                    name = category,
+                    name = getTranslatedCategoryName(category),
                     isSelected = state.selectedCategory == category,
-                    onSelect = { viewModel.selectCategory(category) }
+                    onSelect = {
+                        val newSelection = if (state.selectedCategory == category) null else category
+                        state = updateCount(state.copy(selectedCategory = newSelection))
+                    }
                 )
             }
 
             Spacer(modifier = Modifier.height(24.dp))
 
             // Price Range Section
-            Text(text = "Price Range", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
+            Text(text = "Rango de Precios", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
             Spacer(modifier = Modifier.height(16.dp))
             
             Row(
@@ -136,7 +147,9 @@ fun FilterBottomSheet(
                         level = i,
                         isSelected = state.selectedPriceRange == i,
                         modifier = Modifier.weight(1f),
-                        onSelect = { viewModel.selectPriceRange(i) }
+                        onSelect = {
+                            state = updateCount(state.copy(selectedPriceRange = i))
+                        }
                     )
                 }
             }
@@ -154,7 +167,7 @@ fun FilterBottomSheet(
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
-                        text = "Apply Filters",
+                        text = "Aplicar Filtros",
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color.White

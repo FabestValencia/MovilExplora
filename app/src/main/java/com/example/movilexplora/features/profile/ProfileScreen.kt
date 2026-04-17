@@ -13,6 +13,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.material3.MaterialTheme
@@ -33,6 +34,7 @@ import com.example.movilexplora.domain.model.ReputationLevel
 import com.example.movilexplora.domain.model.UserProfile
 import com.example.movilexplora.ui.theme.GrayText
 import com.example.movilexplora.ui.theme.Turquoise
+import com.example.movilexplora.ui.theme.getTranslatedBadgeName
 
 import com.example.movilexplora.core.component.BottomNavigationBar
 
@@ -48,6 +50,7 @@ fun ProfileScreen(
     onNavigateToReputation: () -> Unit = {},
     onNavigateToBadges: () -> Unit = {},
     onNavigateToStatistics: () -> Unit = {},
+    onLogout: () -> Unit = {},
     viewModel: ProfileViewModel = hiltViewModel()
 ) {
     val userProfile by viewModel.userProfile.collectAsState()
@@ -81,7 +84,7 @@ fun ProfileScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Perfil", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground) },
+                title = { Text(stringResource(R.string.profile_screen_title), fontSize = 18.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground) },
                 actions = {
                     IconButton(onClick = onEditData) {
                         Icon(imageVector = Icons.Default.Settings, contentDescription = stringResource(R.string.profilescreen_edit_15), tint = MaterialTheme.colorScheme.onBackground)
@@ -169,12 +172,12 @@ fun ProfileScreen(
                     Tab(
                         selected = selectedTabIndex == 0,
                         onClick = { selectedTabIndex = 0 },
-                        text = { Text("Mis Lugares", fontWeight = FontWeight.Bold) }
+                        text = { Text(stringResource(R.string.profile_my_places), fontWeight = FontWeight.Bold) }
                     )
                     Tab(
                         selected = selectedTabIndex == 1,
                         onClick = { selectedTabIndex = 1 },
-                        text = { Text("Mis Eventos", fontWeight = FontWeight.Bold) }
+                        text = { Text(stringResource(R.string.profile_my_events), fontWeight = FontWeight.Bold) }
                     )
                 }
 
@@ -187,9 +190,9 @@ fun ProfileScreen(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text("Estadísticas", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
+                        Text(stringResource(R.string.profile_statistics), fontSize = 18.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
                         TextButton(onClick = onNavigateToStatistics) {
-                            Text("Detalle estadísticas", color = Turquoise, fontWeight = FontWeight.Bold)
+                            Text(stringResource(R.string.profile_statistics_detail), color = Turquoise, fontWeight = FontWeight.Bold)
                         }
                     }
                     Spacer(modifier = Modifier.height(16.dp))
@@ -198,9 +201,9 @@ fun ProfileScreen(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        StatCard("Activas", profile.activePosts.toString(), Turquoise, Modifier.weight(1f))
-                        StatCard("Finalizadas", profile.finishedPosts.toString(), Color(0xFF0F9D58), Modifier.weight(1f))
-                        StatCard("Pendientes", profile.pendingPosts.toString(), Color(0xFFF4B400), Modifier.weight(1f))
+                        StatCard(stringResource(R.string.profile_stat_active), profile.activePosts.toString(), Turquoise, Modifier.weight(1f))
+                        StatCard(stringResource(R.string.profile_stat_finished), profile.finishedPosts.toString(), Color(0xFF0F9D58), Modifier.weight(1f))
+                        StatCard(stringResource(R.string.profile_stat_pending), profile.pendingPosts.toString(), Color(0xFFF4B400), Modifier.weight(1f))
                     }
     
                     Spacer(modifier = Modifier.height(24.dp))
@@ -246,7 +249,7 @@ fun ProfileScreen(
                     AchievementsRow(profile.achievements)
                 } else {
                     if (userEvents.isEmpty()) {
-                        Text("No tienes eventos creados.", color = GrayText, modifier = Modifier.padding(32.dp))
+                        Text(stringResource(R.string.profile_no_events), color = GrayText, modifier = Modifier.padding(32.dp))
                     } else {
                         Column(
                             verticalArrangement = Arrangement.spacedBy(16.dp),
@@ -263,14 +266,14 @@ fun ProfileScreen(
                                     elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                                 ) {
                                     Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
-                                        Box(modifier = Modifier.size(60.dp).background(Color.LightGray, RoundedCornerShape(8.dp)))
+                                        Box(modifier = Modifier.size(60.dp).background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(8.dp)))
                                         Spacer(modifier = Modifier.width(12.dp))
                                         Column(modifier = Modifier.weight(1f)) {
                                             Text(text = event.title, fontWeight = FontWeight.Bold, fontSize = 16.sp, color = MaterialTheme.colorScheme.onBackground)
                                             Spacer(modifier = Modifier.height(4.dp))
-                                            Text(text = "Inicio: ${event.date} • ${event.time}", fontSize = 12.sp, color = GrayText)
+                                            Text(text = "${stringResource(R.string.profile_event_start)} ${event.date} • ${event.time}", fontSize = 12.sp, color = GrayText)
                                             if (event.endDate.isNotEmpty() && event.endTime.isNotEmpty()) {
-                                                Text(text = "Fin: ${event.endDate} • ${event.endTime}", fontSize = 12.sp, color = GrayText)
+                                                Text(text = "${stringResource(R.string.profile_event_end)} ${event.endDate} • ${event.endTime}", fontSize = 12.sp, color = GrayText)
                                             }
                                             Spacer(modifier = Modifier.height(4.dp))
                                             Text(text = event.location, fontSize = 12.sp, color = Turquoise)
@@ -311,6 +314,20 @@ fun ProfileScreen(
                     Icon(imageVector = Icons.Default.Delete, contentDescription = null)
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(text = stringResource(R.string.profilescreen_eliminar_cuenta_5), fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                OutlinedButton(
+                    onClick = onLogout,
+                    modifier = Modifier.fillMaxWidth().height(56.dp),
+                    shape = RoundedCornerShape(28.dp),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = Turquoise),
+                    border = BorderStroke(1.dp, Turquoise.copy(alpha = 0.5f))
+                ) {
+                    Icon(imageVector = Icons.AutoMirrored.Filled.Logout, contentDescription = null)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(text = stringResource(R.string.profilescreen_cerrar_sesion), fontSize = 16.sp, fontWeight = FontWeight.Bold)
                 }
 
                 Spacer(modifier = Modifier.height(40.dp))
@@ -557,7 +574,7 @@ fun ParticipationPointsCard(profile: UserProfile) {
             Spacer(modifier = Modifier.height(8.dp))
 
             Text(
-                text = "${profile.maxXp - profile.currentXp} XP para el próximo nivel",
+                text = "${profile.maxXp - profile.currentXp} ${stringResource(R.string.profile_xp_next_level)}",
                 fontSize = 12.sp,
                 color = GrayText,
                 modifier = Modifier.fillMaxWidth(),
@@ -697,7 +714,7 @@ fun AchievementItem(achievement: Achievement, modifier: Modifier = Modifier) {
 
         Spacer(modifier = Modifier.height(8.dp))
         Text(
-            text = achievement.name,
+            text = getTranslatedBadgeName(achievement.name),
             fontSize = 12.sp,
             fontWeight = FontWeight.Bold,
             color = if (achievement.isUnlocked) MaterialTheme.colorScheme.primary else GrayText,

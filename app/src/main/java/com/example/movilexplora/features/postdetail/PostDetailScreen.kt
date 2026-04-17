@@ -27,6 +27,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import coil.compose.AsyncImage
+import com.example.movilexplora.domain.model.Comment
 import com.example.movilexplora.ui.theme.GrayText
 import com.example.movilexplora.ui.theme.Turquoise
 import com.example.movilexplora.ui.theme.VerifiedBlue
@@ -67,14 +69,17 @@ fun PostDetailScreen(
                 actions = {
                     Spacer(modifier = Modifier.width(48.dp)) // To balance the back button
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface)
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background)
             )
         },
         bottomBar = {
             if (isModerator) {
                 ModeratorActionButtons()
             } else {
-                BottomActionButtons()
+                BottomActionButtons(
+                    isFavorite = viewModel.isFavorite(state.post),
+                    onToggleFavorite = { viewModel.toggleFavorite(postId) }
+                )
             }
         }
     ) { paddingValues ->
@@ -84,14 +89,28 @@ fun PostDetailScreen(
                     .fillMaxSize()
                     .padding(paddingValues)
                     .verticalScroll(rememberScrollState())
-                    .background(Color.White)
+                    .background(MaterialTheme.colorScheme.background)
             ) {
                 // Header Image & Title
                 Box(modifier = Modifier.height(260.dp).fillMaxWidth()) {
-                    // Placeholder for main image
-                    Box(modifier = Modifier.fillMaxSize().background(Color.LightGray)) {
-                        Text("Imagen de la Cueva", modifier = Modifier.align(Alignment.Center))
-                    }
+                    AsyncImage(
+                        model = post.imageUrl,
+                        contentDescription = null,
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
+                    )
+                    
+                    // Gradient overlay to make text readable
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(
+                                androidx.compose.ui.graphics.Brush.verticalGradient(
+                                    colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.7f)),
+                                    startY = 300f
+                                )
+                            )
+                    )
                     
                     Column(
                         modifier = Modifier
@@ -119,17 +138,19 @@ fun PostDetailScreen(
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        DetailBadge(
-                            text = stringResource(R.string.postdetailscreen_verificado_1),
-                            icon = Icons.Default.CheckCircle,
-                            containerColor = VerifiedBlue,
-                            contentColor = Color.White
-                        )
+                        if (post.isVerified) {
+                            DetailBadge(
+                                text = stringResource(R.string.postdetailscreen_verificado_1),
+                                icon = Icons.Default.CheckCircle,
+                                containerColor = VerifiedBlue,
+                                contentColor = Color.White
+                            )
+                        }
                         DetailBadge(
                             text = post.price,
                             icon = Icons.Default.AttachMoney,
-                            containerColor = Color.Black,
-                            contentColor = Color.White
+                            containerColor = MaterialTheme.colorScheme.onBackground,
+                            contentColor = MaterialTheme.colorScheme.background
                         )
                         val categoryCol = getCategoryColor(post.category)
                         DetailBadge(
@@ -140,8 +161,8 @@ fun PostDetailScreen(
                         DetailBadge(
                             text = "${post.rating} (1.2k)",
                             icon = Icons.Default.Star,
-                            containerColor = Color.Black,
-                            contentColor = Color.White
+                            containerColor = MaterialTheme.colorScheme.onBackground,
+                            contentColor = MaterialTheme.colorScheme.background
                         )
                     }
 
@@ -151,7 +172,7 @@ fun PostDetailScreen(
                     Text(
                         text = state.description,
                         fontSize = 16.sp,
-                        color = GrayText.copy(alpha = 0.8f),
+                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.8f),
                         lineHeight = 22.sp
                     )
 
@@ -163,58 +184,59 @@ fun PostDetailScreen(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(imageVector = Icons.Default.LocationOn, contentDescription = null, tint = Turquoise, modifier = Modifier.size(16.dp))
                         Spacer(modifier = Modifier.width(4.dp))
-                        Text(text = stringResource(R.string.postdetailscreen_40_5594__n__14_2045__e_3), fontSize = 14.sp, color = MaterialTheme.colorScheme.onBackground)
+                        Text(
+                            text = "${post.latitude}° N, ${post.longitude}° E",
+                            fontSize = 14.sp,
+                            color = MaterialTheme.colorScheme.onBackground
+                        )
                     }
                     Spacer(modifier = Modifier.height(12.dp))
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(200.dp)
-                            .clip(RoundedCornerShape(bottomStart = 24.dp, bottomEnd = 24.dp))
-                            .background(Color.LightGray)
-                    ) {
-                        Text(stringResource(R.string.common_location_image), modifier = Modifier.align(Alignment.Center))
-                        
-                        // Back Button
-                        IconButton(
-                            onClick = { /* Navigate back */ },
-                            modifier = Modifier
-                                .size(40.dp)
-                                .align(Alignment.TopStart)
-                                .padding(8.dp)
-                        ) {
-                            Icon(imageVector = Icons.Default.ArrowBack, contentDescription = null, tint = MaterialTheme.colorScheme.onBackground)
-                        }
-                    }
 
                     if (!isModerator) {
-                        Spacer(modifier = Modifier.height(16.dp))
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(150.dp)
                                 .clip(RoundedCornerShape(16.dp))
-                                .background(Color.LightGray)
+                                .background(MaterialTheme.colorScheme.surfaceVariant)
                         ) {
-                            Text(stringResource(R.string.common_map_view), modifier = Modifier.align(Alignment.Center))
+                            Text(stringResource(R.string.common_map_view), color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.align(Alignment.Center))
                         }
                     }
                 }
 
                 Spacer(modifier = Modifier.height(32.dp))
 
-                // Comments Section (Mocked)
+                // Comments Section
                 Text(text = stringResource(R.string.postdetailscreen_comentarios_4), fontSize = 18.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
                 Spacer(modifier = Modifier.height(12.dp))
+
+                state.comments.forEach { comment ->
+                    CommentItem(comment)
+                    Spacer(modifier = Modifier.height(16.dp))
+                }
+
+                var commentText by remember { mutableStateOf("") }
+
                 OutlinedTextField(
-                    value = "",
-                    onValueChange = {},
+                    value = commentText,
+                    onValueChange = { commentText = it },
                     modifier = Modifier.fillMaxWidth(),
                     placeholder = { Text(stringResource(R.string.post_detail_add_comment), fontSize = 14.sp) },
+                    trailingIcon = {
+                        IconButton(onClick = {
+                            if (commentText.isNotBlank()) {
+                                viewModel.addComment(postId, commentText)
+                                commentText = ""
+                            }
+                        }) {
+                            Icon(imageVector = Icons.AutoMirrored.Filled.Send, contentDescription = "Send", tint = Turquoise)
+                        }
+                    },
                     shape = RoundedCornerShape(24.dp),
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedContainerColor = Color(0xFFF7F8F9),
-                        unfocusedContainerColor = Color(0xFFF7F8F9),
+                        focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                        unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
                         unfocusedBorderColor = Color.Transparent
                     )
                 )
@@ -258,7 +280,7 @@ fun CommentItem(comment: Comment) {
             modifier = Modifier
                 .size(40.dp)
                 .clip(CircleShape)
-                .background(Color.LightGray)
+                .background(MaterialTheme.colorScheme.surfaceVariant)
         )
         Spacer(modifier = Modifier.width(12.dp))
         Column(modifier = Modifier.weight(1f)) {
@@ -267,12 +289,12 @@ fun CommentItem(comment: Comment) {
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(text = comment.userName, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
-                Text(text = comment.date, fontSize = 12.sp, color = GrayText.copy(alpha = 0.5f))
+                Text(text = comment.date, fontSize = 12.sp, color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f))
             }
             Text(
                 text = comment.content,
                 fontSize = 14.sp,
-                color = GrayText.copy(alpha = 0.8f),
+                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.8f),
                 lineHeight = 18.sp
             )
         }
@@ -280,30 +302,40 @@ fun CommentItem(comment: Comment) {
 }
 
 @Composable
-fun BottomActionButtons() {
+fun BottomActionButtons(
+    isFavorite: Boolean = false,
+    onToggleFavorite: () -> Unit = {}
+) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(16.dp)
-            .background(Color.White)
+            .background(MaterialTheme.colorScheme.background)
     ) {
         Button(
-            onClick = { /* Estoy interesado */ },
+            onClick = onToggleFavorite,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(56.dp),
             shape = RoundedCornerShape(28.dp),
             colors = ButtonDefaults.buttonColors(containerColor = Turquoise)
         ) {
-            Icon(imageVector = Icons.Outlined.BookmarkBorder, contentDescription = null)
+            Icon(
+                imageVector = if (isFavorite) Icons.Filled.Bookmark else Icons.Outlined.BookmarkBorder,
+                contentDescription = null
+            )
             Spacer(modifier = Modifier.width(8.dp))
-            Text(text = stringResource(R.string.postdetailscreen_estoy_interesando_5), fontSize = 16.sp, fontWeight = FontWeight.Bold)
+            Text(
+                text = if (isFavorite) stringResource(R.string.postdetailscreen_marcar_como_visitado_6).replace("Marcar", "Marcado") else stringResource(R.string.postdetailscreen_estoy_interesando_5), 
+                fontSize = 16.sp, 
+                fontWeight = FontWeight.Bold
+            )
         }
         
         Spacer(modifier = Modifier.height(12.dp))
         
         Button(
-            onClick = { /* Marcar como visitado */ },
+            onClick = { /* Marcar como visitado map */ },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(56.dp),
@@ -319,14 +351,50 @@ fun BottomActionButtons() {
 
 @Composable
 fun ModeratorActionButtons() {
+    var showRejectDialog by remember { mutableStateOf(false) }
+    var rejectReason by remember { mutableStateOf("") }
+
+    if (showRejectDialog) {
+        AlertDialog(
+            onDismissRequest = { showRejectDialog = false },
+            title = {
+                Text(text = "Motivo de rechazo", fontWeight = FontWeight.Bold)
+            },
+            text = {
+                OutlinedTextField(
+                    value = rejectReason,
+                    onValueChange = { rejectReason = it },
+                    modifier = Modifier.fillMaxWidth(),
+                    label = { Text("Escribe la razón aquí...") },
+                    minLines = 3
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        // TODO: Implement the reject action here
+                        showRejectDialog = false
+                    }
+                ) {
+                    Text(text = "Confirmar", color = Color.Red)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showRejectDialog = false }) {
+                    Text("Cancelar")
+                }
+            }
+        )
+    }
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(16.dp)
-            .background(Color.White)
+            .background(MaterialTheme.colorScheme.background)
     ) {
         Button(
-            onClick = { /* Rechazar */ },
+            onClick = { showRejectDialog = true },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(56.dp),

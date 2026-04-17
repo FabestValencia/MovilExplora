@@ -24,6 +24,12 @@
     <!-- Moderator Screen -->
     <string name="moderator_title">Moderador</string>
     <string name="logout_desc">Salir</string>
+    <string name="modo_claro">Modo Claro</string>
+    <string name="modo_oscuro">Modo Oscuro</string>
+    <string name="ver_historial">Ver Historial</string>
+    <string name="fechas_mas_recientes">Fechas: Más recientes</string>
+    <string name="fechas_mas_antiguos">Fechas: Más antiguos</string>
+    <string name="regresar">Regresar</string>
     <string name="pending_verification_title">Por verificar</string>
     <string name="filter_button">Filtrar</string>
     <string name="filter_all">Todo</string>
@@ -60,28 +66,28 @@
     <string name="register_confirm_password_label">Confirmar contraseña</string>
     <string name="register_confirm_password_placeholder">Confirme la contraseña</string>
     <string name="register_button">Crear cuenta</string>
-    <string name="register_login_button">Iniciar sesin</string>
+    <string name="register_login_button">Iniciar sesión</string>
     <string name="error_name_empty">El nombre es obligatorio</string>
     <string name="error_location_empty">La ubicación es obligatoria</string>
     <string name="register_success">Registro exitoso</string>
     <string name="register_failure">Error de registro</string>
-    <string name="badgesscreen_sigue_explorando_para_complet_0">Sigue explorando para completar tu coleccin!</string>
+    <string name="badgesscreen_sigue_explorando_para_complet_0">¡Sigue explorando para completar tu colección!</string>
     <string name="badgesscreen_logros_recientes_1">Logros Recientes</string>
     <string name="badgesscreen_pr_ximo_reto_2">Próximo Reto</string>
-    <string name="badgesscreen_back_3">Back</string>
+    <string name="badgesscreen_back_3">Atrás</string>
     <string name="createpostscreen_nueva_publicaci_n_0">Nueva publicación</string>
     <string name="createpostscreen_imagen_del_lugar_1">Imagen del lugar</string>
     <string name="createpostscreen_a_adir_foto_2">Añadir foto</string>
     <string name="createpostscreen_t_tulo_3">Título</string>
     <string name="createpostscreen_categor_a_4">Categoría</string>
-    <string name="createpostscreen_select_the_category_that_best_5">Select the category that best fits the place.</string>
+    <string name="createpostscreen_select_the_category_that_best_5">Selecciona la categoría que mejor se adapte al lugar.</string>
     <string name="createpostscreen_descripci_n_6">Descripción</string>
-    <string name="createpostscreen_price_range_7">Price Range</string>
+    <string name="createpostscreen_price_range_7">Rango de precio</string>
     <string name="createpostscreen_ubicaci_n_8">Ubicación</string>
     <string name="createpostscreen_pin_interactivo_9">PIN INTERACTIVO</string>
     <string name="createpostscreen_horario_sugerido_10">Horario Sugerido</string>
     <string name="createpostscreen_publicar_11">Publicar</string>
-    <string name="createpostscreen_back_12">Back</string>
+    <string name="createpostscreen_back_12">Atrás</string>
     <string name="editprofilescreen_preferencias_0">PREFERENCIAS</string>
     <string name="editprofilescreen_modo_oscuro_1">Modo Oscuro</string>
     <string name="editprofilescreen_notificaciones_2">Notificaciones</string>
@@ -91,12 +97,12 @@
     <string name="editprofilescreen_descripci_n_6">Descripción</string>
     <string name="editprofilescreen_email_7">Email</string>
     <string name="editprofilescreen_ubicaci_n_8">Ubicación</string>
-    <string name="editprofilescreen_back_9">Back</string>
+    <string name="editprofilescreen_back_9">Atrás</string>
     <string name="eventdetailscreen_detalle_del_evento_0">Detalle del evento</string>
     <string name="eventdetailscreen_verificado_1">Verificado</string>
     <string name="eventdetailscreen_acerca_de_este_evento_2">Acerca de este evento</string>
     <string name="eventdetailscreen_ubicaci_n_3">Ubicación</string>
-    <string name="eventdetailscreen_back_4">Back</string>
+    <string name="eventdetailscreen_back_4">Atrás</string>
     <string name="createediteventscreen_a_adir_imagen_del_evento_0">Añadir imagen del evento</string>
     <string name="createediteventscreen_formato_jpg_o_png__m_x__5mb_1">Formato JPG o PNG, máx. 5MB</string>
     <string name="createediteventscreen_ubicaci_n_2">Ubicación</string>
@@ -111,41 +117,48 @@
     <string name="createediteventscreen_describe_los_detalles_del_even_11">Describe los detalles del evento, actividades y más…</string>
     <string name="createediteventscreen_mm_dd_yyyy_12">mm/dd/yyyy, —:— —</string>
     <string name="createediteventscreen_mm_dd_yyyy_13">mm/dd/yyyy, —:— —</string>
-    <string name="createediteventscreen_back_14">Back</string>
+    <string name="createediteventscreen_back_14">Atrás</string>
     <string name="createediteventscreen_a_adir_imagen_15">Añadir imagen</string>
     <string name="eventsscreen_pr_ximos_eventos_0">Próximos Eventos</string>
     <string name="eventsscreen_explora_1">Explora</string>
     <string name="eventsscreen_verificado_2">Verificado</string>
     <string name="eventsscreen_detalle_3">Detalle</string>
     <string name="eventsscreen_crear_evento_4">Crear Evento</string>
-    <string name="eventsscreen_map_5">Map</string>
-    <string name="eventsscreen_search_6">Search</string>
+    <string name="eventsscreen_map_5">Mapa</string>
+    <string name="eventsscreen_search_6">Buscar</string>
     <string name="feedscreen_hola_0">Hola,</string>
     <string name="feedscreen_feed_1">Feed</string>
     <string name="feedscreen_filtrar_2">Filtrar</string>
     <string name="feedscreen_verificado_3">Verificado</string>
     <string name="feedscreen_detalle_4">Detalle</string>
-    <string name="feedscreen_map_5">Map</string>
-    <string name="feedscreen_search_6">Search</string>
-    <string name="feedscreen_favorite_7">Favorite</string>
+    <string name="feedscreen_map_5">Mapa</string>
+    <string name="feedscreen_search_6">Buscar</string>
+    <string name="feedscreen_favorite_7">Favorito</string>
     <string name="forgotpasswordscreen_explora_0">Explora</string>
     <string name="forgotpasswordscreen_introduce_tu_correo_electr_nic_1">Introduce tu correo electrónico y te enviaremos un enlace para restablecerla.</string>
     <string name="forgotpasswordscreen_correo_electr_nico_2">Correo electrónico</string>
     <string name="forgotpasswordscreen_ejemplo_correo_com_3">ejemplo@correo.com</string>
     <string name="forgotpasswordscreen_enviar_enlace_4">Enviar Enlace</string>
-    <string name="forgotpasswordscreen_back_5">Back</string>
+    <string name="forgotpasswordscreen_back_5">Atrás</string>
     <string name="homescreen_logo_0">Logo</string>
-    <string name="loginscreen_back_0">Back</string>
+    <string name="loginscreen_back_0">Atrás</string>
     <string name="mapscreen_crear_0">Crear</string>
     <string name="mapscreen_publicaci_n_1">Publicación</string>
     <string name="mapscreen__2">•</string>
     <string name="mapscreen_1_2k_rese_as_3">(1.2k reseñas)</string>
     <string name="mapscreen_disfruta_de_las_mejores_vistas_4">Disfruta de las mejores vistas panorámicas de la región desde este punto privilegiado. Ideal para…</string>
     <string name="mapscreen_ver_m_s_5">Ver más</string>
-    <string name="mapscreen_filters_6">Filters</string>
+    <string name="mapscreen_filters_6">Filtros</string>
     <string name="notificationsscreen_nuevo_0">NUEVO</string>
-    <string name="notificationsscreen_back_1">Back</string>
-    <string name="notificationsscreen_more_2">More</string>
+    <string name="notificationsscreen_back_1">Atrás</string>
+    <string name="notificationsscreen_more_2">Más</string>
+    <string name="notifications_title">Notificaciones</string>
+    <string name="notifications_recent">RECIENTES</string>
+    <string name="notifications_mark_all_read">Marcar todo como leído</string>
+    <string name="notifications_older">ANTERIORES</string>
+
+    <string name="badges_title">Mis Insignias</string>
+    <string name="badges_unlocked_count">%1$d Desbloqueadas</string>
     <string name="postdetailscreen_punto_de_interes_0">Punto de interes</string>
     <string name="postdetailscreen_verificado_1">VERIFICADO</string>
     <string name="postdetailscreen_ubicaci_n_2">Ubicación</string>
@@ -156,7 +169,7 @@
     <string name="postdetailscreen_rechazar_7">Rechazar</string>
     <string name="postdetailscreen_verificar_8">Verificar</string>
     <string name="postdetailscreen_resolver_9">Resolver</string>
-    <string name="postdetailscreen_back_10">Back</string>
+    <string name="postdetailscreen_back_10">Atrás</string>
     <string name="profilescreen_niveles_de_reputaci_n_0">Niveles de reputación</string>
     <string name="profilescreen_ver_detalles_1">Ver detalles</string>
     <string name="profilescreen_logros_2">Logros</string>
@@ -172,18 +185,19 @@
     <string name="profilescreen_cancelar_12">Cancelar</string>
     <string name="profilescreen_eliminar_13">Eliminar</string>
     <string name="profilescreen_puntos_por_participaci_n_14">PUNTOS POR PARTICIPACIÓN</string>
-    <string name="profilescreen_edit_15">Edit</string>
+    <string name="profilescreen_edit_15">Editar</string>
     <string name="profilescreen_eliminar_16">Eliminar</string>
-    <string name="profilescreen_edit_17">Edit</string>
-    <string name="profilescreen_delete_18">Delete</string>
-    <string name="registrerscreen_back_0">Back</string>
+    <string name="profilescreen_edit_17">Editar</string>
+    <string name="profilescreen_delete_18">Eliminar</string>
+    <string name="profilescreen_cerrar_sesion">Cerrar sesión</string>
+    <string name="registrerscreen_back_0">Atrs</string>
     <string name="reputationscreen_d_0">%,d</string>
     <string name="reputationscreen_pts_totales_1">pts totales</string>
     <string name="reputationscreen_progreso_2">Progreso</string>
     <string name="reputationscreen_puntos_recientes_3">Puntos Recientes</string>
     <string name="reputationscreen_ver_historial_4">Ver Historial</string>
     <string name="reputationscreen_c_mo_ganar_puntos_5">Cómo ganar puntos</string>
-    <string name="reputationscreen_back_6">Back</string>
+    <string name="reputationscreen_back_6">Atrás</string>
     <string name="resetpasswordscreen_nueva_contrase_a_0">Nueva Contraseña</string>
     <string name="resetpasswordscreen_su_nueva_contrase_a_debe_ser_d_1">Su nueva contraseña debe ser diferente a las contraseñas utilizadas anteriormente.</string>
     <string name="resetpasswordscreen_nueva_contrase_a_2">Nueva Contraseña</string>
@@ -191,11 +205,11 @@
     <string name="resetpasswordscreen_confirmar_contrase_a_4">Confirmar Contraseña</string>
     <string name="resetpasswordscreen_confirme_la_contrase_a_5">Confirme la contraseña</string>
     <string name="resetpasswordscreen_restablecer_contrase_a_6">Restablecer Contraseña</string>
-    <string name="resetpasswordscreen_back_7">Back</string>
+    <string name="resetpasswordscreen_back_7">Atrás</string>
     <string name="statisticsscreen_resumen_general_0">RESUMEN GENERAL</string>
     <string name="statisticsscreen_actividad_reciente_1">ACTIVIDAD RECIENTE</string>
     <string name="statisticsscreen_distribuci_n_de_publicaciones_2">Distribución de Publicaciones</string>
-    <string name="statisticsscreen_back_3">Back</string>
+    <string name="statisticsscreen_back_3">Atrás</string>
     <string name="successscreen_tu_contrase_a_ha_sido_restable_0">Tu contraseña ha sido restablecida con éxito. Ahora puedes iniciar sesión con tu nueva clave.</string>
     <string name="successscreen_volver_al_inicio_1">Volver al Inicio</string>
     <string name="verificationcodescreen_verificar_c_digo_0">Verificar Código</string>
@@ -204,12 +218,35 @@
     <string name="verificationcodescreen_no_recibiste_el_c_digo_3">¿No recibiste el código?</string>
     <string name="verificationcodescreen_reenviar_c_digo_4">Reenviar código</string>
     <string name="verificationcodescreen_verificar_c_digo_5">Verificar Código</string>
-    <string name="verificationcodescreen_back_6">Back</string>
+    <string name="verificationcodescreen_back_6">Atrás</string>
 
     <!-- Edit Profile Screen -->
+    <string name="profile_screen_title">Perfil</string>
+    <string name="profile_my_places">Mis Lugares</string>
+    <string name="profile_my_events">Mis Eventos</string>
+    <string name="profile_statistics">Estadísticas</string>
+    <string name="profile_statistics_detail">Detalle estadísticas</string>
+    <string name="profile_stat_active">Activas</string>
+    <string name="profile_stat_finished">Finalizadas</string>
+    <string name="profile_stat_pending">Pendientes</string>
+    <string name="profile_xp_next_level">XP para el próximo nivel</string>
+    <string name="profile_no_events">No tienes eventos creados.</string>
+    <string name="profile_event_start">Inicio:</string>
+    <string name="profile_event_end">Fin:</string>
+
     <string name="edit_profile_title">Editar perfil</string>
     <string name="edit_profile_save">Guardar</string>
     <string name="edit_profile_change_photo">Cambia foto de perfil</string>
+    <string name="edit_profile_language">Idioma</string>
+    <string name="language_english">Inglés</string>
+    <string name="language_spanish">Español</string>
+
+    <!-- Bottom Navigation Bar Strings -->
+    <string name="bottom_nav_home">Inicio</string>
+    <string name="bottom_nav_events">Eventos</string>
+    <string name="bottom_nav_create">Crear</string>
+    <string name="bottom_nav_alerts">Alertas</string>
+    <string name="bottom_nav_profile">Perfil</string>
 
     <!-- Create Post Screen Additional Strings -->
     <string name="create_post_placeholder_title">Ej. Joyita por descubrir</string>
@@ -232,9 +269,103 @@
 
     <!-- Additional Detail/Map/Feed Strings -->
     <string name="common_event_image">Imagen del Evento</string>
-    <string name="common_map_view">Vista del Mapa</string>
-    <string name="common_location_image">Imagen del lugar</string>
+    <string name="common_map_view">Vista de mapa</string>
+    <string name="common_location_image">Imagen del Lugar</string>
     <string name="post_detail_add_comment">Añadir comentario</string>
     <string name="map_search_placeholder">Buscar lugares, restaurantes…</string>
     <string name="common_image_placeholder">Imagen</string>
+    <string name="statistics_title">Mis Estadísticas</string>
+    <string name="statistics_active_posts">Publicaciones Activas</string>
+    <string name="statistics_finished_posts">Publicaciones Finalizadas</string>
+    <string name="statistics_pending_posts">Pendientes de Verificación</string>
+    <string name="statistics_total_month">Total: %1$s este mes</string>
+    <string name="statistics_empty_state">Aún no hay actividad reciente.</string>
+    <string name="statistics_chart_active">ACTIVAS</string>
+    <string name="statistics_chart_finished">FINALIZADAS</string>
+    <string name="statistics_chart_pending">PENDIENTES</string>
+
+    <!-- Badges -->
+    <string name="badge_first_post_title">Primera Publicación</string>
+    <string name="badge_first_post_desc">¡Tu primera aventura compartida!</string>
+    <string name="badge_10_posts_title">10 Publicaciones</string>
+    <string name="badge_10_posts_desc">Comunidad confiable y activa</string>
+    <string name="badge_map_master_title">Maestro del Mapa</string>
+    <string name="badge_map_master_desc">Experto en navegación local</string>
+    <string name="badge_explorer_month_title">Explorador del Mes</string>
+    <string name="badge_explorer_month_desc">Sé el más activo este mes</string>
+    <string name="badge_local_guide_title">Guía Local</string>
+    <string name="badge_local_guide_desc">Ayuda a otros viajeros</string>
+
+    <!-- Reputation Additional -->
+    <string name="reputation_title">Reputación</string>
+    <string name="reputation_next">Siguiente: %1$s</string>
+    <string name="reputation_pts_to_level_up">%1$d pts para subir de nivel</string>
+
+    <string name="reputation_earn_post_title">Publicar Lugares</string>
+    <string name="reputation_earn_post_desc">Comparte nuevos descubrimientos con la comunidad.</string>
+    <string name="reputation_earn_post_pts">+50 pts</string>
+
+    <string name="reputation_earn_verify_title">Lugares Verificados</string>
+    <string name="reputation_earn_verify_desc">Cuando tus publicaciones son aprobadas y visibles.</string>
+    <string name="reputation_earn_verify_pts">+50 pts</string>
+
+    <string name="reputation_earn_comment_title">Comentar</string>
+    <string name="reputation_earn_comment_desc">Interactúa con las publicaciones de otros exploradores.</string>
+    <string name="reputation_earn_comment_pts">+10 pts</string>
+
+    <string name="reputation_earn_vote_title">Recibir Votos</string>
+    <string name="reputation_earn_vote_desc">Recibe \'me gusta\' en tus aportaciones de contenido.</string>
+    <string name="reputation_earn_vote_pts">+5 pts</string>
+
+    <string name="reputation_earn_visit_title">Visitar Lugares</string>
+    <string name="reputation_earn_visit_desc">Registra tu visita en puntos de interés verificados.</string>
+    <string name="reputation_earn_visit_pts">+20 pts</string>
+
+    <string name="reputation_recent_post">Nueva Publicación: %1$s</string>
+    <string name="reputation_recent_comment">Comentario recibido</string>
+    <string name="reputation_recent_visit">Visitado: Plaza Central</string>
+    <string name="reputation_time_2_hours">Hace poco</string>
+    <string name="reputation_time_5_hours">Hace poco</string>
+    <string name="reputation_time_yesterday">Reciente</string>
+
+    <string name="reputation_percentage_msg">Top 15%% de exploradores en tu ciudad</string>
+    <string name="reputation_max_level">Nivel Máximo</string>
+
+    <!-- Notifications -->
+    <string name="notification_approved_title">Publicación aprobada</string>
+    <string name="notification_approved_desc">Tu publicación \"%1$s\" ha sido verificada y ya es visible para todos.</string>
+    <string name="notification_pending_title">Publicación en revisión</string>
+    <string name="notification_pending_desc">Tu publicación \"%1$s\" está siendo revisada por nuestro equipo.</string>
+    <string name="notification_rejected_title">Publicación rechazada</string>
+    <string name="notification_rejected_desc">Lo sentimos, tu publicación \"%1$s\" no cumple con nuestras guías.</string>
+    <string name="notification_time_recent">Reciente</string>
+    <string name="notification_time_pending">Pendiente</string>
+    <string name="notification_achievement_title">¡Nuevos logros!</string>
+    <string name="notification_achievement_desc">Sigue compartiendo tus lugares favoritos para subir de nivel.</string>
+    <string name="notification_time_yesterday">Ayer</string>
+
+    <!-- Statistics Default/Recent -->
+    <string name="stat_recent_approved">Publicación aprobada: %1$s</string>
+    <string name="stat_recent_rejected">Publicación rechazada: %1$s</string>
+    <string name="stat_recent_created">Publicación creada: %1$s</string>
+    <string name="stat_time_recent">Reciente</string>
+
+    <!-- Profile ViewModel Strings -->
+    <string name="role_admin">ADMINISTRADOR</string>
+    <string name="role_moderator">MODERADOR</string>
+    <string name="role_local_ambassador">EMBAJADOR LOCAL</string>
+    <string name="mock_event_title">Limpieza de Parque del Este</string>
+    <string name="mock_event_desc">Voluntariado para limpiar el parque central del barrio.</string>
+    <string name="mock_event_date">22 de Diciembre</string>
+    <string name="mock_event_time">08:00 AM</string>
+    <string name="mock_event_location">Parque del Este</string>
+    <string name="mock_event_category">Voluntariado</string>
+    <string name="achievement_1_title">Primera Publicación</string>
+    <string name="achievement_1_desc">¡Tu primera aventura compartida!</string>
+    <string name="achievement_2_title">10 Publicaciones</string>
+    <string name="achievement_2_desc">Comunidad confiable y activa</string>
+    <string name="achievement_3_title">Maestro del Mapa</string>
+    <string name="achievement_3_desc">Experto en navegación local</string>
+    <string name="achievement_4_title">Explorador del Mes</string>
+    <string name="achievement_4_desc">Sé el más activo este mes</string>
 </resources>

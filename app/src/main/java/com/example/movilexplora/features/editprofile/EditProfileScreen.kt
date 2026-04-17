@@ -28,6 +28,33 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.movilexplora.ui.theme.GrayText
 import com.example.movilexplora.ui.theme.Turquoise
 import com.example.movilexplora.features.profile.DeleteAccountDialog
+import android.Manifest
+import android.content.Context
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.ui.platform.LocalContext
+import androidx.core.content.FileProvider
+import java.io.File
+import androidx.compose.ui.layout.ContentScale
+import coil.compose.AsyncImage
+
+private fun createTempImageUri(context: Context): Uri {
+    val tempFile = File.createTempFile(
+        "profile_photo_",
+        ".jpg",
+        context.cacheDir
+    ).apply {
+        createNewFile()
+        deleteOnExit()
+    }
+    return FileProvider.getUriForFile(
+        context,
+        "${context.packageName}.fileprovider",
+        tempFile
+    )
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -36,11 +63,43 @@ fun EditProfileScreen(
     onUpdateSuccess: () -> Unit,
     viewModel: EditProfileViewModel = hiltViewModel()
 ) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+
     val updateResult by viewModel.updateResult.collectAsState()
     val isDarkMode by viewModel.isDarkMode.collectAsState()
     val notificationsEnabled by viewModel.notificationsEnabled.collectAsState()
-    
+    val photoUri by viewModel.photoUri.collectAsState()
+    val photoUrl by viewModel.photoUrl.collectAsState()
+
     var showDeleteDialog by remember { mutableStateOf(false) }
+    var showBottomSheet by remember { mutableStateOf(false) }
+    val bottomSheetState = rememberModalBottomSheetState()
+
+    var tempCameraUri by remember { mutableStateOf<Uri?>(null) }
+
+    val galleryLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        uri?.let { viewModel.onPhotoSelected(it) }
+    }
+
+    val cameraLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.TakePicture()
+    ) { success: Boolean ->
+        if (success) {
+            tempCameraUri?.let { viewModel.onPhotoSelected(it) }
+        }
+    }
+
+    val cameraPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted: Boolean ->
+        if (isGranted) {
+            tempCameraUri = createTempImageUri(context)
+            tempCameraUri?.let { cameraLauncher.launch(it) }
+        }
+    }
 
     LaunchedEffect(updateResult) {
         if (updateResult is com.example.movilexplora.core.utils.RequestResult.Success) {
@@ -90,26 +149,48 @@ fun EditProfileScreen(
             // Profile Image Edit
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Box(contentAlignment = Alignment.BottomEnd) {
-                    Box(
-                        modifier = Modifier
-                            .size(100.dp)
-                            .border(2.dp, MaterialTheme.colorScheme.onBackground, CircleShape)
-                            .clip(CircleShape)
-                            .background(Color(0xFFFFCCBC)) // Fondo naranja claro como en la imagen
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Person,
-                            contentDescription = null,
-                            modifier = Modifier.fillMaxSize().padding(12.dp),
-                            tint = Color.Gray
+                    if (photoUri != null) {
+                        AsyncImage(
+                            model = photoUri,
+                            contentDescription = "Profile Picture",
+                            modifier = Modifier
+                                .size(100.dp)
+                                .border(2.dp, MaterialTheme.colorScheme.onBackground, CircleShape)
+                                .clip(CircleShape),
+                            contentScale = ContentScale.Crop
                         )
+                    } else if (photoUrl.isNotEmpty()) {
+                        AsyncImage(
+                            model = photoUrl,
+                            contentDescription = "Profile Picture",
+                            modifier = Modifier
+                                .size(100.dp)
+                                .border(2.dp, MaterialTheme.colorScheme.onBackground, CircleShape)
+                                .clip(CircleShape),
+                            contentScale = ContentScale.Crop
+                        )
+                    } else {
+                        Box(
+                            modifier = Modifier
+                                .size(100.dp)
+                                .border(2.dp, MaterialTheme.colorScheme.onBackground, CircleShape)
+                                .clip(CircleShape)
+                                .background(Color(0xFFFFCCBC)) // Fondo naranja claro como en la imagen
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Person,
+                                contentDescription = null,
+                                modifier = Modifier.fillMaxSize().padding(12.dp),
+                                tint = Color.Gray
+                            )
+                        }
                     }
                     Box(
                         modifier = Modifier
                             .size(28.dp)
                             .background(Color(0xFF2196F3), CircleShape) // Color azul para el lapiz
                             .border(1.dp, Color.Black, CircleShape)
-                            .clickable { /* Change Photo */ },
+                            .clickable { showBottomSheet = true },
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(imageVector = Icons.Default.Edit, contentDescription = null, tint = Color.White, modifier = Modifier.size(16.dp))
@@ -231,6 +312,90 @@ fun EditProfileScreen(
                         colors = SwitchDefaults.colors(checkedThumbColor = Turquoise, checkedTrackColor = Turquoise.copy(alpha = 0.5f))
                     )
                 }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Language Selection
+                var showLanguageMenu by remember { mutableStateOf(false) }
+                
+                val currentLocale = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+                    context.getSystemService(android.app.LocaleManager::class.java).applicationLocales.toLanguageTags().split(",").firstOrNull() ?: "es"
+                } else {
+                    context.resources.configuration.locales[0].language
+                }
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(56.dp)
+                        .clickable { showLanguageMenu = true },
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Box(
+                            modifier = Modifier
+                                .size(36.dp)
+                                .background(Color.LightGray.copy(alpha = 0.5f), CircleShape),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(imageVector = Icons.Default.Language, contentDescription = null, tint = MaterialTheme.colorScheme.onBackground, modifier = Modifier.size(20.dp))
+                        }
+                        Spacer(modifier = Modifier.width(16.dp))
+                        Text(text = stringResource(R.string.edit_profile_language), fontSize = 16.sp, color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.Medium)
+                    }
+                    
+                    Box {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                text = if (currentLocale.startsWith("en")) stringResource(R.string.language_english) else stringResource(R.string.language_spanish),
+                                color = GrayText,
+                                fontSize = 14.sp
+                            )
+                            Icon(imageVector = Icons.Default.ArrowDropDown, contentDescription = null, tint = GrayText)
+                        }
+                        
+                        DropdownMenu(
+                            expanded = showLanguageMenu,
+                            onDismissRequest = { showLanguageMenu = false }
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.language_english)) },
+                                onClick = {
+                                    val lang = "en"
+                                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+                                        context.getSystemService(android.app.LocaleManager::class.java).applicationLocales = android.os.LocaleList.forLanguageTags(lang)
+                                    } else {
+                                        val mLocale = java.util.Locale(lang)
+                                        java.util.Locale.setDefault(mLocale)
+                                        val config = context.resources.configuration
+                                        config.setLocale(mLocale)
+                                        context.resources.updateConfiguration(config, context.resources.displayMetrics)
+                                        (context as? android.app.Activity)?.recreate()
+                                    }
+                                    showLanguageMenu = false
+                                }
+                            )
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.language_spanish)) },
+                                onClick = {
+                                    val lang = "es"
+                                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+                                        context.getSystemService(android.app.LocaleManager::class.java).applicationLocales = android.os.LocaleList.forLanguageTags(lang)
+                                    } else {
+                                        val mLocale = java.util.Locale(lang)
+                                        java.util.Locale.setDefault(mLocale)
+                                        val config = context.resources.configuration
+                                        config.setLocale(mLocale)
+                                        context.resources.updateConfiguration(config, context.resources.displayMetrics)
+                                        (context as? android.app.Activity)?.recreate()
+                                    }
+                                    showLanguageMenu = false
+                                }
+                            )
+                        }
+                    }
+                }
             }
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -275,6 +440,64 @@ fun EditProfileScreen(
             }
             
             Spacer(modifier = Modifier.height(32.dp))
+        }
+
+        if (showBottomSheet) {
+            ModalBottomSheet(
+                onDismissRequest = { showBottomSheet = false },
+                sheetState = bottomSheetState
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 32.dp)
+                ) {
+                    Text(
+                        text = "Seleccionar Imagen",
+                        style = MaterialTheme.typography.titleMedium,
+                        modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp)
+                    )
+
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                showBottomSheet = false
+                                cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+                            }
+                            .padding(horizontal = 24.dp, vertical = 16.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        Icon(imageVector = Icons.Default.PhotoCamera, contentDescription = null, tint = Turquoise)
+                        Text(text = "Tomar Foto", style = MaterialTheme.typography.bodyLarge)
+                    }
+
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                showBottomSheet = false
+                                galleryLauncher.launch("image/*")
+                            }
+                            .padding(horizontal = 24.dp, vertical = 16.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        Icon(imageVector = Icons.Default.Image, contentDescription = null, tint = Turquoise)
+                        Text(text = "Elegir de Galería", style = MaterialTheme.typography.bodyLarge)
+                    }
+
+                    TextButton(
+                        onClick = { showBottomSheet = false },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 8.dp)
+                    ) {
+                        Text("Cancelar", color = Turquoise)
+                    }
+                }
+            }
         }
     }
 }

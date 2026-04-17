@@ -1,7 +1,8 @@
 package com.example.movilexplora.features.createpost
 
-import androidx.compose.ui.res.stringResource
-import com.example.movilexplora.R
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -21,11 +22,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import coil.compose.AsyncImage
+import com.example.movilexplora.R
 import com.example.movilexplora.ui.theme.GrayText
 import com.example.movilexplora.ui.theme.Turquoise
 import com.example.movilexplora.ui.theme.getCategoryColor
@@ -40,12 +45,54 @@ fun CreatePostScreen(
 ) {
     val state by viewModel.state.collectAsState()
     val publishResult by viewModel.publishResult.collectAsState()
+    
+    // Estado para la imagen seleccionada localmente
+    var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
+    
+    // Estado para el Pop-up de éxito
+    var showSuccessDialog by remember { mutableStateOf(false) }
+    var publishedTitle by remember { mutableStateOf("") }
+
+    // Lanzador para la galería
+    val galleryLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        selectedImageUri = uri
+        // Opcional: pasar el URI al viewModel si este lo requiere para subirlo
+    }
 
     LaunchedEffect(publishResult) {
         if (publishResult is com.example.movilexplora.core.utils.RequestResult.Success) {
-            onPublishSuccess()
+            publishedTitle = viewModel.title.value
+            showSuccessDialog = true
             viewModel.resetResult()
         }
+    }
+
+    // Pop-up de éxito
+    if (showSuccessDialog) {
+        AlertDialog(
+            onDismissRequest = { /* No permitir cerrar fuera */ },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        showSuccessDialog = false
+                        onPublishSuccess()
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = Turquoise)
+                ) {
+                    Text("Entendido")
+                }
+            },
+            title = {
+                Text(text = "¡Publicación Creada!", fontWeight = FontWeight.Bold)
+            },
+            text = {
+                Text(text = "Tu publicación \"$publishedTitle\" ha sido creada exitosamente y pronto estará disponible para la comunidad.")
+            },
+            shape = RoundedCornerShape(16.dp),
+            containerColor = MaterialTheme.colorScheme.surface
+        )
     }
 
     Scaffold(
@@ -69,7 +116,8 @@ fun CreatePostScreen(
                 actions = { Spacer(modifier = Modifier.width(48.dp)) },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface)
             )
-        }
+        },
+        containerColor = MaterialTheme.colorScheme.background
     ) { paddingValues ->
         Column(
             modifier = Modifier
@@ -77,11 +125,10 @@ fun CreatePostScreen(
                 .padding(paddingValues)
                 .padding(horizontal = 24.dp)
                 .verticalScroll(rememberScrollState())
-                .background(Color.White)
         ) {
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Image Picker Placeholder
+            // Image Picker
             Text(text = stringResource(R.string.createpostscreen_imagen_del_lugar_1), fontSize = 14.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
             Spacer(modifier = Modifier.height(8.dp))
             Box(
@@ -90,13 +137,35 @@ fun CreatePostScreen(
                     .height(180.dp)
                     .border(1.dp, Color.LightGray.copy(alpha = 0.5f), RoundedCornerShape(16.dp))
                     .clip(RoundedCornerShape(16.dp))
-                    .background(Color(0xFFF7F8F9))
-                    .clickable { /* Pick Image */ },
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
+                    .clickable { galleryLauncher.launch("image/*") },
                 contentAlignment = Alignment.Center
             ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Icon(imageVector = Icons.Default.AddPhotoAlternate, contentDescription = null, tint = Turquoise, modifier = Modifier.size(40.dp))
-                    Text(text = stringResource(R.string.createpostscreen_a_adir_foto_2), color = GrayText.copy(alpha = 0.5f), fontSize = 14.sp)
+                if (selectedImageUri != null) {
+                    AsyncImage(
+                        model = selectedImageUri,
+                        contentDescription = "Imagen seleccionada",
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
+                    )
+                    // Icono para indicar que se puede cambiar
+                    Surface(
+                        modifier = Modifier.align(Alignment.TopEnd).padding(8.dp),
+                        shape = CircleShape,
+                        color = Color.Black.copy(alpha = 0.4f)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Edit,
+                            contentDescription = "Editar",
+                            tint = Color.White,
+                            modifier = Modifier.padding(6.dp).size(16.dp)
+                        )
+                    }
+                } else {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Icon(imageVector = Icons.Default.AddPhotoAlternate, contentDescription = null, tint = Turquoise, modifier = Modifier.size(40.dp))
+                        Text(text = stringResource(R.string.createpostscreen_a_adir_foto_2), color = GrayText.copy(alpha = 0.5f), fontSize = 14.sp)
+                    }
                 }
             }
 
@@ -112,8 +181,8 @@ fun CreatePostScreen(
                 placeholder = { Text(stringResource(R.string.create_post_placeholder_title), color = GrayText.copy(alpha = 0.4f)) },
                 shape = RoundedCornerShape(12.dp),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedContainerColor = Color(0xFFF7F8F9),
-                    unfocusedContainerColor = Color(0xFFF7F8F9),
+                    focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
                     unfocusedBorderColor = Color.Transparent
                 ),
                 singleLine = true
@@ -159,8 +228,8 @@ fun CreatePostScreen(
                 placeholder = { Text(stringResource(R.string.create_post_placeholder_desc), color = GrayText.copy(alpha = 0.4f)) },
                 shape = RoundedCornerShape(12.dp),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedContainerColor = Color(0xFFF7F8F9),
-                    unfocusedContainerColor = Color(0xFFF7F8F9),
+                    focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
                     unfocusedBorderColor = Color.Transparent
                 )
             )
@@ -201,9 +270,9 @@ fun CreatePostScreen(
                     .fillMaxWidth()
                     .height(150.dp)
                     .clip(RoundedCornerShape(12.dp))
-                    .background(Color.LightGray)
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
             ) {
-                Text(stringResource(R.string.create_post_map_placeholder), modifier = Modifier.align(Alignment.Center))
+                Text(stringResource(R.string.create_post_map_placeholder), modifier = Modifier.align(Alignment.Center), color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -314,7 +383,7 @@ fun TimeOption(text: String, icon: androidx.compose.ui.graphics.vector.ImageVect
         modifier = modifier.height(50.dp),
         shape = RoundedCornerShape(12.dp),
         border = BorderStroke(1.dp, if (isSelected) Turquoise else Color.LightGray.copy(alpha = 0.3f)),
-        color = if (isSelected) Turquoise.copy(alpha = 0.15f) else Color(0xFFF7F8F9)
+        color = if (isSelected) Turquoise.copy(alpha = 0.15f) else MaterialTheme.colorScheme.surfaceVariant
     ) {
         Row(
             modifier = Modifier.padding(horizontal = 12.dp),

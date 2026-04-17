@@ -12,6 +12,8 @@ import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.launch
 
 @HiltViewModel
 class RegisterViewModel @Inject constructor(
@@ -51,18 +53,29 @@ class RegisterViewModel @Inject constructor(
     val registerResult: StateFlow<RequestResult?> = _registerResult.asStateFlow()
 
     fun register() {
+        nombre.markAsDirty()
+        email.markAsDirty()
+        password.markAsDirty()
+        confirmPassword.markAsDirty()
+
         if (isFormValid) {
+            // TODO: Eliminar direcciones (lat/lon quemadas mediante String) cuando se agregue mapa al registro de usuario.
+            val randomLat = (Math.random() * 0.8) - 0.4
+            val randomLon = (Math.random() * 0.8) - 0.4
+
             val newUser = User(
                 id = UUID.randomUUID().toString(),
                 name = nombre.value,
                 email = email.value,
                 password = password.value,
-                city = "",
-                address = "",
+                city = "Ciudad Ficticia",
+                address = "Lat: $randomLat, Lon: $randomLon",
                 profilePictureUrl = ""
             )
-            userRepository.save(newUser)
-            _registerResult.value = RequestResult.Success("Usuario registrado exitosamente")
+            viewModelScope.launch {
+                userRepository.save(newUser)
+                _registerResult.value = RequestResult.Success("Usuario registrado exitosamente")
+            }
         }
     }
 

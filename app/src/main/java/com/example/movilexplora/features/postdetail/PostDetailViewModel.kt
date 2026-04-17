@@ -4,19 +4,18 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.example.movilexplora.domain.model.Post
 import com.example.movilexplora.domain.model.PostStatus
+import com.example.movilexplora.domain.model.Comment
+import com.example.movilexplora.domain.repository.PostRepository
+import com.example.movilexplora.domain.repository.UserRepository
+import com.example.movilexplora.data.datastore.SessionDataStore
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-
-data class Comment(
-    val id: String,
-    val userName: String,
-    val userAvatar: String,
-    val date: String,
-    val content: String
-)
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.launch
 
 data class PostDetailState(
     val post: Post? = null,
@@ -25,30 +24,82 @@ data class PostDetailState(
 )
 
 @HiltViewModel
-class PostDetailViewModel @Inject constructor() : ViewModel() {
+class PostDetailViewModel @Inject constructor(
+    private val postRepository: PostRepository,
+    private val sessionDataStore: SessionDataStore,
+    private val userRepository: UserRepository
+) : ViewModel() {
     private val _state = MutableStateFlow(PostDetailState())
     val state: StateFlow<PostDetailState> = _state.asStateFlow()
 
+    private var currentUserId: String = "guest"
+
+    init {
+        viewModelScope.launch {
+            currentUserId = sessionDataStore.sessionFlow.firstOrNull()?.userId ?: "guest"
+        }
+    }
+
     fun loadPostDetail(postId: String) {
-        // En una app real, esto vendría de un repositorio
-        val mockPost = Post(
-            id = postId,
-            title = "Blue Grotto Caves",
-            location = "Capri, Italy",
-            rating = 4.8,
-            category = "Naturaleza",
-            price = "Costo Moderado",
-            status = PostStatus.VERIFICADO,
-            imageUrl = ""
-        )
-        
-        val mockDescription = "Experimente las fascinantes aguas azules de esta cueva marina natural. La luz del sol, al atravesar una cavidad submarina, crea un reflejo azul que ilumina la caverna. Ideal para nadar y realizar excursiones guiadas en barco."
-        
-        val mockComments = listOf(
-            Comment("1", "Allison", "", "2 días", "El mejor momento para visitarlo es alrededor del mediodía, cuando el sol está justo encima. ¡El agua brilla intensamente!"),
-            Comment("2", "Boyaco", "", "1 Semana", "Prepárate para esperar si vas en agosto. Hay mucha gente, pero vale la pena.")
-        )
-        
-        _state.value = PostDetailState(mockPost, mockDescription, mockComments)
+        viewModelScope.launch {
+            postRepository.getPost(postId).collect { post ->
+                _state.value = _state.value.copy(
+                    post = post,
+                    description = post?.description ?: ""
+                )
+            }
+        }
+
+        viewModelScope.launch {
+            postRepository.getComments(postId).collect { comments ->
+                _state.value = _state.value.copy(
+                    comments = comments
+                )
+            }
+        }
+    }
+
+    fun addComment(postId: String, content: String) {
+        if (content.isBlank()) return
+
+        viewModelScope.launch {
+            val user = userRepository.findById(currentUserId)
+            val currentUserName = user?.name ?: "Guest"
+            val currentUserAvatar = user?.profilePictureUrl ?: ""
+
+            val newComment = Comment(
+                id = System.currentTimeMillis().toString(),
+                postId = postId,
+                userName = currentUserName,
+                userAvatar = currentUserAvatar,
+                date = "Ahora",
+                content = content
+            )
+            postRepository.addComment(newComment)
+            userRepository.addPoints(currentUserId, 10) // 10 points for commenting
+        }
+    }
+
+    fun toggleFavorite(postId: String) {
+        viewModelScope.launch {
+            val currentPost = _state.value.post
+            if (currentPost != null) {
+                val wasLiked = currentPost.likedBy.contains(currentUserId)
+                postRepository.toggleFavorite(postId, currentUserId)
+                if (!wasLiked && currentPost.creatorId != currentUserId) {
+                    userRepository.addPoints(currentPost.creatorId, 5) // 5 points to creator if it's a new like
+                }
+            }
+        }
+    }
+
+    fun markAsVisited() {
+        viewModelScope.launch {
+            userRepository.addPoints(currentUserId, 20) // 20 points for visiting verified places
+        }
+    }
+
+    fun isFavorite(post: Post?): Boolean {
+        return post?.likedBy?.contains(currentUserId) == true
     }
 }

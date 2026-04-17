@@ -71,12 +71,12 @@ fun EventDetailScreen(
                     .fillMaxSize()
                     .padding(paddingValues)
                     .verticalScroll(rememberScrollState())
-                    .background(Color.White)
+                    .background(MaterialTheme.colorScheme.background)
             ) {
                 // Header Image
-                Box(modifier = Modifier.height(240.dp).fillMaxWidth().background(Color.LightGray)) {
-                    Text("Imagen del Evento", modifier = Modifier.align(Alignment.Center))
-                    
+                Box(modifier = Modifier.height(240.dp).fillMaxWidth().background(MaterialTheme.colorScheme.surfaceVariant)) {
+                    Text("Imagen del Evento", color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.align(Alignment.Center))
+
                     val categoryColor = getCategoryColor(event.category)
                     Surface(
                         modifier = Modifier
@@ -162,36 +162,11 @@ fun EventDetailScreen(
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(200.dp)
-                            .clip(RoundedCornerShape(bottomStart = 24.dp, bottomEnd = 24.dp))
-                            .background(Color.LightGray)
-                    ) {
-                        Text(stringResource(R.string.common_event_image), modifier = Modifier.align(Alignment.Center))
-                        
-                        // Back Button
-                        IconButton(
-                            onClick = onNavigateBack,
-                            modifier = Modifier
-                                .align(Alignment.TopStart)
-                                .padding(16.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = stringResource(R.string.eventdetailscreen_back_4),
-                                tint = MaterialTheme.colorScheme.onBackground
-                            )
-                        }
-                    }
-                    
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
                             .height(150.dp)
                             .clip(RoundedCornerShape(16.dp))
-                            .background(Color.LightGray)
+                            .background(MaterialTheme.colorScheme.surfaceVariant)
                     ) {
-                        Text(stringResource(R.string.common_map_view), modifier = Modifier.align(Alignment.Center))
+                        Text(stringResource(R.string.common_map_view), color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.align(Alignment.Center))
                     }
                 }
             }

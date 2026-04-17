@@ -34,6 +34,18 @@ import com.example.movilexplora.ui.theme.VerifiedBlue
 import com.example.movilexplora.ui.theme.getCategoryColor
 import com.example.movilexplora.ui.theme.getCategoryIcon
 
+@Composable
+fun getTranslatedCategoryName(categoryKey: String): String {
+    return when (categoryKey.lowercase().replace("í", "i")) {
+        "gastronomia" -> stringResource(R.string.create_post_cat_gastronomy)
+        "cultura" -> stringResource(R.string.create_post_cat_culture)
+        "naturaleza" -> stringResource(R.string.create_post_cat_nature)
+        "entretenimiento" -> stringResource(R.string.create_post_cat_entertainment)
+        "historia" -> stringResource(R.string.create_post_cat_history)
+        else -> categoryKey
+    }
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FeedScreen(
@@ -47,13 +59,15 @@ fun FeedScreen(
 ) {
     val state by viewModel.state.collectAsState()
     val posts by viewModel.posts.collectAsState()
+    val currentUserId by viewModel.currentUserId.collectAsState()
     var showFilterSheet by remember { mutableStateOf(false) }
 
     if (showFilterSheet) {
         FilterBottomSheet(
+            initialState = state.filterState,
             onDismiss = { showFilterSheet = false },
-            onApplyFilters = {
-                // Aquí se aplicarían los filtros en el ViewModel del Feed
+            onApplyFilters = { filterState ->
+                viewModel.applyFilters(filterState)
                 showFilterSheet = false
             }
         )
@@ -72,13 +86,25 @@ fun FeedScreen(
         }
     ) { paddingValues ->
         Column(modifier = Modifier.padding(paddingValues).fillMaxSize()) {
-            HeaderSection(userName = state.userName, onMapClick = onNavigateToMap)
+            HeaderSection(
+                userName = state.userName, 
+                searchQuery = state.searchQuery,
+                onSearchQueryChange = { viewModel.updateSearchQuery(it) },
+                onMapClick = onNavigateToMap
+            )
             
-            FilterToggleSection(onFilterClick = { showFilterSheet = true })
-            
+            FilterToggleSection(
+                onFilterClick = { showFilterSheet = true },
+                onFeedClick = { viewModel.clearFilters() }
+            )
+
             Spacer(modifier = Modifier.height(16.dp))
             
-            CategoriesSection(categories = state.categories.map { it.name })
+            CategoriesSection(
+                categories = state.categories.map { it.name },
+                selectedCategory = state.filterState.selectedCategory,
+                onCategorySelect = { viewModel.toggleCategoryFilter(it) }
+            )
             
             Spacer(modifier = Modifier.height(16.dp))
             
@@ -88,8 +114,14 @@ fun FeedScreen(
                 modifier = Modifier.weight(1f)
             ) {
                 items(posts) { post ->
+                    if (post.id == posts.lastOrNull()?.id) {
+                        SideEffect {
+                            viewModel.loadMore()
+                        }
+                    }
                     PostCard(
                         post = post, 
+                        currentUserId = currentUserId,
                         onFavoriteClick = { viewModel.toggleFavorite(post.id) },
                         onDetailClick = { onNavigateToDetail(post.id) }
                     )
@@ -100,42 +132,76 @@ fun FeedScreen(
 }
 
 @Composable
-fun HeaderSection(userName: String, onMapClick: () -> Unit) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Box(
-                modifier = Modifier
-                    .size(48.dp)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.primary)
-            ) {
-                // Profile image placeholder
-            }
-            Spacer(modifier = Modifier.width(12.dp))
-            Column {
-                Text(text = stringResource(R.string.feedscreen_hola_0), fontSize = 14.sp, color = GrayText)
-                Text(text = userName, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
-            }
+fun HeaderSection(userName: String, searchQuery: String, onSearchQueryChange: (String) -> Unit, onMapClick: () -> Unit) {
+    var isSearchActive by remember { mutableStateOf(false) }
+
+    if (isSearchActive) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            OutlinedTextField(
+                value = searchQuery,
+                onValueChange = onSearchQueryChange,
+                modifier = Modifier.weight(1f),
+                placeholder = { Text(stringResource(R.string.feedscreen_search_6), color = GrayText) },
+                singleLine = true,
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = Turquoise,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant
+                ),
+                leadingIcon = {
+                    Icon(imageVector = Icons.Default.Search, contentDescription = null, tint = Turquoise)
+                },
+                trailingIcon = {
+                    IconButton(onClick = { 
+                        isSearchActive = false 
+                        onSearchQueryChange("")
+                    }) {
+                        Icon(imageVector = Icons.Default.Close, contentDescription = "Cerrar", tint = MaterialTheme.colorScheme.onBackground)
+                    }
+                }
+            )
         }
-        Row {
-            IconButton(onClick = onMapClick) {
-                Icon(imageVector = Icons.Default.Map, contentDescription = stringResource(R.string.feedscreen_map_5), tint = MaterialTheme.colorScheme.onBackground)
+    } else {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(
+                    modifier = Modifier
+                        .size(48.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.primary)
+                ) {
+                    // Profile image placeholder
+                }
+                Spacer(modifier = Modifier.width(12.dp))
+                Column {
+                    Text(text = stringResource(R.string.feedscreen_hola_0), fontSize = 14.sp, color = GrayText)
+                    Text(text = userName, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
+                }
             }
-            IconButton(onClick = { /* Search */ }) {
-                Icon(imageVector = Icons.Default.Search, contentDescription = stringResource(R.string.feedscreen_search_6), tint = MaterialTheme.colorScheme.onBackground)
+            Row {
+                IconButton(onClick = onMapClick) {
+                    Icon(imageVector = Icons.Default.Map, contentDescription = stringResource(R.string.feedscreen_map_5), tint = MaterialTheme.colorScheme.onBackground)
+                }
+                IconButton(onClick = { isSearchActive = true }) {
+                    Icon(imageVector = Icons.Default.Search, contentDescription = stringResource(R.string.feedscreen_search_6), tint = MaterialTheme.colorScheme.onBackground)
+                }
             }
         }
     }
 }
 
 @Composable
-fun FilterToggleSection(onFilterClick: () -> Unit) {
+fun FilterToggleSection(onFilterClick: () -> Unit, onFeedClick: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -145,19 +211,19 @@ fun FilterToggleSection(onFilterClick: () -> Unit) {
     ) {
         Row(
             modifier = Modifier
-                .background(Color.LightGray.copy(alpha = 0.3f), RoundedCornerShape(24.dp))
+                .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(24.dp))
                 .padding(4.dp)
         ) {
             Button(
-                onClick = { /* Feed */ },
-                colors = ButtonDefaults.buttonColors(containerColor = Color.LightGray.copy(alpha = 0.5f)),
+                onClick = onFeedClick,
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
                 contentPadding = PaddingValues(horizontal = 24.dp, vertical = 8.dp),
                 shape = RoundedCornerShape(20.dp),
                 modifier = Modifier.height(36.dp)
             ) {
-                Icon(imageVector = Icons.AutoMirrored.Filled.List, contentDescription = null, modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.onBackground)
+                Icon(imageVector = Icons.AutoMirrored.Filled.List, contentDescription = null, modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.onSecondaryContainer)
                 Spacer(modifier = Modifier.width(4.dp))
-                Text(text = stringResource(R.string.feedscreen_feed_1), color = MaterialTheme.colorScheme.onBackground, fontSize = 14.sp)
+                Text(text = stringResource(R.string.feedscreen_feed_1), color = MaterialTheme.colorScheme.onSecondaryContainer, fontSize = 14.sp)
             }
         }
         
@@ -172,27 +238,37 @@ fun FilterToggleSection(onFilterClick: () -> Unit) {
 }
 
 @Composable
-fun CategoriesSection(categories: List<String>) {
+fun CategoriesSection(
+    categories: List<String>,
+    selectedCategory: String?,
+    onCategorySelect: (String) -> Unit
+) {
     LazyRow(
         contentPadding = PaddingValues(horizontal = 16.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         items(categories) { categoryName ->
+            val hasSelection = selectedCategory != null
+            val isSelected = selectedCategory == categoryName
+
             val icon = getCategoryIcon(categoryName)
-            val color = getCategoryColor(categoryName)
-            
+            val baseColor = getCategoryColor(categoryName)
+
+            val displayColor = if (hasSelection && !isSelected) MaterialTheme.colorScheme.onSurfaceVariant else baseColor
+
             Surface(
+                onClick = { onCategorySelect(categoryName) },
                 shape = RoundedCornerShape(24.dp),
-                border = BorderStroke(1.dp, color.copy(alpha = 0.5f)),
-                color = color.copy(alpha = 0.1f)
+                border = BorderStroke(1.dp, displayColor.copy(alpha = if (isSelected) 1f else 0.5f)),
+                color = displayColor.copy(alpha = if (isSelected) 0.5f else 0.1f)
             ) {
                 Row(
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Icon(imageVector = icon, contentDescription = null, modifier = Modifier.size(18.dp), tint = color)
+                    Icon(imageVector = icon, contentDescription = null, modifier = Modifier.size(18.dp), tint = displayColor)
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text(text = categoryName, color = color, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+                    Text(text = getTranslatedCategoryName(categoryName), color = displayColor, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
                 }
             }
         }
@@ -202,6 +278,7 @@ fun CategoriesSection(categories: List<String>) {
 @Composable
 fun PostCard(
     post: Post, 
+    currentUserId: String,
     onFavoriteClick: () -> Unit,
     onDetailClick: () -> Unit
 ) {
@@ -213,22 +290,27 @@ fun PostCard(
     ) {
         Column {
             Box(modifier = Modifier.height(200.dp).fillMaxWidth()) {
-                // Placeholder for Image
-                Box(modifier = Modifier.fillMaxSize().background(Color.LightGray)) {
-                    Text("Imagen", modifier = Modifier.align(Alignment.Center))
-                }
-                
+                // Header Image
+                coil.compose.AsyncImage(
+                    model = post.imageUrl,
+                    contentDescription = null,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = androidx.compose.ui.layout.ContentScale.Crop
+                )
+
                 // Verified Badge
-                Row(
-                    modifier = Modifier
-                        .padding(12.dp)
-                        .background(VerifiedBlue, RoundedCornerShape(12.dp))
-                        .padding(horizontal = 8.dp, vertical = 4.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(imageVector = Icons.Default.CheckCircle, contentDescription = null, tint = Color.White, modifier = Modifier.size(14.dp))
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(text = stringResource(R.string.feedscreen_verificado_3), color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                if (post.isVerified) {
+                    Row(
+                        modifier = Modifier
+                            .padding(12.dp)
+                            .background(VerifiedBlue, RoundedCornerShape(12.dp))
+                            .padding(horizontal = 8.dp, vertical = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(imageVector = Icons.Default.CheckCircle, contentDescription = null, tint = Color.White, modifier = Modifier.size(14.dp))
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(text = stringResource(R.string.feedscreen_verificado_3), color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                    }
                 }
                 
                 // Rating Badge
@@ -255,21 +337,33 @@ fun PostCard(
                     Column {
                         Text(text = post.title, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(imageVector = Icons.Default.LocationOn, contentDescription = null, tint = Color.LightGray, modifier = Modifier.size(14.dp))
-                            Text(text = post.location, fontSize = 12.sp, color = Color.LightGray)
+                            Icon(imageVector = Icons.Default.LocationOn, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(14.dp))
+                            Text(text = post.location, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                     }
-                    IconButton(onClick = onFavoriteClick) {
-                        Icon(
-                            imageVector = if (post.isFavorite) Icons.Default.Favorite else Icons.Outlined.FavoriteBorder,
-                            contentDescription = stringResource(R.string.feedscreen_favorite_7),
-                            tint = if (post.isFavorite) Color.Red else Color.LightGray
-                        )
+                    val isFavorite = post.likedBy.contains(currentUserId)
+                    Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+                        IconButton(onClick = onFavoriteClick, modifier = Modifier.size(32.dp)) {
+                            Icon(
+                                imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Outlined.FavoriteBorder,
+                                contentDescription = stringResource(R.string.feedscreen_favorite_7),
+                                tint = if (isFavorite) Color.Red else MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(24.dp)
+                            )
+                        }
+                        if (post.likedBy.isNotEmpty()) {
+                            Text(
+                                text = "${post.likedBy.size}", 
+                                fontSize = 12.sp, 
+                                fontWeight = FontWeight.Medium, 
+                                color = if (isFavorite) Color.Red else GrayText
+                            )
+                        }
                     }
                 }
                 
                 Spacer(modifier = Modifier.height(12.dp))
-                HorizontalDivider(color = Color.LightGray.copy(alpha = 0.3f))
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                 Spacer(modifier = Modifier.height(12.dp))
                 
                 Row(
@@ -284,7 +378,7 @@ fun PostCard(
                                 .background(categoryColor.copy(alpha = 0.2f), RoundedCornerShape(8.dp))
                                 .padding(horizontal = 12.dp, vertical = 4.dp)
                         ) {
-                            Text(text = post.category, color = categoryColor, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                            Text(text = getTranslatedCategoryName(post.category), color = categoryColor, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                         }
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(text = post.price, color = GrayText, fontSize = 12.sp)

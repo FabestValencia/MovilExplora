@@ -10,9 +10,9 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
 data class FilterState(
-    val distance: Float = 15f,
+    val distance: Float = 50f,
     val selectedCategory: String? = null,
-    val selectedPriceRange: Int = 2,
+    val selectedPriceRange: Int = 4,
     val filterCount: Int = 0
 )
 

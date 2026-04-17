@@ -46,7 +46,7 @@ fun NotificationsScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Notificaciones", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground) },
+                title = { Text(stringResource(R.string.notifications_title), fontSize = 18.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.notificationsscreen_back_1), tint = MaterialTheme.colorScheme.onBackground)
@@ -60,6 +60,7 @@ fun NotificationsScreen(
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface)
             )
         },
+        containerColor = MaterialTheme.colorScheme.background,
         bottomBar = {
             BottomNavigationBar(
                 onCreateClick = onNavigateToCreatePost,
@@ -75,13 +76,13 @@ fun NotificationsScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .background(Color.White)
+                .background(MaterialTheme.colorScheme.background)
         ) {
             if (state.recentNotifications.isNotEmpty()) {
                 item {
                     SectionHeader(
-                        title = "RECIENTES",
-                        actionText = "Marcar todo como leído",
+                        title = stringResource(R.string.notifications_recent),
+                        actionText = stringResource(R.string.notifications_mark_all_read),
                         onActionClick = { viewModel.markAllAsRead() }
                     )
                 }
@@ -92,7 +93,7 @@ fun NotificationsScreen(
 
             if (state.olderNotifications.isNotEmpty()) {
                 item {
-                    SectionHeader(title = "ANTERIORES")
+                    SectionHeader(title = stringResource(R.string.notifications_older))
                 }
                 items(state.olderNotifications) { notification ->
                     NotificationItem(notification)
@@ -136,7 +137,7 @@ fun SectionHeader(
 
 @Composable
 fun NotificationItem(notification: Notification) {
-    val backgroundColor = if (notification.isNew) Turquoise.copy(alpha = 0.05f) else Color.Transparent
+    val backgroundColor = if (notification.isNew) Turquoise.copy(alpha = 0.05f) else MaterialTheme.colorScheme.surface
     val indicatorColor = if (notification.isNew) Turquoise else Color.Transparent
 
     Row(

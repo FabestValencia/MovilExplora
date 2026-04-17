@@ -12,10 +12,14 @@ import com.example.movilexplora.domain.repository.UserRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import com.example.movilexplora.data.datastore.SessionDataStore
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.launch
 
 @HiltViewModel
 class ModeratorViewModel @Inject constructor(
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val sessionDataStore: SessionDataStore
 ) : ViewModel() {
     val email = ValidatedField("") { value ->
         when {
@@ -40,12 +44,15 @@ class ModeratorViewModel @Inject constructor(
 
     fun loginAdmin() {
         if (isFormValid) {
-            val user = userRepository.login(email.value, password.value)
-            
-            if (user != null && user.role == UserRole.ADMIN) {
-                _accessResult.value = RequestResult.Success("Acceso concedido")
-            } else {
-                _accessResult.value = RequestResult.Failure("Credenciales de moderador incorrectas")
+            viewModelScope.launch {
+                val user = userRepository.login(email.value, password.value)
+
+                if (user != null && (user.role == UserRole.ADMIN || user.role == UserRole.MODERATOR)) {
+                    sessionDataStore.saveSession(user.id, user.role)
+                    _accessResult.value = RequestResult.Success("Acceso concedido")
+                } else {
+                    _accessResult.value = RequestResult.Failure("Credenciales de moderador incorrectas")
+                }
             }
         }
     }

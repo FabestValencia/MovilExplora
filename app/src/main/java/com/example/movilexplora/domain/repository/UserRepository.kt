@@ -5,7 +5,8 @@ import kotlinx.coroutines.flow.StateFlow
 
 interface UserRepository {
     val users: StateFlow<List<User>>
-    fun save(user: User)
-    fun findById(id: String): User?
-    fun login(email: String, password: String): User?
+    suspend fun save(user: User)
+    suspend fun findById(id: String): User?
+    suspend fun login(email: String, password: String): User?
+    suspend fun addPoints(userId: String, points: Int)
 }

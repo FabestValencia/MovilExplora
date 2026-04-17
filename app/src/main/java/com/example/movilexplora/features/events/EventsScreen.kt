@@ -1,5 +1,6 @@
 package com.example.movilexplora.features.events
 
+import android.R.attr.bottom
 import androidx.compose.ui.res.stringResource
 import com.example.movilexplora.R
 import androidx.compose.foundation.background
@@ -9,6 +10,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material3.*
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
@@ -25,6 +27,7 @@ import com.example.movilexplora.ui.theme.GrayText
 import com.example.movilexplora.ui.theme.Turquoise
 import com.example.movilexplora.ui.theme.VerifiedBlue
 import com.example.movilexplora.ui.theme.getCategoryColor
+import com.example.movilexplora.ui.theme.getTranslatedCategoryName
 
 @Composable
 fun EventsScreen(
@@ -38,13 +41,15 @@ fun EventsScreen(
     viewModel: EventsViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
+    val currentUserId by viewModel.currentUserId.collectAsState()
 
     Scaffold(
         floatingActionButton = {
             FloatingActionButton(
                 onClick = onNavigateToCreateEvent,
                 containerColor = Turquoise,
-                contentColor = Color.White
+                contentColor = Color.White,
+                modifier = Modifier.padding(bottom = 36.dp)
             ) {
                 Icon(Icons.Default.Add, contentDescription = stringResource(R.string.eventsscreen_crear_evento_4))
             }
@@ -64,9 +69,13 @@ fun EventsScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .background(Color.White)
+                .background(MaterialTheme.colorScheme.background)
         ) {
-            HeaderSection(onMapClick = onNavigateToMap)
+            HeaderSection(
+                searchQuery = state.searchQuery,
+                onSearchQueryChange = { viewModel.updateSearchQuery(it) },
+                onMapClick = onNavigateToMap
+            )
 
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -88,6 +97,8 @@ fun EventsScreen(
                 items(state.events) { event ->
                     EventCard(
                         event = event,
+                        currentUserId = currentUserId,
+                        onFavoriteClick = { viewModel.toggleFavorite(event.id) },
                         onDetailClick = { onNavigateToEventDetail(event.id) }
                     )
                 }
@@ -97,23 +108,57 @@ fun EventsScreen(
 }
 
 @Composable
-fun HeaderSection(onMapClick: () -> Unit) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(text = stringResource(R.string.eventsscreen_explora_1), fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Turquoise)
+fun HeaderSection(searchQuery: String, onSearchQueryChange: (String) -> Unit, onMapClick: () -> Unit) {
+    var isSearchActive by remember { mutableStateOf(false) }
+
+    if (isSearchActive) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            OutlinedTextField(
+                value = searchQuery,
+                onValueChange = onSearchQueryChange,
+                modifier = Modifier.weight(1f),
+                placeholder = { Text(stringResource(R.string.eventsscreen_search_6), color = GrayText) },
+                singleLine = true,
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = Turquoise,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant
+                ),
+                leadingIcon = {
+                    Icon(imageVector = Icons.Default.Search, contentDescription = null, tint = Turquoise)
+                },
+                trailingIcon = {
+                    IconButton(onClick = {
+                        isSearchActive = false
+                        onSearchQueryChange("")
+                    }) {
+                        Icon(imageVector = Icons.Default.Close, contentDescription = "Cerrar", tint = MaterialTheme.colorScheme.onBackground)
+                    }
+                }
+            )
         }
-        Row {
-            IconButton(onClick = onMapClick) {
-                Icon(imageVector = Icons.Default.Map, contentDescription = stringResource(R.string.eventsscreen_map_5), tint = MaterialTheme.colorScheme.onBackground)
+    } else {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(text = stringResource(R.string.eventsscreen_explora_1), fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Turquoise)
             }
-            IconButton(onClick = { /* Search */ }) {
-                Icon(imageVector = Icons.Default.Search, contentDescription = stringResource(R.string.eventsscreen_search_6), tint = MaterialTheme.colorScheme.onBackground)
+            Row {
+                IconButton(onClick = onMapClick) {
+                    Icon(imageVector = Icons.Default.Map, contentDescription = stringResource(R.string.eventsscreen_map_5), tint = MaterialTheme.colorScheme.onBackground)
+                }
+                IconButton(onClick = { isSearchActive = true }) {
+                    Icon(imageVector = Icons.Default.Search, contentDescription = stringResource(R.string.eventsscreen_search_6), tint = MaterialTheme.colorScheme.onBackground)
+                }
             }
         }
     }
@@ -122,6 +167,8 @@ fun HeaderSection(onMapClick: () -> Unit) {
 @Composable
 fun EventCard(
     event: Event,
+    currentUserId: String,
+    onFavoriteClick: () -> Unit,
     onDetailClick: () -> Unit
 ) {
     Card(
@@ -131,10 +178,10 @@ fun EventCard(
         modifier = Modifier.fillMaxWidth()
     ) {
         Column {
-            Box(modifier = Modifier.height(160.dp).fillMaxWidth().background(Color.LightGray)) {
+            Box(modifier = Modifier.height(160.dp).fillMaxWidth().background(MaterialTheme.colorScheme.surfaceVariant)) {
                 // Image placeholder
-                Text("Imagen del Evento", modifier = Modifier.align(Alignment.Center))
-                
+                Text(stringResource(R.string.common_event_image), modifier = Modifier.align(Alignment.Center), color = MaterialTheme.colorScheme.onSurfaceVariant)
+
                 val categoryColor = getCategoryColor(event.category)
                 Surface(
                     modifier = Modifier.padding(12.dp).align(Alignment.TopStart),
@@ -142,7 +189,7 @@ fun EventCard(
                     color = categoryColor
                 ) {
                     Text(
-                        text = event.category,
+                        text = getTranslatedCategoryName(event.category),
                         color = Color.White,
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold,
@@ -191,14 +238,33 @@ fun EventCard(
                             }
                         }
                     }
+                    val isFavorite = event.likedBy.contains(currentUserId)
+                    Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+                        IconButton(onClick = onFavoriteClick, modifier = Modifier.size(32.dp)) {
+                            Icon(
+                                imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Outlined.FavoriteBorder,
+                                contentDescription = "Favorite",
+                                tint = if (isFavorite) Color.Red else Color.LightGray,
+                                modifier = Modifier.size(24.dp)
+                            )
+                        }
+                        if (event.likedBy.isNotEmpty()) {
+                            Text(
+                                text = "${event.likedBy.size}",
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Medium,
+                                color = if (isFavorite) Color.Red else GrayText
+                            )
+                        }
+                    }
                 }
 
                 Spacer(modifier = Modifier.height(8.dp))
                 
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(imageVector = Icons.Default.LocationOn, contentDescription = null, tint = Color.LightGray, modifier = Modifier.size(14.dp))
+                    Icon(imageVector = Icons.Default.LocationOn, contentDescription = null, tint = GrayText, modifier = Modifier.size(14.dp))
                     Spacer(modifier = Modifier.width(4.dp))
-                    Text(text = event.location, fontSize = 12.sp, color = Color.LightGray)
+                    Text(text = event.location, fontSize = 12.sp, color = GrayText)
                 }
 
                 Spacer(modifier = Modifier.height(8.dp))

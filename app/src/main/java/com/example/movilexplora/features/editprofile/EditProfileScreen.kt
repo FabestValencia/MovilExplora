@@ -20,7 +20,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -33,7 +32,6 @@ import android.content.Context
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.FileProvider
 import java.io.File
@@ -64,7 +62,6 @@ fun EditProfileScreen(
     viewModel: EditProfileViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
-    val scope = rememberCoroutineScope()
 
     val updateResult by viewModel.updateResult.collectAsState()
     val isDarkMode by viewModel.isDarkMode.collectAsState()
@@ -72,7 +69,7 @@ fun EditProfileScreen(
     val photoUri by viewModel.photoUri.collectAsState()
     val photoUrl by viewModel.photoUrl.collectAsState()
 
-    var showDeleteDialog by remember { mutableStateOf(false) }
+    val (showDeleteDialog, setShowDeleteDialog) = remember { mutableStateOf(false) }
     var showBottomSheet by remember { mutableStateOf(false) }
     val bottomSheetState = rememberModalBottomSheetState()
 
@@ -110,10 +107,10 @@ fun EditProfileScreen(
 
     if (showDeleteDialog) {
         DeleteAccountDialog(
-            onDismiss = { showDeleteDialog = false },
+            onDismiss = { setShowDeleteDialog(false) },
             onConfirm = {
                 // Logic to delete account
-                showDeleteDialog = false
+                setShowDeleteDialog(false)
                 onNavigateBack() // Redirect or exit app
             }
         )
@@ -366,10 +363,13 @@ fun EditProfileScreen(
                                     if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
                                         context.getSystemService(android.app.LocaleManager::class.java).applicationLocales = android.os.LocaleList.forLanguageTags(lang)
                                     } else {
+                                        @Suppress("DEPRECATION")
                                         val mLocale = java.util.Locale(lang)
                                         java.util.Locale.setDefault(mLocale)
                                         val config = context.resources.configuration
+                                        @Suppress("DEPRECATION")
                                         config.setLocale(mLocale)
+                                        @Suppress("DEPRECATION")
                                         context.resources.updateConfiguration(config, context.resources.displayMetrics)
                                         (context as? android.app.Activity)?.recreate()
                                     }
@@ -383,10 +383,13 @@ fun EditProfileScreen(
                                     if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
                                         context.getSystemService(android.app.LocaleManager::class.java).applicationLocales = android.os.LocaleList.forLanguageTags(lang)
                                     } else {
+                                        @Suppress("DEPRECATION")
                                         val mLocale = java.util.Locale(lang)
                                         java.util.Locale.setDefault(mLocale)
                                         val config = context.resources.configuration
+                                        @Suppress("DEPRECATION")
                                         config.setLocale(mLocale)
+                                        @Suppress("DEPRECATION")
                                         context.resources.updateConfiguration(config, context.resources.displayMetrics)
                                         (context as? android.app.Activity)?.recreate()
                                     }
@@ -412,7 +415,7 @@ fun EditProfileScreen(
                 Spacer(modifier = Modifier.height(16.dp))
                 
                 Button(
-                    onClick = { showDeleteDialog = true },
+                    onClick = { setShowDeleteDialog(true) },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(56.dp),

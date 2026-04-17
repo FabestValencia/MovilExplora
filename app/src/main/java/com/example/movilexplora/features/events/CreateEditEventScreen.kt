@@ -57,6 +57,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import android.app.DatePickerDialog
 import android.net.Uri
+import androidx.core.net.toUri
 import coil.compose.AsyncImage
 import java.util.Calendar
 import com.example.movilexplora.features.createpost.CategorySelectableItem
@@ -109,7 +110,7 @@ fun CreateEditEventScreen(
     val eventToEdit by viewModel.eventToEdit.collectAsState()
 
     LaunchedEffect(isEditing, eventId) {
-        if (isEditing && eventId != null) {
+        if (isEditing) {
             viewModel.loadEvent(eventId)
         }
     }
@@ -124,8 +125,8 @@ fun CreateEditEventScreen(
             endDate = event.endDate
             if (event.imageUrl.isNotEmpty()) {
                 try {
-                    imageUri = Uri.parse(event.imageUrl)
-                } catch (e: Exception) {
+                    imageUri = event.imageUrl.toUri()
+                } catch (_: Exception) {
                     // Ignore parsing error
                 }
             }
@@ -336,12 +337,12 @@ fun EventInputField(
     label: String,
     value: String,
     onValueChange: (String) -> Unit,
+    modifier: Modifier = Modifier,
     placeholder: String = "",
     singleLine: Boolean = true,
     readOnly: Boolean = false,
     enabled: Boolean = true,
-    trailingIcon: @Composable (() -> Unit)? = null,
-    modifier: Modifier = Modifier
+    trailingIcon: @Composable (() -> Unit)? = null
 ) {
     Column {
         Text(

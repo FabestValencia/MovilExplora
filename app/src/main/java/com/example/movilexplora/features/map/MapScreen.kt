@@ -3,7 +3,6 @@ package com.example.movilexplora.features.map
 import androidx.compose.ui.res.stringResource
 import com.example.movilexplora.R
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -11,6 +10,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material3.*
@@ -21,7 +21,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -210,7 +209,7 @@ fun PostPreviewCard(
                     color = Color.White.copy(alpha = 0.3f)
                 ) {
                     Icon(
-                        imageVector = Icons.Default.ArrowBack,
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = null,
                         tint = Color.White,
                         modifier = Modifier.padding(8.dp).size(20.dp)
@@ -304,36 +303,6 @@ fun PostPreviewCard(
             }
         }
     }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun SearchBar(query: String, onQueryChange: (String) -> Unit) {
-    TextField(
-        value = query,
-        onValueChange = onQueryChange,
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(56.dp)
-            .shadow(4.dp, RoundedCornerShape(28.dp)),
-        placeholder = { Text("Buscar lugares, restaurantes ...", fontSize = 14.sp, color = GrayText.copy(alpha = 0.6f)) },
-        leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = GrayText) },
-        trailingIcon = {
-            Icon(
-                imageVector = Icons.Default.Tune,
-                contentDescription = stringResource(R.string.mapscreen_filters_6),
-                tint = Turquoise,
-                modifier = Modifier.padding(end = 8.dp)
-            )
-        },
-        shape = RoundedCornerShape(28.dp),
-        colors = TextFieldDefaults.colors(
-            focusedContainerColor = Color.White,
-            unfocusedContainerColor = Color.White,
-            focusedIndicatorColor = Color.Transparent,
-            unfocusedIndicatorColor = Color.Transparent
-        )
-    )
 }
 
 @Composable

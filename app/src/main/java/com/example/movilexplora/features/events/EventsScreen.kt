@@ -250,7 +250,7 @@ fun EventCard(
                             Spacer(modifier = Modifier.width(4.dp))
                             Column {
                                 Text(text = "${stringResource(R.string.profile_event_start)} ${event.date}", fontSize = 12.sp, color = GrayText)
-                                if (event.endDate.isNotEmpty()) {
+                                if (event.endDate.isNotEmpty() && event.endDate != "TBD") {
                                     Text(text = "${stringResource(R.string.profile_event_end)} ${event.endDate}", fontSize = 12.sp, color = GrayText)
                                 }
                             }

@@ -266,13 +266,28 @@ fun ProfileScreen(
                                     elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                                 ) {
                                     Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
-                                        Box(modifier = Modifier.size(60.dp).background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(8.dp)))
+                                        Box(modifier = Modifier.size(60.dp).background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(8.dp))) {
+                                            // TODO: Eliminar este uso fijo de imageUrl una vez que se retome la integración
+                                            // real con imágenes en la nube.
+                                            val mockImageUrl = if (event.id.hashCode() % 2 == 0) {
+                                                "android.resource://com.example.movilexplora/drawable/circasia"
+                                            } else {
+                                                "android.resource://com.example.movilexplora/drawable/salento"
+                                            }
+                                            androidx.compose.ui.layout.ContentScale
+                                            coil.compose.AsyncImage(
+                                                model = if (event.imageUrl.startsWith("http")) event.imageUrl else mockImageUrl,
+                                                contentDescription = null,
+                                                modifier = Modifier.fillMaxSize().clip(RoundedCornerShape(8.dp)),
+                                                contentScale = androidx.compose.ui.layout.ContentScale.Crop
+                                            )
+                                        }
                                         Spacer(modifier = Modifier.width(12.dp))
                                         Column(modifier = Modifier.weight(1f)) {
                                             Text(text = event.title, fontWeight = FontWeight.Bold, fontSize = 16.sp, color = MaterialTheme.colorScheme.onBackground)
                                             Spacer(modifier = Modifier.height(4.dp))
                                             Text(text = "${stringResource(R.string.profile_event_start)} ${event.date}", fontSize = 12.sp, color = GrayText)
-                                            if (event.endDate.isNotEmpty()) {
+                                            if (event.endDate.isNotEmpty() && event.endDate != "TBD") {
                                                 Text(text = "${stringResource(R.string.profile_event_end)} ${event.endDate}", fontSize = 12.sp, color = GrayText)
                                             }
                                             Spacer(modifier = Modifier.height(4.dp))

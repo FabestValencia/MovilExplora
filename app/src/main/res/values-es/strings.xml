@@ -170,6 +170,8 @@
     <string name="postdetailscreen_verificar_8">Verificar</string>
     <string name="postdetailscreen_resolver_9">Resolver</string>
     <string name="postdetailscreen_back_10">Atrás</string>
+    <string name="postdetailscreen_me_interesa">Me interesa</string>
+    <string name="postdetailscreen_visitado">Visitado</string>
     <string name="profilescreen_niveles_de_reputaci_n_0">Niveles de reputación</string>
     <string name="profilescreen_ver_detalles_1">Ver detalles</string>
     <string name="profilescreen_logros_2">Logros</string>
@@ -373,4 +375,15 @@
     <string name="achievement_3_desc">Experto en navegación local</string>
     <string name="achievement_4_title">Explorador del Mes</string>
     <string name="achievement_4_desc">Sé el más activo este mes</string>
+
+    <string name="reject_reason_title">Motivo de rechazo</string>
+    <string name="reject_reason_hint">Escribe la razón aquí...</string>
+    <string name="confirm_button">Confirmar</string>
+    <string name="cancel_button">Cancelar</string>
+
+    <!-- Reputation Levels -->
+    <string name="reputation_level_turista">Turista</string>
+    <string name="reputation_level_explorador">Explorador</string>
+    <string name="reputation_level_aventurero">Aventurero</string>
+    <string name="reputation_level_embajador">Embajador</string>
 </resources>

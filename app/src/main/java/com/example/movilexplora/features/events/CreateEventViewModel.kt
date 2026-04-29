@@ -37,13 +37,16 @@ class CreateEventViewModel @Inject constructor(
         endDate: String,
         imageUrl: String
     ) {
+        // Validación de campos obligatorios
+        if (title.isBlank() || startDate.isBlank() || endDate.isBlank()) return
+
         viewModelScope.launch {
             val currentUserId = sessionDataStore.sessionFlow.firstOrNull()?.userId ?: "1"
             val existingEvent = _eventToEdit.value
 
             if (existingEvent != null) {
                 val updatedEvent = existingEvent.copy(
-                    title = title.ifEmpty { existingEvent.title },
+                    title = title,
                     description = description,
                     date = startDate,
                     endDate = endDate,
@@ -55,12 +58,12 @@ class CreateEventViewModel @Inject constructor(
             } else {
                 val newEvent = Event(
                     id = System.currentTimeMillis().toString(),
-                    title = title.ifEmpty { "Evento Nuevo" },
+                    title = title,
                     description = description,
                     date = startDate,
-                    time = "TBD", // Simplificado por requerimiento
+                    time = "",
                     endDate = endDate,
-                    endTime = "TBD",
+                    endTime = "",
                     location = location.ifEmpty { "Ubicación no especificada" },
                     imageUrl = imageUrl,
                     attendeesCount = 0,

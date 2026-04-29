@@ -312,20 +312,6 @@ fun PostCard(
                         Text(text = stringResource(R.string.feedscreen_verificado_3), color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Bold)
                     }
                 }
-                
-                // Rating Badge
-                Row(
-                    modifier = Modifier
-                        .align(Alignment.TopEnd)
-                        .padding(12.dp)
-                        .background(Color.Black.copy(alpha = 0.6f), RoundedCornerShape(12.dp))
-                        .padding(horizontal = 8.dp, vertical = 4.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(imageVector = Icons.Default.Star, contentDescription = null, tint = Color.Yellow, modifier = Modifier.size(14.dp))
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(text = post.rating.toString(), color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Bold)
-                }
             }
             
             Column(modifier = Modifier.padding(16.dp)) {

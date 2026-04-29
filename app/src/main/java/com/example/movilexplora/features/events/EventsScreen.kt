@@ -28,6 +28,8 @@ import com.example.movilexplora.ui.theme.Turquoise
 import com.example.movilexplora.ui.theme.VerifiedBlue
 import com.example.movilexplora.ui.theme.getCategoryColor
 import com.example.movilexplora.ui.theme.getTranslatedCategoryName
+import coil.compose.AsyncImage
+import androidx.compose.ui.layout.ContentScale
 
 @Composable
 fun EventsScreen(
@@ -179,8 +181,24 @@ fun EventCard(
     ) {
         Column {
             Box(modifier = Modifier.height(160.dp).fillMaxWidth().background(MaterialTheme.colorScheme.surfaceVariant)) {
-                // Image placeholder
-                Text(stringResource(R.string.common_event_image), modifier = Modifier.align(Alignment.Center), color = MaterialTheme.colorScheme.onSurfaceVariant)
+                // TODO: Eliminar este uso fijo de imageUrl una vez que se retome la integración
+                // real con imágenes en la nube o persistencia real de archivos en el dispositivo.
+                val mockImageUrl = if (event.id.hashCode() % 2 == 0) {
+                    "android.resource://com.example.movilexplora/drawable/circasia"
+                } else {
+                    "android.resource://com.example.movilexplora/drawable/salento"
+                }
+
+                AsyncImage(
+                    model = if (event.imageUrl.startsWith("http") || event.imageUrl.startsWith("content")) {
+                        event.imageUrl
+                    } else {
+                        mockImageUrl
+                    },
+                    contentDescription = stringResource(R.string.common_event_image),
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop
+                )
 
                 val categoryColor = getCategoryColor(event.category)
                 Surface(
@@ -231,9 +249,9 @@ fun EventCard(
                             Icon(imageVector = Icons.Default.DateRange, contentDescription = null, tint = Turquoise, modifier = Modifier.size(14.dp))
                             Spacer(modifier = Modifier.width(4.dp))
                             Column {
-                                Text(text = "Inicio: ${event.date} • ${event.time}", fontSize = 12.sp, color = GrayText)
-                                if (event.endDate.isNotEmpty() && event.endTime.isNotEmpty()) {
-                                    Text(text = "Fin: ${event.endDate} • ${event.endTime}", fontSize = 12.sp, color = GrayText)
+                                Text(text = "${stringResource(R.string.profile_event_start)} ${event.date}", fontSize = 12.sp, color = GrayText)
+                                if (event.endDate.isNotEmpty() && event.endDate != "TBD") {
+                                    Text(text = "${stringResource(R.string.profile_event_end)} ${event.endDate}", fontSize = 12.sp, color = GrayText)
                                 }
                             }
                         }

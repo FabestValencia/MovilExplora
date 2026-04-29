@@ -36,6 +36,9 @@ class ProfileViewModel @Inject constructor(
     private val _userEvents = MutableStateFlow<List<Event>>(emptyList())
     val userEvents: StateFlow<List<Event>> = _userEvents.asStateFlow()
 
+    private val _userPosts = MutableStateFlow<List<com.example.movilexplora.domain.model.Post>>(emptyList())
+    val userPosts: StateFlow<List<com.example.movilexplora.domain.model.Post>> = _userPosts.asStateFlow()
+
     init {
         loadUserProfile()
 
@@ -46,61 +49,71 @@ class ProfileViewModel @Inject constructor(
     private fun loadUserProfile() {
         viewModelScope.launch {
             val userId = sessionDataStore.sessionFlow.firstOrNull()?.userId ?: return@launch
-            val user = userRepository.findById(userId) ?: return@launch
-            val roleMapping = when (user.role.name) {
-                "ADMIN" -> resourceProvider.getString(R.string.role_admin)
-                "MODERATOR" -> resourceProvider.getString(R.string.role_moderator)
-                else -> resourceProvider.getString(R.string.role_local_ambassador)
-            }
 
-            val userPosts = postRepository.getPosts().firstOrNull()?.filter { it.creatorId == userId } ?: emptyList()
+            userRepository.users.collect { users ->
+                val user = users.find { it.id == userId } ?: return@collect
+                val roleMapping = when (user.role.name) {
+                    "ADMIN" -> resourceProvider.getString(R.string.role_admin)
+                    "MODERATOR" -> resourceProvider.getString(R.string.role_moderator)
+                    else -> resourceProvider.getString(R.string.role_local_ambassador)
+                }
 
-            var activeCount = 0
-            var finishedCount = 0
-            var pendingCount = 0
+                val userPostsList = postRepository.getPosts().firstOrNull()?.filter { it.creatorId == userId } ?: emptyList()
+                _userPosts.value = userPostsList
 
-            userPosts.forEach { post ->
-                when (post.status.name) {
-                    "ACTIVO", "VERIFICADO" -> {
-                        activeCount++
-                    }
-                    "FINALIZADO" -> finishedCount++
-                    "PENDIENTE" -> {
-                        pendingCount++
+                var activeCount = 0
+                var finishedCount = 0
+                var pendingCount = 0
+                var rejectedCount = 0
+
+                userPostsList.forEach { post ->
+                    when (post.status.name) {
+                        "ACTIVO", "VERIFICADO" -> {
+                            activeCount++
+                        }
+                        "FINALIZADO" -> finishedCount++
+                        "PENDIENTE" -> {
+                            pendingCount++
+                        }
+                        "RECHAZADO" -> {
+                            rejectedCount++
+                        }
                     }
                 }
-            }
 
-            val postCount = userPosts.size
+                val postCount = userPostsList.size
 
-            val userEventsList = eventRepository.getEvents().firstOrNull()?.filter { it.creatorId == userId } ?: emptyList()
-            _userEvents.value = userEventsList
+                val userEventsList = eventRepository.getEvents().firstOrNull()?.filter { it.creatorId == userId } ?: emptyList()
+                _userEvents.value = userEventsList
 
-            val actualPoints = user.points
-            val (calculatedLevel, calcTarget) = when {
-                actualPoints < 100 -> Pair(ReputationLevel.TURISTA, 100)
-                actualPoints < 500 -> Pair(ReputationLevel.EXPLORADOR, 500)
-                actualPoints < 1000 -> Pair(ReputationLevel.AVENTURERO, 1000)
-                else -> Pair(ReputationLevel.EMBAJADOR, 2000)
-            }
+                val actualPoints = user.points
+                val (calculatedLevel, calcTarget) = when {
+                    actualPoints < 100 -> Pair(ReputationLevel.TURISTA, 100)
+                    actualPoints < 500 -> Pair(ReputationLevel.EXPLORADOR, 500)
+                    actualPoints < 1000 -> Pair(ReputationLevel.AVENTURERO, 1000)
+                    else -> Pair(ReputationLevel.EMBAJADOR, 2000)
+                }
 
-            _userProfile.value = UserProfile(
-                name = user.name,
-                email = user.email,
-                role = roleMapping,
-                activePosts = activeCount,
-                finishedPosts = finishedCount,
-                pendingPosts = pendingCount,
-                currentXp = actualPoints,
-                maxXp = calcTarget,
-                reputationLevel = calculatedLevel,
-                achievements = listOf(
-                    Achievement(resourceProvider.getString(R.string.achievement_1_title), resourceProvider.getString(R.string.achievement_1_desc), "celebration", postCount >= 1),
-                    Achievement(resourceProvider.getString(R.string.achievement_2_title), resourceProvider.getString(R.string.achievement_2_desc), "verified", postCount >= 10),
-                    Achievement(resourceProvider.getString(R.string.achievement_3_title), resourceProvider.getString(R.string.achievement_3_desc), "map", activeCount >= 5),
-                    Achievement(resourceProvider.getString(R.string.achievement_4_title), resourceProvider.getString(R.string.achievement_4_desc), "stars", postCount >= 20)
+                _userProfile.value = UserProfile(
+                    name = user.name,
+                    email = user.email,
+                    role = roleMapping,
+                    profilePictureUrl = user.profilePictureUrl,
+                    activePosts = activeCount,
+                    finishedPosts = finishedCount,
+                    pendingPosts = pendingCount,
+                    rejectedPosts = rejectedCount,
+                    currentXp = actualPoints,
+                    maxXp = calcTarget,
+                    reputationLevel = calculatedLevel,
+                    achievements = listOf(
+                        Achievement(resourceProvider.getString(R.string.achievement_1_title), resourceProvider.getString(R.string.achievement_1_desc), "celebration", postCount >= 1),
+                        Achievement(resourceProvider.getString(R.string.achievement_2_title), resourceProvider.getString(R.string.achievement_2_desc), "verified", postCount >= 10),
+                        Achievement(resourceProvider.getString(R.string.achievement_3_title), resourceProvider.getString(R.string.achievement_3_desc), "map", activeCount >= 5),
+                        Achievement(resourceProvider.getString(R.string.achievement_4_title), resourceProvider.getString(R.string.achievement_4_desc), "stars", postCount >= 20)
+                    )
                 )
-            )
+            }
         }
     }
 
@@ -112,6 +125,12 @@ class ProfileViewModel @Inject constructor(
     fun deleteEvent(eventId: String) {
         _userEvents.update { events ->
             events.filterNot { it.id == eventId }
+        }
+    }
+
+    fun deletePost(postId: String) {
+        _userPosts.update { posts ->
+            posts.filterNot { it.id == postId }
         }
     }
 }

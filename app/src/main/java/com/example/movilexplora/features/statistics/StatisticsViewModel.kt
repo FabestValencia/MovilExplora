@@ -33,6 +33,10 @@ data class StatisticsState(
     val pendingPostsChange: String = "0%",
     val isPendingPostsPositive: Boolean = true,
 
+    val rejectedPosts: Int = 0,
+    val rejectedPostsChange: String = "0%",
+    val isRejectedPostsPositive: Boolean = false,
+
     val totalMonthPosts: Int = 0,
 
     val recentActivities: List<ActivityItemModel> = emptyList()
@@ -59,6 +63,7 @@ class StatisticsViewModel @Inject constructor(
             var activeCount = 0
             var finishedCount = 0
             var pendingCount = 0
+            var rejectedCount = 0
 
             val recentActivities = mutableListOf<ActivityItemModel>()
 
@@ -78,7 +83,7 @@ class StatisticsViewModel @Inject constructor(
                         statusText = resourceProvider.getString(R.string.stat_recent_created, post.title)
                     }
                     "RECHAZADO" -> {
-                        pendingCount++
+                        rejectedCount++
                         statusText = resourceProvider.getString(R.string.stat_recent_rejected, post.title)
                     }
                     else -> {
@@ -89,13 +94,14 @@ class StatisticsViewModel @Inject constructor(
                 recentActivities.add(ActivityItemModel(statusText, resourceProvider.getString(R.string.stat_time_recent)))
             }
 
-            val total = activeCount + finishedCount + pendingCount
+            val total = activeCount + finishedCount + pendingCount + rejectedCount
 
             _state.update {
                 it.copy(
                     activePosts = activeCount,
                     finishedPosts = finishedCount,
                     pendingPosts = pendingCount,
+                    rejectedPosts = rejectedCount,
                     totalMonthPosts = total,
                     recentActivities = recentActivities.takeLast(5).reversed(),
                     activePostsChange = "${if (activeCount > 0) "+" else ""}0%",
@@ -103,7 +109,9 @@ class StatisticsViewModel @Inject constructor(
                     finishedPostsChange = "${if (finishedCount > 0) "+" else ""}0%",
                     isFinishedPostsPositive = true,
                     pendingPostsChange = "${if (pendingCount > 0) "+" else ""}0%",
-                    isPendingPostsPositive = true
+                    isPendingPostsPositive = true,
+                    rejectedPostsChange = "${if (rejectedCount > 0) "+" else ""}0%",
+                    isRejectedPostsPositive = false
                 )
             }
         }

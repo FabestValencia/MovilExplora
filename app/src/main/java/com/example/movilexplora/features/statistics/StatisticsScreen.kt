@@ -110,6 +110,14 @@ fun StatisticsScreen(
                 isPositive = state.isPendingPostsPositive,
                 icon = Icons.Default.PendingActions
             )
+            Spacer(modifier = Modifier.height(12.dp))
+            StatDetailCard(
+                title = stringResource(R.string.statistics_rejected_posts),
+                value = state.rejectedPosts.toString(),
+                change = state.rejectedPostsChange,
+                isPositive = state.isRejectedPostsPositive,
+                icon = Icons.Default.Cancel
+            )
             
             Spacer(modifier = Modifier.height(32.dp))
             
@@ -118,7 +126,8 @@ fun StatisticsScreen(
                 total = state.totalMonthPosts,
                 active = state.activePosts,
                 finished = state.finishedPosts,
-                pending = state.pendingPosts
+                pending = state.pendingPosts,
+                rejected = state.rejectedPosts
             )
             
             Spacer(modifier = Modifier.height(32.dp))
@@ -186,7 +195,7 @@ fun StatDetailCard(
 }
 
 @Composable
-fun ChartCard(total: Int, active: Int, finished: Int, pending: Int) {
+fun ChartCard(total: Int, active: Int, finished: Int, pending: Int, rejected: Int) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
@@ -200,12 +209,13 @@ fun ChartCard(total: Int, active: Int, finished: Int, pending: Int) {
             Spacer(modifier = Modifier.height(24.dp))
             
             // Calculamos la altura máxima y proporcional para las barras
-            val maxVal = maxOf(active, finished, pending, 1)
+            val maxVal = maxOf(active, finished, pending, rejected, 1)
             val maxHeight = 120f
             
             val activeHeight = (active.toFloat() / maxVal) * maxHeight
             val finishedHeight = (finished.toFloat() / maxVal) * maxHeight
             val pendingHeight = (pending.toFloat() / maxVal) * maxHeight
+            val rejectedHeight = (rejected.toFloat() / maxVal) * maxHeight
 
             Box(modifier = Modifier.fillMaxWidth().height(150.dp), contentAlignment = Alignment.BottomCenter) {
                 Row(
@@ -214,11 +224,13 @@ fun ChartCard(total: Int, active: Int, finished: Int, pending: Int) {
                     verticalAlignment = Alignment.Bottom
                 ) {
                     // Bar 1 - Activas
-                    Box(modifier = Modifier.width(24.dp).height(activeHeight.dp).clip(RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp)).background(MaterialTheme.colorScheme.primary))
+                    Box(modifier = Modifier.width(20.dp).height(activeHeight.dp).clip(RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp)).background(MaterialTheme.colorScheme.primary))
                     // Bar 2 - Finalizadas
-                    Box(modifier = Modifier.width(24.dp).height(finishedHeight.dp).clip(RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp)).background(Turquoise))
+                    Box(modifier = Modifier.width(20.dp).height(finishedHeight.dp).clip(RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp)).background(Turquoise))
                     // Bar 3 - Pendientes
-                    Box(modifier = Modifier.width(24.dp).height(pendingHeight.dp).clip(RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp)).background(Color.LightGray))
+                    Box(modifier = Modifier.width(20.dp).height(pendingHeight.dp).clip(RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp)).background(Color.LightGray))
+                    // Bar 4 - Rechazadas
+                    Box(modifier = Modifier.width(20.dp).height(rejectedHeight.dp).clip(RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp)).background(Color(0xFFE53935)))
                 }
             }
             
@@ -231,6 +243,7 @@ fun ChartCard(total: Int, active: Int, finished: Int, pending: Int) {
                 Text(stringResource(R.string.statistics_chart_active), fontSize = 10.sp, fontWeight = FontWeight.Bold, color = GrayText)
                 Text(stringResource(R.string.statistics_chart_finished), fontSize = 10.sp, fontWeight = FontWeight.Bold, color = GrayText)
                 Text(stringResource(R.string.statistics_chart_pending), fontSize = 10.sp, fontWeight = FontWeight.Bold, color = GrayText)
+                Text(stringResource(R.string.statistics_chart_rejected), fontSize = 10.sp, fontWeight = FontWeight.Bold, color = GrayText)
             }
         }
     }

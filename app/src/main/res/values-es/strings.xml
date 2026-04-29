@@ -229,10 +229,13 @@
     <string name="profile_stat_active">Activas</string>
     <string name="profile_stat_finished">Finalizadas</string>
     <string name="profile_stat_pending">Pendientes</string>
+    <string name="profile_stat_rejected">Rechazadas</string>
     <string name="profile_xp_next_level">XP para el próximo nivel</string>
     <string name="profile_no_events">No tienes eventos creados.</string>
     <string name="profile_event_start">Inicio:</string>
     <string name="profile_event_end">Fin:</string>
+    <string name="profile_no_places_yet">No tienes lugares publicados aún.</string>
+    <string name="profilescreen_eliminar_post_title">Eliminar publicación</string>
 
     <string name="edit_profile_title">Editar perfil</string>
     <string name="edit_profile_save">Guardar</string>
@@ -278,11 +281,13 @@
     <string name="statistics_active_posts">Publicaciones Activas</string>
     <string name="statistics_finished_posts">Publicaciones Finalizadas</string>
     <string name="statistics_pending_posts">Pendientes de Verificación</string>
+    <string name="statistics_rejected_posts">Publicaciones Rechazadas</string>
     <string name="statistics_total_month">Total: %1$s este mes</string>
     <string name="statistics_empty_state">Aún no hay actividad reciente.</string>
     <string name="statistics_chart_active">ACTIVAS</string>
     <string name="statistics_chart_finished">FINALIZADAS</string>
     <string name="statistics_chart_pending">PENDIENTES</string>
+    <string name="statistics_chart_rejected">RECHAZADOS</string>
 
     <!-- Badges -->
     <string name="badge_first_post_title">Primera Publicación</string>

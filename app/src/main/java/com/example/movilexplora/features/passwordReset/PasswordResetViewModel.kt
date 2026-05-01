@@ -1,18 +1,22 @@
 package com.example.movilexplora.features.passwordReset
 
-import androidx.lifecycle.ViewModel
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
+import com.example.movilexplora.R
 import com.example.movilexplora.core.utils.RequestResult
 import com.example.movilexplora.core.utils.ValidatedField
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
-class PasswordResetViewModel : ViewModel() {
+class PasswordResetViewModel(application: Application) : AndroidViewModel(application) {
+    private val resources = getApplication<Application>().resources
+
     val codeFields = List(5) {
         ValidatedField("") { value ->
             when {
-                value.isEmpty() -> "Obligatorio"
-                value.length > 1 || !value.all { it.isDigit() } -> "Un dígito"
+                value.isEmpty() -> resources.getString(R.string.error_required)
+                value.length > 1 || !value.all { it.isDigit() } -> resources.getString(R.string.error_single_digit)
                 else -> null
             }
         }
@@ -20,8 +24,8 @@ class PasswordResetViewModel : ViewModel() {
 
     val newPassword = ValidatedField("") { value ->
         when {
-            value.isEmpty() -> "La contraseña es obligatoria"
-            value.length < 6 -> "Debe tener al menos 6 caracteres"
+            value.isEmpty() -> resources.getString(R.string.error_password_required)
+            value.length < 6 -> resources.getString(R.string.error_password_min_6)
             else -> null
         }
     }
@@ -35,7 +39,7 @@ class PasswordResetViewModel : ViewModel() {
     fun resetPassword() {
         if (isFormValid) {
             // Simulación de éxito
-            _resetResult.value = RequestResult.Success("Contraseña restablecida con éxito")
+            _resetResult.value = RequestResult.Success(resources.getString(R.string.reset_password_success))
         }
     }
 

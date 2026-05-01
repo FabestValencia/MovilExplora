@@ -1,3 +1,20 @@
 <resources>
     <string name="app_name">MovilExplora</string>
+    <string name="error_email_required">El email es obligatorio</string>
+    <string name="error_invalid_email">Ingresa un email válido</string>
+    <string name="error_password_required">La contraseña es obligatoria</string>
+    <string name="error_password_min_6">Debe tener al menos 6 caracteres</string>
+    <string name="error_password_min_6_detailed">La contraseña debe tener al menos 6 caracteres</string>
+    <string name="login_success">Login exitoso</string>
+    <string name="login_invalid_credentials">Credenciales inválidas</string>
+    <string name="error_name_required">El nombre es obligatorio</string>
+    <string name="error_city_required">La ciudad es obligatoria</string>
+    <string name="error_address_required">La dirección es obligatoria</string>
+    <string name="error_confirm_password_required">Debes confirmar la contraseña</string>
+    <string name="error_password_mismatch">Las contraseñas no coinciden</string>
+    <string name="register_success">Usuario registrado exitosamente</string>
+    <string name="recovery_email_sent">Se ha enviado un correo de recuperación a %1$s</string>
+    <string name="error_required">Obligatorio</string>
+    <string name="error_single_digit">Un dígito</string>
+    <string name="reset_password_success">Contraseña restablecida con éxito</string>
 </resources>

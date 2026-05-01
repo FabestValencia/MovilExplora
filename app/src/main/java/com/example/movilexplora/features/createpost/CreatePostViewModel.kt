@@ -5,6 +5,8 @@ import javax.inject.Inject
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.movilexplora.R
+import com.example.movilexplora.core.utils.ResourceProvider
 import com.example.movilexplora.core.utils.RequestResult
 import com.example.movilexplora.core.utils.ValidatedField
 import com.example.movilexplora.domain.model.Post
@@ -30,14 +32,15 @@ data class CreatePostState(
 class CreatePostViewModel @Inject constructor(
     private val postRepository: PostRepository,
     private val sessionDataStore: SessionDataStore,
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val resources: ResourceProvider
 ) : ViewModel() {
     val title = ValidatedField("") { value ->
-        if (value.isEmpty()) "El título es obligatorio" else null
+        if (value.isEmpty()) resources.getString(R.string.error_post_title_empty) else null
     }
 
     val description = ValidatedField("") { value ->
-        if (value.isEmpty()) "La descripción es obligatoria" else null
+        if (value.isEmpty()) resources.getString(R.string.error_post_description_empty) else null
     }
 
     private val _state = MutableStateFlow(CreatePostState())
@@ -70,7 +73,7 @@ class CreatePostViewModel @Inject constructor(
                 val newPost = Post(
                     id = System.currentTimeMillis().toString(),
                     title = title.value,
-                    location = _state.value.address.ifEmpty { "Ubicación no especificada" },
+                    location = _state.value.address.ifEmpty { resources.getString(R.string.location_not_specified) },
                     rating = 0.0,
                     category = _state.value.selectedCategory!!,
                     price = "$".repeat(_state.value.selectedPriceRange),
@@ -85,7 +88,7 @@ class CreatePostViewModel @Inject constructor(
                 )
                 postRepository.addPost(newPost)
                 userRepository.addPoints(userId, 50) // Granting initial 50 points
-                _publishResult.value = RequestResult.Success("Publicación creada correctamente (+50 pts)")
+                _publishResult.value = RequestResult.Success(resources.getString(R.string.post_created_success_points))
             }
         }
     }

@@ -2,6 +2,8 @@ package com.example.movilexplora.features.registrer
 
 import android.util.Patterns
 import androidx.lifecycle.ViewModel
+import com.example.movilexplora.R
+import com.example.movilexplora.core.utils.ResourceProvider
 import com.example.movilexplora.core.utils.RequestResult
 import com.example.movilexplora.core.utils.ValidatedField
 import com.example.movilexplora.domain.model.User
@@ -17,31 +19,32 @@ import kotlinx.coroutines.launch
 
 @HiltViewModel
 class RegisterViewModel @Inject constructor(
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val resources: ResourceProvider
 ) : ViewModel() {
 
-    val nombre = ValidatedField("") { if (it.isEmpty()) "El nombre es obligatorio" else null }
+    val nombre = ValidatedField("") { if (it.isEmpty()) resources.getString(R.string.error_name_empty) else null }
 
     val email = ValidatedField("") { value ->
         when {
-            value.isEmpty() -> "El email es obligatorio"
-            !Patterns.EMAIL_ADDRESS.matcher(value).matches() -> "Ingresa un email válido"
+            value.isEmpty() -> resources.getString(R.string.error_email_empty)
+            !Patterns.EMAIL_ADDRESS.matcher(value).matches() -> resources.getString(R.string.error_email_invalid)
             else -> null
         }
     }
 
     val password = ValidatedField("") { value ->
         when {
-            value.isEmpty() -> "La contraseña es obligatoria"
-            value.length < 8 -> "Debe tener al menos 8 caracteres"
+            value.isEmpty() -> resources.getString(R.string.error_password_empty)
+            value.length < 8 -> resources.getString(R.string.error_password_min_8)
             else -> null
         }
     }
 
     val confirmPassword = ValidatedField("") { value ->
         when {
-            value.isEmpty() -> "Debes confirmar la contraseña"
-            value != password.value -> "Las contraseñas no coinciden"
+            value.isEmpty() -> resources.getString(R.string.error_confirm_password_empty)
+            value != password.value -> resources.getString(R.string.error_password_mismatch)
             else -> null
         }
     }
@@ -68,13 +71,13 @@ class RegisterViewModel @Inject constructor(
                 name = nombre.value,
                 email = email.value,
                 password = password.value,
-                city = "Ciudad Ficticia",
+                city = resources.getString(R.string.mock_city),
                 address = "Lat: $randomLat, Lon: $randomLon",
                 profilePictureUrl = ""
             )
             viewModelScope.launch {
                 userRepository.save(newUser)
-                _registerResult.value = RequestResult.Success("Usuario registrado exitosamente")
+                _registerResult.value = RequestResult.Success(resources.getString(R.string.register_success_spanish))
             }
         }
     }

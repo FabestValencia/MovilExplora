@@ -2,6 +2,8 @@ package com.example.movilexplora.features.moderator
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.movilexplora.R
+import com.example.movilexplora.core.utils.ResourceProvider
 import com.example.movilexplora.domain.model.PostStatus
 import com.example.movilexplora.domain.model.VerificationItem
 import com.example.movilexplora.domain.model.VerificationType
@@ -36,7 +38,8 @@ data class HistoryItem(
 @HiltViewModel
 class ModeratorHistoryViewModel @Inject constructor(
     private val postRepository: PostRepository,
-    private val eventRepository: EventRepository
+    private val eventRepository: EventRepository,
+    private val resources: ResourceProvider
 ) : ViewModel() {
     private val _state = MutableStateFlow(ModeratorHistoryState())
     val state: StateFlow<ModeratorHistoryState> = _state.asStateFlow()
@@ -59,10 +62,10 @@ class ModeratorHistoryViewModel @Inject constructor(
                     type = VerificationType.LOCATION,
                     badgeText = post.category.uppercase(),
                     title = post.title,
-                    author = post.creatorId.ifEmpty { "Usuario" },
-                    timeAgo = "Reciente",
-                    description = post.description.ifEmpty { "Sin descripción" },
-                    status = if (post.status == PostStatus.VERIFICADO) "Aceptado" else "Rechazado"
+                    author = post.creatorId.ifEmpty { resources.getString(R.string.user_default_name) },
+                    timeAgo = resources.getString(R.string.stat_time_recent),
+                    description = post.description.ifEmpty { resources.getString(R.string.no_description) },
+                    status = if (post.status == PostStatus.VERIFICADO) resources.getString(R.string.status_accepted_singular) else resources.getString(R.string.status_rejected_singular)
                 )
             }
 
@@ -71,12 +74,12 @@ class ModeratorHistoryViewModel @Inject constructor(
                 HistoryItem(
                     id = "EVENT_${event.id}",
                     type = VerificationType.EVENT,
-                    badgeText = "EVENTO",
+                    badgeText = resources.getString(R.string.event_badge),
                     title = event.title,
-                    author = "Organización",
-                    timeAgo = "Reciente",
-                    description = event.description.ifEmpty { "Sin descripción" },
-                    status = if (event.status == PostStatus.VERIFICADO) "Aceptado" else "Rechazado"
+                    author = resources.getString(R.string.organization_default_name),
+                    timeAgo = resources.getString(R.string.stat_time_recent),
+                    description = event.description.ifEmpty { resources.getString(R.string.no_description) },
+                    status = if (event.status == PostStatus.VERIFICADO) resources.getString(R.string.status_accepted_singular) else resources.getString(R.string.status_rejected_singular)
                 )
             }
 
@@ -91,16 +94,16 @@ class ModeratorHistoryViewModel @Inject constructor(
     }
 
     private fun updateState(filter: String = _state.value.selectedFilter) {
-        val filtered = if (filter == "Todo") {
+        val filtered = if (filter == resources.getString(R.string.filter_all_es)) {
             allItems
         } else {
             allItems.filter { it.status + "s" == filter || it.status == filter }
         }
 
         val counts = mapOf(
-            "Todo" to allItems.size,
-            "Aceptados" to allItems.count { it.status == "Aceptado" },
-            "Rechazados" to allItems.count { it.status == "Rechazado" }
+            resources.getString(R.string.filter_all_es) to allItems.size,
+            resources.getString(R.string.status_accepted_plural) to allItems.count { it.status == resources.getString(R.string.status_accepted_singular) },
+            resources.getString(R.string.status_rejected_plural) to allItems.count { it.status == resources.getString(R.string.status_rejected_singular) }
         )
 
         _state.value = _state.value.copy(

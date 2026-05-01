@@ -5,6 +5,8 @@ import javax.inject.Inject
 
 import android.util.Patterns
 import androidx.lifecycle.ViewModel
+import com.example.movilexplora.R
+import com.example.movilexplora.core.utils.ResourceProvider
 import com.example.movilexplora.core.utils.RequestResult
 import com.example.movilexplora.core.utils.ValidatedField
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -12,11 +14,13 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 @HiltViewModel
-class ForgotPasswordViewModel @Inject constructor() : ViewModel() {
+class ForgotPasswordViewModel @Inject constructor(
+    private val resources: ResourceProvider
+) : ViewModel() {
     val email = ValidatedField("") { value ->
         when {
-            value.isEmpty() -> "El email es obligatorio"
-            !Patterns.EMAIL_ADDRESS.matcher(value).matches() -> "Ingresa un email válido"
+            value.isEmpty() -> resources.getString(R.string.error_email_empty)
+            !Patterns.EMAIL_ADDRESS.matcher(value).matches() -> resources.getString(R.string.error_email_invalid)
             else -> null
         }
     }
@@ -30,7 +34,7 @@ class ForgotPasswordViewModel @Inject constructor() : ViewModel() {
     fun sendResetLink() {
         if (isFormValid) {
             // Simulación de envío de correo
-            _requestResult.value = RequestResult.Success("Enlace enviado correctamente")
+            _requestResult.value = RequestResult.Success(resources.getString(R.string.forgot_password_link_sent))
         }
     }
 

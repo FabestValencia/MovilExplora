@@ -386,4 +386,19 @@
     <string name="reputation_level_explorador">Explorador</string>
     <string name="reputation_level_aventurero">Aventurero</string>
     <string name="reputation_level_embajador">Embajador</string>
+    <string name="forgot_password_link_sent">Enlace enviado correctamente</string>
+    <string name="error_password_min_8">La contraseña debe tener al menos 8 caracteres</string>
+    <string name="error_confirm_password_empty">Debes confirmar la contraseña</string>
+    <string name="error_password_mismatch">Las contraseñas no coinciden</string>
+    <string name="reset_password_success">Contraseña restablecida con éxito</string>
+    <string name="verification_code_success">Código verificado correctamente</string>
+    <string name="verification_code_invalid">Código incorrecto</string>
+    <string name="error_post_title_empty">El título es obligatorio</string>
+    <string name="error_post_description_empty">La descripción es obligatoria</string>
+    <string name="location_not_specified">Ubicación no especificada</string>
+    <string name="post_created_success_points">Publicación creada correctamente (+50 pts)</string>
+    <string name="moderator_access_granted">Acceso concedido</string>
+    <string name="moderator_invalid_credentials">Credenciales de moderador incorrectas</string>
+    <string name="mock_city">Ciudad Ficticia</string>
+    <string name="register_success_spanish">Usuario registrado exitosamente</string>
 </resources>

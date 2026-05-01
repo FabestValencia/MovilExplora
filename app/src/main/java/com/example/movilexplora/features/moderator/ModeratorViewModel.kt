@@ -5,6 +5,8 @@ import javax.inject.Inject
 
 import android.util.Patterns
 import androidx.lifecycle.ViewModel
+import com.example.movilexplora.R
+import com.example.movilexplora.core.utils.ResourceProvider
 import com.example.movilexplora.core.utils.RequestResult
 import com.example.movilexplora.core.utils.ValidatedField
 import com.example.movilexplora.domain.model.UserRole
@@ -19,19 +21,20 @@ import kotlinx.coroutines.launch
 @HiltViewModel
 class ModeratorViewModel @Inject constructor(
     private val userRepository: UserRepository,
-    private val sessionDataStore: SessionDataStore
+    private val sessionDataStore: SessionDataStore,
+    private val resources: ResourceProvider
 ) : ViewModel() {
     val email = ValidatedField("") { value ->
         when {
-            value.isEmpty() -> "El email es obligatorio"
-            !Patterns.EMAIL_ADDRESS.matcher(value).matches() -> "Ingresa un email válido"
+            value.isEmpty() -> resources.getString(R.string.error_email_empty)
+            !Patterns.EMAIL_ADDRESS.matcher(value).matches() -> resources.getString(R.string.error_email_invalid)
             else -> null
         }
     }
 
     val password = ValidatedField("") { value ->
         when {
-            value.isEmpty() -> "La contraseña es obligatoria"
+            value.isEmpty() -> resources.getString(R.string.error_password_empty)
             else -> null
         }
     }
@@ -49,9 +52,9 @@ class ModeratorViewModel @Inject constructor(
 
                 if (user != null && (user.role == UserRole.ADMIN || user.role == UserRole.MODERATOR)) {
                     sessionDataStore.saveSession(user.id, user.role)
-                    _accessResult.value = RequestResult.Success("Acceso concedido")
+                    _accessResult.value = RequestResult.Success(resources.getString(R.string.moderator_access_granted))
                 } else {
-                    _accessResult.value = RequestResult.Failure("Credenciales de moderador incorrectas")
+                    _accessResult.value = RequestResult.Failure(resources.getString(R.string.moderator_invalid_credentials))
                 }
             }
         }

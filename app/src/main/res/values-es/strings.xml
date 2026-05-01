@@ -401,4 +401,18 @@
     <string name="moderator_invalid_credentials">Credenciales de moderador incorrectas</string>
     <string name="mock_city">Ciudad Ficticia</string>
     <string name="register_success_spanish">Usuario registrado exitosamente</string>
+    <string name="guest_user_name">Invitado</string>
+    <string name="time_now">Ahora</string>
+    <string name="user_default_name">Usuario</string>
+    <string name="organization_default_name">Organización</string>
+    <string name="no_description">Sin descripción</string>
+    <string name="status_accepted_singular">Aceptado</string>
+    <string name="status_rejected_singular">Rechazado</string>
+    <string name="status_accepted_plural">Aceptados</string>
+    <string name="status_rejected_plural">Rechazados</string>
+    <string name="event_badge">EVENTO</string>
+    <string name="filter_all_es">Todo</string>
+    <string name="event_category_general">General</string>
+    <string name="mock_lat_lon_format">Lat: %1$.6f, Lon: %2$.6f</string>
+    <string name="profile_updated_success">Perfil actualizado correctamente</string>
 </resources>

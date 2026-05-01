@@ -399,4 +399,18 @@
     <string name="moderator_invalid_credentials">Incorrect moderator credentials</string>
     <string name="mock_city">Fictional City</string>
     <string name="register_success_spanish">User registered successfully</string>
+    <string name="guest_user_name">Guest</string>
+    <string name="time_now">Now</string>
+    <string name="user_default_name">User</string>
+    <string name="organization_default_name">Organization</string>
+    <string name="no_description">No description</string>
+    <string name="status_accepted_singular">Accepted</string>
+    <string name="status_rejected_singular">Rejected</string>
+    <string name="status_accepted_plural">Accepted</string>
+    <string name="status_rejected_plural">Rejected</string>
+    <string name="event_badge">EVENT</string>
+    <string name="filter_all_es">Todo</string>
+    <string name="event_category_general">General</string>
+    <string name="mock_lat_lon_format">Lat: %1$.6f, Lon: %2$.6f</string>
+    <string name="profile_updated_success">Profile updated successfully</string>
 </resources>

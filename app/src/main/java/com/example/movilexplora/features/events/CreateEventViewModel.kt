@@ -1,6 +1,8 @@
 package com.example.movilexplora.features.events
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.movilexplora.R
+import com.example.movilexplora.core.utils.ResourceProvider
 import com.example.movilexplora.domain.model.Event
 import com.example.movilexplora.domain.model.PostStatus
 import com.example.movilexplora.domain.repository.EventRepository
@@ -15,7 +17,8 @@ import javax.inject.Inject
 @HiltViewModel
 class CreateEventViewModel @Inject constructor(
     private val eventRepository: EventRepository,
-    private val sessionDataStore: SessionDataStore
+    private val sessionDataStore: SessionDataStore,
+    private val resources: ResourceProvider
 ) : ViewModel() {
 
     private val _eventToEdit = MutableStateFlow<Event?>(null)
@@ -64,11 +67,11 @@ class CreateEventViewModel @Inject constructor(
                     time = "",
                     endDate = endDate,
                     endTime = "",
-                    location = location.ifEmpty { "Ubicación no especificada" },
+                    location = location.ifEmpty { resources.getString(R.string.location_not_specified) },
                     imageUrl = imageUrl,
                     attendeesCount = 0,
                     isJoined = false,
-                    category = category.ifEmpty { "General" },
+                    category = category.ifEmpty { resources.getString(R.string.event_category_general) },
                     creatorId = currentUserId,
                     status = PostStatus.PENDIENTE
                 )

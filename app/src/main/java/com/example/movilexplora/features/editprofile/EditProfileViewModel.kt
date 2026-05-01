@@ -5,6 +5,8 @@ import javax.inject.Inject
 
 import android.util.Patterns
 import androidx.lifecycle.ViewModel
+import com.example.movilexplora.R
+import com.example.movilexplora.core.utils.ResourceProvider
 import com.example.movilexplora.core.utils.RequestResult
 import com.example.movilexplora.core.utils.ValidatedField
 import com.example.movilexplora.data.datastore.SettingsDataStore
@@ -24,16 +26,17 @@ import android.net.Uri
 class EditProfileViewModel @Inject constructor(
     private val settingsDataStore: SettingsDataStore,
     private val sessionDataStore: SessionDataStore,
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val resources: ResourceProvider
 ) : ViewModel() {
     val name = ValidatedField("") { value ->
-        if (value.isEmpty()) "El nombre es obligatorio" else null
+        if (value.isEmpty()) resources.getString(R.string.error_name_empty) else null
     }
 
     val email = ValidatedField("") { value ->
         when {
-            value.isEmpty() -> "El email es obligatorio"
-            !Patterns.EMAIL_ADDRESS.matcher(value).matches() -> "Ingresa un email válido"
+            value.isEmpty() -> resources.getString(R.string.error_email_empty)
+            !Patterns.EMAIL_ADDRESS.matcher(value).matches() -> resources.getString(R.string.error_email_invalid)
             else -> null
         }
     }
@@ -41,7 +44,7 @@ class EditProfileViewModel @Inject constructor(
     val description = ValidatedField("") { _ -> null } // Opcional
     
     val location = ValidatedField("") { value ->
-        if (value.isEmpty()) "La ubicación es obligatoria" else null
+        if (value.isEmpty()) resources.getString(R.string.error_location_empty) else null
     }
 
     private val _photoUrl = MutableStateFlow<String>("")
@@ -57,11 +60,11 @@ class EditProfileViewModel @Inject constructor(
                     val user = userRepository.findById(session.userId)
                     if (user != null) {
                         // TODO: Eliminar mocking de location y address si están vacíos al integrar mapas
-                        val mockCity = user.city.ifEmpty { "Ciudad Ficticia" }
+                        val mockCity = user.city.ifEmpty { resources.getString(R.string.mock_city) }
                         val mockAddress = user.address.ifEmpty {
                             val randomLat = (Math.random() * 0.8) - 0.4
                             val randomLon = (Math.random() * 0.8) - 0.4
-                            "Lat: $randomLat, Lon: $randomLon"
+                            resources.getString(R.string.mock_lat_lon_format, randomLat, randomLon)
                         }
 
                         if (name.value.isEmpty()) name.onChange(user.name)
@@ -100,7 +103,7 @@ class EditProfileViewModel @Inject constructor(
                             profilePictureUrl = _photoUri.value?.toString() ?: _photoUrl.value
                         )
                         userRepository.save(updatedUser)
-                        _updateResult.value = RequestResult.Success("Perfil actualizado correctamente")
+                        _updateResult.value = RequestResult.Success(resources.getString(R.string.profile_updated_success))
                     }
                 }
             }

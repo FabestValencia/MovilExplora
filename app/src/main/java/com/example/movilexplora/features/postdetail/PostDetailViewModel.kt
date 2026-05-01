@@ -5,6 +5,8 @@ import javax.inject.Inject
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.movilexplora.R
+import com.example.movilexplora.core.utils.ResourceProvider
 import com.example.movilexplora.domain.model.Post
 import com.example.movilexplora.domain.model.PostStatus
 import com.example.movilexplora.domain.model.Comment
@@ -27,7 +29,8 @@ data class PostDetailState(
 class PostDetailViewModel @Inject constructor(
     private val postRepository: PostRepository,
     private val sessionDataStore: SessionDataStore,
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val resources: ResourceProvider
 ) : ViewModel() {
     private val _state = MutableStateFlow(PostDetailState())
     val state: StateFlow<PostDetailState> = _state.asStateFlow()
@@ -64,7 +67,7 @@ class PostDetailViewModel @Inject constructor(
 
         viewModelScope.launch {
             val user = userRepository.findById(currentUserId)
-            val currentUserName = user?.name ?: "Guest"
+            val currentUserName = user?.name ?: resources.getString(R.string.guest_user_name)
             val currentUserAvatar = user?.profilePictureUrl ?: ""
 
             val newComment = Comment(
@@ -72,7 +75,7 @@ class PostDetailViewModel @Inject constructor(
                 postId = postId,
                 userName = currentUserName,
                 userAvatar = currentUserAvatar,
-                date = "Ahora",
+                date = resources.getString(R.string.time_now),
                 content = content
             )
             postRepository.addComment(newComment)

@@ -1,31 +1,34 @@
 package com.example.movilexplora.features.registrer
 
+import android.app.Application
 import android.util.Patterns
-import androidx.lifecycle.ViewModel
+import androidx.lifecycle.AndroidViewModel
+import com.example.movilexplora.R
 import com.example.movilexplora.core.utils.RequestResult
 import com.example.movilexplora.core.utils.ValidatedField
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
-class RegisterViewModel : ViewModel() {
+class RegisterViewModel(application: Application) : AndroidViewModel(application) {
+    private val resources = getApplication<Application>().resources
 
-    val nombre = ValidatedField("") { if (it.isEmpty()) "El nombre es obligatorio" else null }
-    val ciudad = ValidatedField("") { if (it.isEmpty()) "La ciudad es obligatoria" else null }
-    val direccion = ValidatedField("") { if (it.isEmpty()) "La dirección es obligatoria" else null }
+    val nombre = ValidatedField("") { if (it.isEmpty()) resources.getString(R.string.error_name_required) else null }
+    val ciudad = ValidatedField("") { if (it.isEmpty()) resources.getString(R.string.error_city_required) else null }
+    val direccion = ValidatedField("") { if (it.isEmpty()) resources.getString(R.string.error_address_required) else null }
 
     val email = ValidatedField("") { value ->
         when {
-            value.isEmpty() -> "El email es obligatorio"
-            !Patterns.EMAIL_ADDRESS.matcher(value).matches() -> "Ingresa un email válido"
+            value.isEmpty() -> resources.getString(R.string.error_email_required)
+            !Patterns.EMAIL_ADDRESS.matcher(value).matches() -> resources.getString(R.string.error_invalid_email)
             else -> null
         }
     }
 
     val password = ValidatedField("") { value ->
         when {
-            value.isEmpty() -> "La contraseña es obligatoria"
-            value.length < 6 -> "Debe tener al menos 6 caracteres"
+            value.isEmpty() -> resources.getString(R.string.error_password_required)
+            value.length < 6 -> resources.getString(R.string.error_password_min_6)
             else -> null
         }
     }
@@ -33,8 +36,8 @@ class RegisterViewModel : ViewModel() {
     // Validación especial para confirmar contraseña
     val confirmPassword = ValidatedField("") { value ->
         when {
-            value.isEmpty() -> "Debes confirmar la contraseña"
-            value != password.value -> "Las contraseñas no coinciden"
+            value.isEmpty() -> resources.getString(R.string.error_confirm_password_required)
+            value != password.value -> resources.getString(R.string.error_password_mismatch)
             else -> null
         }
     }
@@ -49,7 +52,7 @@ class RegisterViewModel : ViewModel() {
     fun register() {
         if (isFormValid) {
             // Simulación del proceso de registro [3]
-            _registerResult.value = RequestResult.Success("Usuario registrado exitosamente")
+            _registerResult.value = RequestResult.Success(resources.getString(R.string.register_success))
         }
     }
 

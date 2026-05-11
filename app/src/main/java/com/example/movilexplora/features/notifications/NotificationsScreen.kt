@@ -1,0 +1,220 @@
+package com.example.movilexplora.features.notifications
+
+import androidx.compose.ui.res.stringResource
+import com.example.movilexplora.R
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.Chat
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.movilexplora.domain.model.Notification
+import com.example.movilexplora.domain.model.NotificationType
+import com.example.movilexplora.ui.theme.GrayText
+import com.example.movilexplora.ui.theme.Turquoise
+
+import com.example.movilexplora.core.component.BottomNavigationBar
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun NotificationsScreen(
+    onNavigateBack: () -> Unit,
+    onNavigateToCreatePost: () -> Unit = {},
+    onNavigateToHome: () -> Unit = {},
+    onNavigateToEvents: () -> Unit = {},
+    onNavigateToProfile: () -> Unit = {},
+    viewModel: NotificationsViewModel = hiltViewModel()
+) {
+    val state by viewModel.state.collectAsState()
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text(stringResource(R.string.notifications_title), fontSize = 18.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground) },
+                navigationIcon = {
+                    IconButton(onClick = onNavigateBack) {
+                        Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.notificationsscreen_back_1), tint = MaterialTheme.colorScheme.onBackground)
+                    }
+                },
+                actions = {
+                    IconButton(onClick = { /* Menu */ }) {
+                        Icon(imageVector = Icons.Default.MoreVert, contentDescription = stringResource(R.string.notificationsscreen_more_2), tint = MaterialTheme.colorScheme.onBackground)
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface)
+            )
+        },
+        containerColor = MaterialTheme.colorScheme.background,
+        bottomBar = {
+            BottomNavigationBar(
+                onCreateClick = onNavigateToCreatePost,
+                onHomeClick = onNavigateToHome,
+                onEventsClick = onNavigateToEvents,
+                onAlertsClick = { /* Ya estamos aquí */ },
+                onProfileClick = onNavigateToProfile,
+                selectedItem = "Alertas"
+            )
+        }
+    ) { paddingValues ->
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .background(MaterialTheme.colorScheme.background)
+        ) {
+            if (state.recentNotifications.isNotEmpty()) {
+                item {
+                    SectionHeader(
+                        title = stringResource(R.string.notifications_recent),
+                        actionText = stringResource(R.string.notifications_mark_all_read),
+                        onActionClick = { viewModel.markAllAsRead() }
+                    )
+                }
+                items(state.recentNotifications) { notification ->
+                    NotificationItem(notification)
+                }
+            }
+
+            if (state.olderNotifications.isNotEmpty()) {
+                item {
+                    SectionHeader(title = stringResource(R.string.notifications_older))
+                }
+                items(state.olderNotifications) { notification ->
+                    NotificationItem(notification)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun SectionHeader(
+    title: String,
+    actionText: String? = null,
+    onActionClick: () -> Unit = {}
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = title,
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Bold,
+            color = GrayText,
+            letterSpacing = 1.sp
+        )
+        if (actionText != null) {
+            Text(
+                text = actionText,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Bold,
+                color = Turquoise,
+                modifier = Modifier.clickable { onActionClick() }
+            )
+        }
+    }
+}
+
+@Composable
+fun NotificationItem(notification: Notification) {
+    val backgroundColor = if (notification.isNew) Turquoise.copy(alpha = 0.05f) else MaterialTheme.colorScheme.surface
+    val indicatorColor = if (notification.isNew) Turquoise else Color.Transparent
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(backgroundColor)
+            .padding(vertical = 12.dp),
+        verticalAlignment = Alignment.Top
+    ) {
+        // New status vertical indicator
+        Box(
+            modifier = Modifier
+                .width(4.dp)
+                .height(40.dp)
+                .clip(RoundedCornerShape(topEnd = 4.dp, bottomEnd = 4.dp))
+                .background(indicatorColor)
+        )
+
+        Spacer(modifier = Modifier.width(12.dp))
+
+        // Icon
+        Box(
+            modifier = Modifier
+                .size(48.dp)
+                .clip(CircleShape)
+                .background(Turquoise.copy(alpha = 0.1f)),
+            contentAlignment = Alignment.Center
+        ) {
+            val icon = when (notification.type) {
+                NotificationType.NEW_PLACE -> Icons.Default.LocationOn
+                NotificationType.COMMENT -> Icons.AutoMirrored.Filled.Chat
+                NotificationType.NEARBY_POINTS -> Icons.Default.Explore
+                NotificationType.ACHIEVEMENT -> Icons.Default.StarBorder
+            }
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = Turquoise,
+                modifier = Modifier.size(24.dp)
+            )
+        }
+
+        Spacer(modifier = Modifier.width(12.dp))
+
+        Column(modifier = Modifier.weight(1f).padding(end = 16.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = notification.title,
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+                if (notification.isNew) {
+                    Text(
+                        text = stringResource(R.string.notificationsscreen_nuevo_0),
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = Turquoise
+                    )
+                }
+            }
+            Text(
+                text = notification.description,
+                fontSize = 14.sp,
+                color = GrayText,
+                lineHeight = 18.sp,
+                modifier = Modifier.padding(vertical = 2.dp)
+            )
+            Text(
+                text = notification.time,
+                fontSize = 12.sp,
+                color = GrayText.copy(alpha = 0.6f)
+            )
+        }
+    }
+}

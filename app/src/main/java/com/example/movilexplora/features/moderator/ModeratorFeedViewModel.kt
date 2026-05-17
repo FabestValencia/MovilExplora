@@ -5,6 +5,8 @@ import javax.inject.Inject
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.movilexplora.R
+import com.example.movilexplora.core.utils.ResourceProvider
 import com.example.movilexplora.domain.model.VerificationItem
 import com.example.movilexplora.domain.model.VerificationType
 import com.example.movilexplora.domain.model.PostStatus
@@ -23,8 +25,8 @@ import kotlinx.coroutines.flow.firstOrNull
 
 data class ModeratorFeedState(
     val items: List<VerificationItem> = emptyList(),
-    val selectedFilter: String = "Todo",
-    val counts: Map<String, Int> = mapOf("Todo" to 0, "Lugares" to 0, "Reseñas" to 0, "Eventos" to 0),
+    val selectedFilter: String = "",
+    val counts: Map<String, Int> = emptyMap(),
     val sortByRecent: Boolean = true
 )
 
@@ -32,7 +34,8 @@ data class ModeratorFeedState(
 class ModeratorFeedViewModel @Inject constructor(
     private val postRepository: PostRepository,
     private val eventRepository: EventRepository,
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val resources: ResourceProvider
 ) : ViewModel() {
     private val _state = MutableStateFlow(ModeratorFeedState())
     val state: StateFlow<ModeratorFeedState> = _state.asStateFlow()
@@ -41,6 +44,8 @@ class ModeratorFeedViewModel @Inject constructor(
     private var allItems: List<VerificationItem> = emptyList()
 
     init {
+        _state.update { it.copy(selectedFilter = resources.getString(R.string.filter_all)) }
+
         combine(
             postRepository.getPosts(),
             eventRepository.getEvents()
@@ -50,11 +55,11 @@ class ModeratorFeedViewModel @Inject constructor(
                     id = "POST_${post.id}", // Add prefix to identify type later
                     title = post.title,
                     author = post.creatorId,
-                    timeAgo = "Reciente", 
-                    description = "${post.location} - ${post.category}\nPrecio: ${post.price}\n\nDescripción:\n${post.description.ifEmpty { "Sin descripción" }}",
+                    timeAgo = resources.getString(R.string.notification_time_recent), 
+                    description = "${post.location} - ${post.category}\n${resources.getString(R.string.price_label)} ${post.price}\n\n${resources.getString(R.string.description_label)}\n${post.description.ifEmpty { resources.getString(R.string.no_description) }}",
                     imageUrl = post.imageUrl,
                     type = VerificationType.LOCATION, // Or differentiate later
-                    badgeText = "New Location"
+                    badgeText = resources.getString(R.string.new_location)
                 )
             }
             
@@ -64,18 +69,18 @@ class ModeratorFeedViewModel @Inject constructor(
                     val formatter = java.text.SimpleDateFormat("dd/MM/yyyy HH:mm", java.util.Locale.getDefault())
                     formatter.format(java.util.Date(timeInMillis))
                 } catch (e: Exception) {
-                    "Desconocida"
+                    resources.getString(R.string.unknown)
                 }
 
                 VerificationItem(
                     id = "EVENT_${event.id}",
                     title = event.title,
-                    author = "Organización",
-                    timeAgo = "Reciente",
-                    description = "${event.date} • ${event.endDate.ifBlank { "TBD" }}\nPublicado: $publishDate\n${event.location}\n\n${event.description}",
+                    author = resources.getString(R.string.organization_default_name),
+                    timeAgo = resources.getString(R.string.notification_time_recent),
+                    description = "${event.date} • ${event.endDate.ifBlank { resources.getString(R.string.tbd) }}\n${resources.getString(R.string.published_label)} $publishDate\n${event.location}\n\n${event.description}",
                     imageUrl = event.imageUrl,
                     type = VerificationType.EVENT,
-                    badgeText = "New Event"
+                    badgeText = resources.getString(R.string.new_event)
                 )
             }
             
@@ -87,18 +92,18 @@ class ModeratorFeedViewModel @Inject constructor(
     private fun refreshState() {
         // Calculate counts
         val counts = mutableMapOf(
-            "Todo" to allItems.size,
-            "Lugares" to allItems.count { it.type == VerificationType.LOCATION },
-            "Reseñas" to allItems.count { it.type == VerificationType.REVIEW || it.type == VerificationType.PHOTO }, // Assuming PHOTO counts as Review-like content or separate? Let's simplify
-            "Eventos" to allItems.count { it.type == VerificationType.EVENT }
+            resources.getString(R.string.filter_all) to allItems.size,
+            resources.getString(R.string.filter_locations) to allItems.count { it.type == VerificationType.LOCATION },
+            resources.getString(R.string.filter_reviews) to allItems.count { it.type == VerificationType.REVIEW || it.type == VerificationType.PHOTO }, 
+            resources.getString(R.string.filter_events) to allItems.count { it.type == VerificationType.EVENT }
         )
         
         // Filter items based on selected filter
         val currentFilter = _state.value.selectedFilter
         var filteredItems = when (currentFilter) {
-            "Lugares" -> allItems.filter { it.type == VerificationType.LOCATION }
-            "Reseñas" -> allItems.filter { it.type == VerificationType.REVIEW || it.type == VerificationType.PHOTO }
-            "Eventos" -> allItems.filter { it.type == VerificationType.EVENT }
+            resources.getString(R.string.filter_locations) -> allItems.filter { it.type == VerificationType.LOCATION }
+            resources.getString(R.string.filter_reviews) -> allItems.filter { it.type == VerificationType.REVIEW || it.type == VerificationType.PHOTO }
+            resources.getString(R.string.filter_events) -> allItems.filter { it.type == VerificationType.EVENT }
             else -> allItems
         }
         

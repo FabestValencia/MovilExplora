@@ -409,8 +409,23 @@
     <string name="status_accepted_plural">Accepted</string>
     <string name="status_rejected_plural">Rejected</string>
     <string name="event_badge">EVENT</string>
-    <string name="filter_all_es">Todo</string>
+    <string name="filter_all_es">All</string>
+    <string name="unknown">Unknown</string>
+    <string name="new_location">New Location</string>
+    <string name="new_event">New Event</string>
     <string name="event_category_general">General</string>
     <string name="mock_lat_lon_format">Lat: %1$.6f, Lon: %2$.6f</string>
     <string name="profile_updated_success">Profile updated successfully</string>
+    <string name="filter_nearby">Nearby</string>
+    <string name="price_expensive">Expensive</string>
+    <string name="price_moderate">Moderate</string>
+    <string name="price_free">Free</string>
+    <string name="reputation_default_user_name">Jean Botsito</string>
+    <string name="points_format">+%1$d pts</string>
+    <string name="description_label">Description:</string>
+    <string name="price_label">Price:</string>
+    <string name="published_label">Published:</string>
+    <string name="tbd">TBD</string>
+    <string name="percent_zero">+0%</string>
+    <string name="percent_zero_neutral">0%</string>
 </resources>

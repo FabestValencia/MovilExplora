@@ -5,6 +5,8 @@ import javax.inject.Inject
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.movilexplora.R
+import com.example.movilexplora.core.utils.ResourceProvider
 import com.example.movilexplora.data.datastore.SessionDataStore
 import com.example.movilexplora.domain.model.Event
 import com.example.movilexplora.domain.model.PostStatus
@@ -22,7 +24,7 @@ import com.example.movilexplora.domain.repository.EventRepository
 
 data class EventsState(
     val events: List<Event> = emptyList(),
-    val selectedFilter: String = "Todo",
+    val selectedFilter: String = "",
     val searchQuery: String = ""
 )
 
@@ -30,7 +32,8 @@ data class EventsState(
 class EventsViewModel @Inject constructor(
     private val sessionDataStore: SessionDataStore,
     private val eventRepository: EventRepository,
-    private val likeDao: LikeDao
+    private val likeDao: LikeDao,
+    private val resources: ResourceProvider
 ) : ViewModel() {
     private val _state = MutableStateFlow(EventsState())
     val state: StateFlow<EventsState> = _state.asStateFlow()
@@ -39,6 +42,8 @@ class EventsViewModel @Inject constructor(
     val currentUserId: StateFlow<String> = _currentUserId.asStateFlow()
 
     init {
+        _state.update { it.copy(selectedFilter = resources.getString(R.string.filter_all)) }
+
         viewModelScope.launch {
             _currentUserId.value = sessionDataStore.sessionFlow.firstOrNull()?.userId ?: "guest"
         }

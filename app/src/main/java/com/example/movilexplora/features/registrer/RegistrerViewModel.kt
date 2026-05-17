@@ -72,7 +72,7 @@ class RegisterViewModel @Inject constructor(
                 email = email.value,
                 password = password.value,
                 city = resources.getString(R.string.mock_city),
-                address = "Lat: $randomLat, Lon: $randomLon",
+                address = resources.getString(R.string.mock_lat_lon_format, randomLat, randomLon),
                 profilePictureUrl = ""
             )
             viewModelScope.launch {

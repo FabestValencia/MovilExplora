@@ -5,6 +5,8 @@ import javax.inject.Inject
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.movilexplora.R
+import com.example.movilexplora.core.utils.ResourceProvider
 import com.example.movilexplora.domain.model.Achievement
 import com.example.movilexplora.domain.repository.PostRepository
 import com.example.movilexplora.domain.repository.UserRepository
@@ -24,7 +26,8 @@ data class BadgesState(
 @HiltViewModel
 class BadgesViewModel @Inject constructor(
     private val sessionDataStore: SessionDataStore,
-    private val postRepository: PostRepository
+    private val postRepository: PostRepository,
+    private val resources: ResourceProvider
 ) : ViewModel() {
     private val _state = MutableStateFlow(BadgesState())
     val state: StateFlow<BadgesState> = _state.asStateFlow()
@@ -43,32 +46,32 @@ class BadgesViewModel @Inject constructor(
 
             val dynamicAchievements = listOf(
                 Achievement(
-                    name = "Primera Publicación",
-                    description = "¡Tu primera aventura compartida!",
+                    name = resources.getString(R.string.badge_first_post_title),
+                    description = resources.getString(R.string.badge_first_post_desc),
                     iconName = "celebration",
                     isUnlocked = postCount >= 1
                 ),
                 Achievement(
-                    name = "10 Publicaciones",
-                    description = "Comunidad confiable y activa",
+                    name = resources.getString(R.string.badge_10_posts_title),
+                    description = resources.getString(R.string.badge_10_posts_desc),
                     iconName = "verified",
                     isUnlocked = postCount >= 10
                 ),
                 Achievement(
-                    name = "Maestro del Mapa",
-                    description = "Experto en navegación local",
+                    name = resources.getString(R.string.badge_map_master_title),
+                    description = resources.getString(R.string.badge_map_master_desc),
                     iconName = "map",
                     isUnlocked = activePostsCount >= 5
                 ),
                 Achievement(
-                    name = "Explorador del Mes",
-                    description = "Sé el más activo este mes",
+                    name = resources.getString(R.string.badge_explorer_month_title),
+                    description = resources.getString(R.string.badge_explorer_month_desc),
                     iconName = "stars",
                     isUnlocked = postCount >= 20 // Dynamic condition
                 ),
                 Achievement(
-                    name = "Guía Local",
-                    description = "Ayuda a otros viajeros",
+                    name = resources.getString(R.string.badge_local_guide_title),
+                    description = resources.getString(R.string.badge_local_guide_desc),
                     iconName = "contact_page",
                     isUnlocked = activePostsCount >= 15 // Dynamic condition
                 )

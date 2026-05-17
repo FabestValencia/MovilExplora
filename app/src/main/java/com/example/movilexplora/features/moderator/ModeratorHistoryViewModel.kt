@@ -16,12 +16,13 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.update
 import javax.inject.Inject
 
 data class ModeratorHistoryState(
     val items: List<HistoryItem> = emptyList(),
-    val selectedFilter: String = "Todo",
-    val counts: Map<String, Int> = mapOf("Todo" to 0, "Aceptados" to 0, "Rechazados" to 0)
+    val selectedFilter: String = "",
+    val counts: Map<String, Int> = emptyMap()
 )
 
 data class HistoryItem(
@@ -47,6 +48,7 @@ class ModeratorHistoryViewModel @Inject constructor(
     private var allItems = listOf<HistoryItem>()
 
     init {
+        _state.update { it.copy(selectedFilter = resources.getString(R.string.filter_all_es)) }
         loadHistory()
     }
 
@@ -94,10 +96,11 @@ class ModeratorHistoryViewModel @Inject constructor(
     }
 
     private fun updateState(filter: String = _state.value.selectedFilter) {
-        val filtered = if (filter == resources.getString(R.string.filter_all_es)) {
-            allItems
-        } else {
-            allItems.filter { it.status + "s" == filter || it.status == filter }
+        val filtered = when (filter) {
+            resources.getString(R.string.filter_all_es) -> allItems
+            resources.getString(R.string.status_accepted_plural) -> allItems.filter { it.status == resources.getString(R.string.status_accepted_singular) }
+            resources.getString(R.string.status_rejected_plural) -> allItems.filter { it.status == resources.getString(R.string.status_rejected_singular) }
+            else -> allItems
         }
 
         val counts = mapOf(

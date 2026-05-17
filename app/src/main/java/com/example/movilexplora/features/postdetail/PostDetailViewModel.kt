@@ -35,11 +35,11 @@ class PostDetailViewModel @Inject constructor(
     private val _state = MutableStateFlow(PostDetailState())
     val state: StateFlow<PostDetailState> = _state.asStateFlow()
 
-    private var currentUserId: String = "guest"
+    private var currentUserId: String = ""
 
     init {
         viewModelScope.launch {
-            currentUserId = sessionDataStore.sessionFlow.firstOrNull()?.userId ?: "guest"
+            currentUserId = sessionDataStore.sessionFlow.firstOrNull()?.userId ?: resources.getString(R.string.guest_user_name)
         }
     }
 

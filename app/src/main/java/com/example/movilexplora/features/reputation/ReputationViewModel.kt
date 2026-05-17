@@ -31,13 +31,13 @@ enum class PointType {
 }
 
 data class ReputationState(
-    val userName: String = "Jean Botsito",
+    val userName: String = "",
     val profilePictureUrl: String = "",
     val currentLevel: ReputationLevel = ReputationLevel.EMBAJADOR,
-    val nextLevelName: String = "Nivel Máximo",
+    val nextLevelName: String = "",
     val currentPoints: Int = 1250,
     val targetPoints: Int = 2000,
-    val percentageMessage: String = "Top 15% de exploradores en tu ciudad",
+    val percentageMessage: String = "",
     val recentPoints: List<RecentPoint> = emptyList()
 )
 
@@ -52,6 +52,13 @@ class ReputationViewModel @Inject constructor(
     val state: StateFlow<ReputationState> = _state.asStateFlow()
 
     init {
+        _state.update { 
+            it.copy(
+                userName = resourceProvider.getString(R.string.reputation_default_user_name),
+                nextLevelName = resourceProvider.getString(R.string.reputation_max_level),
+                percentageMessage = resourceProvider.getString(R.string.reputation_percentage_msg)
+            )
+        }
         loadUserData()
     }
 
@@ -73,10 +80,10 @@ class ReputationViewModel @Inject constructor(
                     else -> resourceProvider.getString(R.string.stat_recent_created, post.title)
                 }
 
-                val pointsText = when (post.status) {
-                    com.example.movilexplora.domain.model.PostStatus.VERIFICADO -> "+100 pts"
-                    com.example.movilexplora.domain.model.PostStatus.RECHAZADO -> "+0 pts"
-                    else -> "+50 pts"
+                val pointsValue = when (post.status) {
+                    com.example.movilexplora.domain.model.PostStatus.VERIFICADO -> 100
+                    com.example.movilexplora.domain.model.PostStatus.RECHAZADO -> 0
+                    else -> 50
                 }
 
                 recentPoints.add(
@@ -84,7 +91,7 @@ class ReputationViewModel @Inject constructor(
                         id = post.id,
                         title = titleText,
                         time = resourceProvider.getString(R.string.stat_time_recent),
-                        points = pointsText,
+                        points = resourceProvider.getString(R.string.points_format, pointsValue),
                         type = PointType.POST
                     )
                 )

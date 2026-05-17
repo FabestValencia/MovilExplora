@@ -104,13 +104,13 @@ class StatisticsViewModel @Inject constructor(
                     rejectedPosts = rejectedCount,
                     totalMonthPosts = total,
                     recentActivities = recentActivities.takeLast(5).reversed(),
-                    activePostsChange = "${if (activeCount > 0) "+" else ""}0%",
+                    activePostsChange = if (activeCount > 0) resourceProvider.getString(R.string.percent_zero) else resourceProvider.getString(R.string.percent_zero_neutral),
                     isActivePostsPositive = true,
-                    finishedPostsChange = "${if (finishedCount > 0) "+" else ""}0%",
+                    finishedPostsChange = if (finishedCount > 0) resourceProvider.getString(R.string.percent_zero) else resourceProvider.getString(R.string.percent_zero_neutral),
                     isFinishedPostsPositive = true,
-                    pendingPostsChange = "${if (pendingCount > 0) "+" else ""}0%",
+                    pendingPostsChange = resourceProvider.getString(R.string.percent_zero_neutral),
                     isPendingPostsPositive = true,
-                    rejectedPostsChange = "${if (rejectedCount > 0) "+" else ""}0%",
+                    rejectedPostsChange = resourceProvider.getString(R.string.percent_zero_neutral),
                     isRejectedPostsPositive = false
                 )
             }

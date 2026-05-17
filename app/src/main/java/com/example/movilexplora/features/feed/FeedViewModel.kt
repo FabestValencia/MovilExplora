@@ -2,6 +2,8 @@ package com.example.movilexplora.features.feed
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.movilexplora.R
+import com.example.movilexplora.core.utils.ResourceProvider
 import com.example.movilexplora.domain.model.Post
 import com.example.movilexplora.domain.model.PostStatus
 import com.example.movilexplora.domain.repository.PostRepository
@@ -27,20 +29,15 @@ data class FeedState(
     val userName: String = "",
     val filterState: FilterState = FilterState(), // Añadimos state del filtro
     val searchQuery: String = "",
-    val categories: List<Category> = listOf(
-        Category("Gastronomia"),
-        Category("Cultura"),
-        Category("Naturaleza"),
-        Category("Entretenimiento"),
-        Category("Historia")
-    )
+    val categories: List<Category> = emptyList()
 )
 
 @HiltViewModel
 class FeedViewModel @Inject constructor(
     private val postRepository: PostRepository,
     private val sessionDataStore: SessionDataStore,
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val resources: ResourceProvider
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(FeedState())
@@ -136,6 +133,18 @@ class FeedViewModel @Inject constructor(
     )
 
     init {
+        _state.update { 
+            it.copy(
+                categories = listOf(
+                    Category(resources.getString(R.string.create_post_cat_gastronomy)),
+                    Category(resources.getString(R.string.create_post_cat_culture)),
+                    Category(resources.getString(R.string.create_post_cat_nature)),
+                    Category(resources.getString(R.string.create_post_cat_entertainment)),
+                    Category(resources.getString(R.string.create_post_cat_history))
+                )
+            )
+        }
+
         viewModelScope.launch {
             sessionDataStore.sessionFlow.collect { session ->
                 val userId = session?.userId ?: "guest"

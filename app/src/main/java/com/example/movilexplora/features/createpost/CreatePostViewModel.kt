@@ -9,6 +9,7 @@ import com.example.movilexplora.R
 import com.example.movilexplora.core.utils.ResourceProvider
 import com.example.movilexplora.core.utils.RequestResult
 import com.example.movilexplora.core.utils.ValidatedField
+import com.example.movilexplora.domain.ai.CategoryRecommender
 import com.example.movilexplora.domain.model.Post
 import com.example.movilexplora.domain.model.PostStatus
 import com.example.movilexplora.domain.repository.PostRepository
@@ -23,9 +24,11 @@ import kotlinx.coroutines.launch
 
 data class CreatePostState(
     val selectedCategory: String? = null,
+    val aiRecommendationReason: String? = null,
     val selectedPriceRange: Int = 2,
     val selectedTime: String? = null,
-    val address: String = ""
+    val address: String = "",
+    val isRecommendingCategory: Boolean = false
 )
 
 @HiltViewModel
@@ -33,7 +36,8 @@ class CreatePostViewModel @Inject constructor(
     private val postRepository: PostRepository,
     private val sessionDataStore: SessionDataStore,
     private val userRepository: UserRepository,
-    private val resources: ResourceProvider
+    private val resources: ResourceProvider,
+    private val categoryRecommender: CategoryRecommender
 ) : ViewModel() {
     val title = ValidatedField("") { value ->
         if (value.isEmpty()) resources.getString(R.string.error_post_title_empty) else null
@@ -50,7 +54,38 @@ class CreatePostViewModel @Inject constructor(
     val publishResult: StateFlow<RequestResult?> = _publishResult.asStateFlow()
 
     fun selectCategory(category: String) {
-        _state.update { it.copy(selectedCategory = category) }
+        _state.update { it.copy(selectedCategory = category, aiRecommendationReason = null) }
+    }
+
+    fun recommendCategory() {
+        val desc = description.value
+        if (desc.isBlank()) return
+
+        viewModelScope.launch {
+            try {
+                _state.update { it.copy(isRecommendingCategory = true) }
+                val recommendation = categoryRecommender.recommendCategory(desc)
+                
+                if (recommendation != null) {
+                    _state.update { 
+                        it.copy(
+                            selectedCategory = recommendation.category,
+                            aiRecommendationReason = recommendation.reason
+                        )
+                    }
+                }
+            } catch (e: Exception) {
+                _state.update { 
+                    it.copy(
+                        selectedCategory = "Gastronomia",
+                        aiRecommendationReason = "Error inesperado: ${e.message?.take(15)}"
+                    )
+                }
+                e.printStackTrace()
+            } finally {
+                _state.update { it.copy(isRecommendingCategory = false) }
+            }
+        }
     }
 
     fun selectPriceRange(range: Int) {
@@ -62,7 +97,7 @@ class CreatePostViewModel @Inject constructor(
     }
 
     fun publish() {
-        if (title.isValid && description.isValid && _state.value.selectedCategory != null) {
+        if (title.isValid && description.isValid && (_state.value.selectedCategory != null)) {
             viewModelScope.launch {
                 val userId = sessionDataStore.sessionFlow.firstOrNull()?.userId ?: "1" // Defaulting if null
 

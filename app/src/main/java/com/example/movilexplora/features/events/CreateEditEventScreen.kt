@@ -24,6 +24,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.outlined.Send
 import androidx.compose.material.icons.filled.AddAPhoto
+import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -88,24 +89,24 @@ fun CreateEditEventScreen(
     val startDatePickerDialog = DatePickerDialog(
         context,
         { _, year, month, dayOfMonth -> startDate = "$dayOfMonth/${month + 1}/$year" },
-        calendar.get(Calendar.YEAR),
-        calendar.get(Calendar.MONTH),
-        calendar.get(Calendar.DAY_OF_MONTH)
+        calendar[Calendar.YEAR],
+        calendar[Calendar.MONTH],
+        calendar[Calendar.DAY_OF_MONTH]
     )
 
     val endDatePickerDialog = DatePickerDialog(
         context,
         { _, year, month, dayOfMonth -> endDate = "$dayOfMonth/${month + 1}/$year" },
-        calendar.get(Calendar.YEAR),
-        calendar.get(Calendar.MONTH),
-        calendar.get(Calendar.DAY_OF_MONTH)
+        calendar[Calendar.YEAR],
+        calendar[Calendar.MONTH],
+        calendar[Calendar.DAY_OF_MONTH]
     )
 
     val galleryLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? -> imageUri = uri }
 
-    val isEditing = eventId != null && eventId != "{eventId}"
+    val isEditing = (eventId != null) && (eventId != "{eventId}")
 
     val eventToEdit by viewModel.eventToEdit.collectAsState()
 
@@ -239,7 +240,36 @@ fun CreateEditEventScreen(
             Spacer(modifier = Modifier.height(24.dp))
 
             // Category Selection
-            Text(text = stringResource(R.string.createediteventscreen_categor_a_4), fontSize = 14.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(text = stringResource(R.string.createediteventscreen_categor_a_4), fontSize = 14.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
+                
+                val isRecommending by viewModel.isRecommendingCategory.collectAsState()
+                val recommendedCat by viewModel.recommendedCategory.collectAsState()
+
+                androidx.compose.material3.TextButton(
+                    onClick = { viewModel.recommendCategory(description) },
+                    enabled = !isRecommending && description.isNotBlank()
+                ) {
+                    if (isRecommending) {
+                        androidx.compose.material3.CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp, color = Turquoise)
+                    } else {
+                        Icon(imageVector = Icons.Default.AutoAwesome, contentDescription = null, modifier = Modifier.size(16.dp), tint = Turquoise)
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text("Sugerir con IA", fontSize = 12.sp, color = Turquoise, fontWeight = FontWeight.Bold)
+                    }
+                }
+
+                LaunchedEffect(recommendedCat) {
+                    recommendedCat?.let {
+                        category = it
+                        viewModel.clearRecommendation()
+                    }
+                }
+            }
             Text(text = stringResource(R.string.createediteventscreen_elige_la_categor_a_que_mejor_d_5), fontSize = 12.sp, color = GrayText.copy(alpha = 0.5f))
             Spacer(modifier = Modifier.height(12.dp))
             

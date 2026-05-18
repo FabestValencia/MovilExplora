@@ -3,6 +3,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.movilexplora.R
 import com.example.movilexplora.core.utils.ResourceProvider
+import com.example.movilexplora.domain.ai.CategoryRecommender
 import com.example.movilexplora.domain.model.Event
 import com.example.movilexplora.domain.model.PostStatus
 import com.example.movilexplora.domain.repository.EventRepository
@@ -13,16 +14,41 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import javax.inject.Inject
 @HiltViewModel
 class CreateEventViewModel @Inject constructor(
     private val eventRepository: EventRepository,
     private val sessionDataStore: SessionDataStore,
-    private val resources: ResourceProvider
+    private val resources: ResourceProvider,
+    private val categoryRecommender: CategoryRecommender
 ) : ViewModel() {
 
     private val _eventToEdit = MutableStateFlow<Event?>(null)
     val eventToEdit: StateFlow<Event?> = _eventToEdit.asStateFlow()
+
+    private val _isRecommendingCategory = MutableStateFlow(false)
+    val isRecommendingCategory: StateFlow<Boolean> = _isRecommendingCategory.asStateFlow()
+
+    private val _recommendedCategory = MutableStateFlow<String?>(null)
+    val recommendedCategory: StateFlow<String?> = _recommendedCategory.asStateFlow()
+
+    fun recommendCategory(description: String) {
+        if (description.isBlank()) return
+
+        viewModelScope.launch {
+            _isRecommendingCategory.value = true
+            val recommendation = categoryRecommender.recommendCategory(description)
+            recommendation?.let {
+                _recommendedCategory.value = it.category
+            }
+            _isRecommendingCategory.value = false
+        }
+    }
+
+    fun clearRecommendation() {
+        _recommendedCategory.value = null
+    }
 
     fun loadEvent(eventId: String) {
         viewModelScope.launch {

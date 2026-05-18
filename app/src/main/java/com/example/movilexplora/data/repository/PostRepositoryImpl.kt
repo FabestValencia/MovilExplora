@@ -1,5 +1,6 @@
 package com.example.movilexplora.data.repository
 
+import com.example.movilexplora.data.remote.ApiService
 import com.example.movilexplora.domain.model.Post
 import com.example.movilexplora.domain.model.PostStatus
 import com.example.movilexplora.domain.model.Comment
@@ -11,6 +12,7 @@ import com.example.movilexplora.data.local.entity.CommentEntity
 import com.example.movilexplora.data.local.entity.LikeEntity
 import com.example.movilexplora.data.local.entity.toDomainModel
 import com.example.movilexplora.data.local.entity.toEntity
+import com.example.movilexplora.data.remote.model.PostRemote
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.combine
@@ -26,25 +28,40 @@ import javax.inject.Singleton
 class PostRepositoryImpl @Inject constructor(
     private val commentDao: CommentDao,
     private val likeDao: LikeDao,
-    private val postDao: PostDao
+    private val postDao: PostDao,
+    private val apiService: ApiService
 ) : PostRepository {
     private val scope = CoroutineScope(Dispatchers.IO)
 
     init {
         scope.launch {
-            // Verificar si la base de datos está vacía para inicialización limpia
-            val existingPosts = postDao.getAllPosts().first()
-            if (existingPosts.isEmpty()) {
-                // Removemos los datos quemados a peticion del usuario, 
-                // inician con una base de datos limpia o solo datos administrativos
-            }
-
-            val existingComments = commentDao.getCommentsByPostId("1").firstOrNull() ?: emptyList()
-            if(existingComments.isEmpty()) {
-                // Sin datos quemados iniciales
+            try {
+                // Sincronización con Retrofit (Simulada)
+                val remotePosts = apiService.getPosts()
+                remotePosts.forEach { remote ->
+                    postDao.insertPost(remote.toLocalEntity())
+                }
+            } catch (e: Exception) {
+                // Manejar error de red
             }
         }
     }
+
+    private fun PostRemote.toLocalEntity() = com.example.movilexplora.data.local.entity.PostEntity(
+        id = id,
+        title = title,
+        location = location,
+        rating = rating,
+        category = category,
+        price = price,
+        status = status,
+        imageUrl = imageUrl,
+        description = description,
+        latitude = latitude,
+        longitude = longitude,
+        distance = 0f,
+        creatorId = creatorId
+    )
 
     override fun getPosts(): Flow<List<Post>> = postDao.getAllPosts().combine(likeDao.getAllPostLikes()) { postEntities, likes ->
         postEntities.map { entity ->

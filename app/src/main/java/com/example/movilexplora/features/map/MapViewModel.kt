@@ -15,6 +15,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.launch
 
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
@@ -43,37 +45,20 @@ class MapViewModel @Inject constructor(
 
     init {
         _state.update { 
-            it.copy(
-                selectedFilter = resources.getString(R.string.filter_nearby),
-                posts = listOf(
-                    Post("1", "Belcanto Experience", "Chiado, Lisbon", 4.9, resources.getString(R.string.create_post_cat_gastronomy), "$$$ • " + resources.getString(R.string.price_expensive), PostStatus.VERIFICADO, ""),
-                    Post("2", "Historic Old Town", "Lisbon, Portugal", 4.8, resources.getString(R.string.create_post_cat_history), "$$ • " + resources.getString(R.string.price_moderate), PostStatus.VERIFICADO, ""),
-                    Post("3", "Serra da Estrela", "Guarda, Portugal", 4.7, resources.getString(R.string.create_post_cat_nature), resources.getString(R.string.price_free), PostStatus.VERIFICADO, ""),
-                    Post("4", "Mirador del Valle", "Toledo, España", 4.8, resources.getString(R.string.create_post_cat_nature), resources.getString(R.string.price_free), PostStatus.VERIFICADO, "")
-                )
-            )
+            it.copy(selectedFilter = resources.getString(R.string.filter_nearby))
         }
 
-        // Mocking coordinates for the posts
-        val mockMarkers = listOf(
-            MapMarker(
-                Post("1", "Belcanto Experience", "Chiado, Lisbon", 4.9, resources.getString(R.string.create_post_cat_gastronomy), "$$$ • " + resources.getString(R.string.price_expensive), PostStatus.VERIFICADO, ""),
-                LatLng(41.3851, 2.1734) // Barcelona center
-            ),
-            MapMarker(
-                Post("2", "Historic Old Town", "Lisbon, Portugal", 4.8, resources.getString(R.string.create_post_cat_history), "$$ • " + resources.getString(R.string.price_moderate), PostStatus.VERIFICADO, ""),
-                LatLng(41.3984, 2.1750) // Sagrada Familia area
-            ),
-            MapMarker(
-                Post("3", "Serra da Estrela", "Guarda, Portugal", 4.7, resources.getString(R.string.create_post_cat_nature), resources.getString(R.string.price_free), PostStatus.VERIFICADO, ""),
-                LatLng(41.3809, 2.1228) // Camp Nou area
-            ),
-            MapMarker(
-                Post("4", "Mirador del Valle", "Toledo, España", 4.8, resources.getString(R.string.create_post_cat_nature), resources.getString(R.string.price_free), PostStatus.VERIFICADO, ""),
-                LatLng(41.3750, 2.1550)
-            )
-        )
-        _state.update { it.copy(markers = mockMarkers) }
+        viewModelScope.launch {
+            postRepository.getPosts().collect { postsList ->
+                val markers = postsList.map { post ->
+                    MapMarker(
+                        post = post,
+                        position = LatLng(post.latitude, post.longitude)
+                    )
+                }
+                _state.update { it.copy(posts = postsList, markers = markers) }
+            }
+        }
     }
 
     fun onSearchQueryChange(query: String) {

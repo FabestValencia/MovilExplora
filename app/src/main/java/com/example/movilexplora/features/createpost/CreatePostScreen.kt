@@ -14,7 +14,14 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.AddPhotoAlternate
+import androidx.compose.material.icons.filled.FileUpload
+import androidx.compose.material.icons.filled.LightMode
+import androidx.compose.material.icons.filled.WbSunny
+import androidx.compose.material.icons.filled.NightsStay
+import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material3.*
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
@@ -191,7 +198,37 @@ fun CreatePostScreen(
             Spacer(modifier = Modifier.height(24.dp))
 
             // Category Section
-            Text(text = stringResource(R.string.createpostscreen_categor_a_4), fontSize = 14.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(text = stringResource(R.string.createpostscreen_categor_a_4), fontSize = 14.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
+                    if (state.aiRecommendationReason != null) {
+                        Text(
+                            text = "IA: ${state.aiRecommendationReason}",
+                            fontSize = 11.sp,
+                            color = Turquoise,
+                            lineHeight = 14.sp,
+                            fontWeight = FontWeight.Medium
+                        )
+                    }
+                }
+                
+                TextButton(
+                    onClick = { viewModel.recommendCategory() },
+                    enabled = !state.isRecommendingCategory && viewModel.description.value.isNotBlank()
+                ) {
+                    if (state.isRecommendingCategory) {
+                        CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp, color = Turquoise)
+                    } else {
+                        Icon(imageVector = Icons.Default.AutoAwesome, contentDescription = null, modifier = Modifier.size(16.dp), tint = Turquoise)
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text("Sugerir con IA", fontSize = 12.sp, color = Turquoise, fontWeight = FontWeight.Bold)
+                    }
+                }
+            }
             Text(text = stringResource(R.string.createpostscreen_select_the_category_that_best_5), fontSize = 12.sp, color = GrayText.copy(alpha = 0.5f))
             Spacer(modifier = Modifier.height(12.dp))
             

@@ -1,6 +1,8 @@
 [versions]
-agp = "8.6.0"
+agp = "8.13.2"
 coreKtx = "1.15.0"
+retrofit = "2.11.0"
+generative-ai = "0.9.0"
 junit = "4.13.2"
 junitVersion = "1.2.1"
 espressoCore = "3.6.1"
@@ -54,6 +56,9 @@ room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "
 room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
 room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
+retrofit = { group = "com.squareup.retrofit2", name = "retrofit", version.ref = "retrofit" }
+converter-gson = { group = "com.squareup.retrofit2", name = "converter-gson", version.ref = "retrofit" }
+generativeai = { group = "com.google.ai.client.generativeai", name = "generativeai", version.ref = "generative-ai" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

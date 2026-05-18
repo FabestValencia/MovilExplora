@@ -3,6 +3,7 @@ package com.example.movilexplora.data.repository
 import com.example.movilexplora.data.local.dao.UserDao
 import com.example.movilexplora.data.local.entity.toDomainModel
 import com.example.movilexplora.data.local.entity.toEntity
+import com.example.movilexplora.data.remote.ApiService
 import com.example.movilexplora.domain.model.User
 import com.example.movilexplora.domain.model.UserRole
 import com.example.movilexplora.domain.repository.UserRepository
@@ -18,7 +19,8 @@ import javax.inject.Singleton
 
 @Singleton
 class UserRepositoryImpl @Inject constructor(
-    private val userDao: UserDao
+    private val userDao: UserDao,
+    private val apiService: ApiService
 ) : UserRepository {
 
     private val coroutineScope = CoroutineScope(Dispatchers.IO)

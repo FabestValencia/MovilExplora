@@ -620,7 +620,7 @@ fun ReputationTimeline(currentLevel: ReputationLevel) {
                 }
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = level.displayName,
+                    text = stringResource(level.displayNameRes),
                     fontSize = 10.sp,
                     fontWeight = if (isCurrent) FontWeight.Bold else FontWeight.Normal,
                     color = if (isReached) levelColor else GrayText

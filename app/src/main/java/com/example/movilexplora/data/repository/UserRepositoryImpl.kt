@@ -1,94 +1,67 @@
 package com.example.movilexplora.data.repository
 
-import com.example.movilexplora.data.local.dao.UserDao
-import com.example.movilexplora.data.local.entity.toDomainModel
-import com.example.movilexplora.data.local.entity.toEntity
-import com.example.movilexplora.data.remote.ApiService
 import com.example.movilexplora.domain.model.User
-import com.example.movilexplora.domain.model.UserRole
 import com.example.movilexplora.domain.repository.UserRepository
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.SharingStarted
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
 class UserRepositoryImpl @Inject constructor(
-    private val userDao: UserDao,
-    private val apiService: ApiService
+    private val auth: FirebaseAuth,
+    firestore: FirebaseFirestore,
 ) : UserRepository {
 
-    private val coroutineScope = CoroutineScope(Dispatchers.IO)
+    private val collection = firestore.collection("users")
 
-    override val users: StateFlow<List<User>> = userDao.getAllUsers()
-        .map { entities -> entities.map { it.toDomainModel() } }
-        .stateIn(
-            scope = coroutineScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = emptyList()
-        )
+    private val _users = MutableStateFlow<List<User>>(emptyList())
+    override val users: StateFlow<List<User>> = _users.asStateFlow()
 
     init {
-        // Populate initial mock users if DB is empty
-        coroutineScope.launch {
-            if (userDao.getUserById("1") == null) {
-                fetchUsers().forEach { userDao.insertUser(it.toEntity()) }
+        // Escuchar cambios en tiempo real
+        collection.addSnapshotListener { snapshot, _ ->
+            snapshot?.let {
+                _users.value = it.documents.mapNotNull { snap ->
+                    snap.toObject(User::class.java)?.apply { id = snap.id }
+                }
             }
         }
     }
 
     override suspend fun save(user: User) {
-        userDao.insertUser(user.toEntity())
+        // Intentar registrar en Auth si tiene password
+        val uid = if (user.password != null) {
+            val result = auth.createUserWithEmailAndPassword(user.email, user.password).await()
+            result.user?.uid ?: throw Exception("Error al crear usuario")
+        } else {
+            user.id.ifEmpty { collection.document().id }
+        }
+
+        val userCopy = user.copy(id = uid, password = null)
+        collection.document(uid).set(userCopy).await()
     }
 
     override suspend fun findById(id: String): User? {
-        return userDao.getUserById(id)?.toDomainModel()
+        val snapshot = collection.document(id).get().await()
+        return snapshot.toObject(User::class.java)?.apply { this.id = snapshot.id }
     }
 
     override suspend fun login(email: String, password: String): User? {
-        val userEntity = userDao.login(email, password)
-        return userEntity?.toDomainModel()
+        val result = auth.signInWithEmailAndPassword(email, password).await()
+        val uid = result.user?.uid ?: return null
+        return findById(uid)
     }
 
     override suspend fun addPoints(userId: String, points: Int) {
-        userDao.addPoints(userId, points)
-    }
-
-    private fun fetchUsers(): List<User> {
-        return listOf(
-            User(
-                id = "1",
-                name = "Juan",
-                city = "Ciudad 1",
-                address = "Calle 123",
-                email = "juan@email.com",
-                password = "111111",
-                profilePictureUrl = "https://m.media-amazon.com/images/I/41g6jROgo0L.png"
-            ),
-            User(
-                id = "2",
-                name = "Maria",
-                city = "Pereira",
-                address = "Calle 456",
-                email = "maria@email.com",
-                password = "222222",
-                profilePictureUrl = "https://picsum.photos/200?random=2"
-            ),
-            User(
-                id = "3",
-                name = "Carlos",
-                city = "Armenia",
-                address = "Calle 789",
-                email = "carlos@email.com",
-                password = "123456", // Change to match original login! 
-                profilePictureUrl = "https://picsum.photos/200?random=3",
-                role = UserRole.ADMIN
-            )
-        )
+        val user = findById(userId)
+        user?.let {
+            val updatedUser = it.copy(points = it.points + points)
+            collection.document(userId).set(updatedUser).await()
+        }
     }
 }

@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.stateIn
 import androidx.lifecycle.viewModelScope
 import com.example.movilexplora.data.datastore.SessionDataStore
 import com.example.movilexplora.domain.repository.UserRepository
+import com.example.movilexplora.domain.repository.ImageRepository
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import android.net.Uri
@@ -27,6 +28,7 @@ class EditProfileViewModel @Inject constructor(
     private val settingsDataStore: SettingsDataStore,
     private val sessionDataStore: SessionDataStore,
     private val userRepository: UserRepository,
+    private val imageRepository: ImageRepository,
     private val resources: ResourceProvider
 ) : ViewModel() {
     val name = ValidatedField("") { value ->
@@ -95,14 +97,22 @@ class EditProfileViewModel @Inject constructor(
                 if (session != null) {
                     val user = userRepository.findById(session.userId)
                     if (user != null) {
+                        _updateResult.value = RequestResult.Loading
+                        
+                        val newPhotoUrl = _photoUri.value?.let { uri ->
+                            imageRepository.uploadImage(uri)
+                        } ?: _photoUrl.value
+
                         val updatedUser = user.copy(
                             name = name.value,
                             email = email.value,
                             city = location.value,
                             address = description.value,
-                            profilePictureUrl = _photoUri.value?.toString() ?: _photoUrl.value
+                            profilePictureUrl = newPhotoUrl
                         )
                         userRepository.save(updatedUser)
+                        _photoUrl.value = newPhotoUrl
+                        _photoUri.value = null
                         _updateResult.value = RequestResult.Success(resources.getString(R.string.profile_updated_success))
                     }
                 }

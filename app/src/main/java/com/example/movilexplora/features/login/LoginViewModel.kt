@@ -50,14 +50,20 @@ class LoginViewModel @Inject constructor(
     fun login() {
         if (isFormValid) {
             viewModelScope.launch {
-                val user = userRepository.login(email.value, password.value)
-
-                if (user != null) {
-                    // Save session in DataStore
-                    sessionDataStore.saveSession(userId = user.id, role = user.role)
-                    _loginResult.value = RequestResult.Success(resources.getString(R.string.login_success))
-                } else {
-                    _loginResult.value = RequestResult.Failure(resources.getString(R.string.login_failure))
+                _loginResult.value = RequestResult.Loading
+                
+                runCatching {
+                    userRepository.login(email.value, password.value)
+                }.onSuccess { user ->
+                    if (user != null) {
+                        // Save session in DataStore
+                        sessionDataStore.saveSession(userId = user.id, role = user.role)
+                        _loginResult.value = RequestResult.Success(resources.getString(R.string.login_success))
+                    } else {
+                        _loginResult.value = RequestResult.Failure(resources.getString(R.string.login_failure))
+                    }
+                }.onFailure {
+                    _loginResult.value = RequestResult.Failure(it.message ?: "Error al iniciar sesión")
                 }
             }
         }

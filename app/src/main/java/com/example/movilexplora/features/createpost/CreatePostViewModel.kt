@@ -13,6 +13,7 @@ import com.example.movilexplora.domain.ai.CategoryRecommender
 import com.example.movilexplora.domain.model.Post
 import com.example.movilexplora.domain.model.PostStatus
 import com.example.movilexplora.domain.repository.PostRepository
+import com.example.movilexplora.domain.repository.ImageRepository
 import com.example.movilexplora.data.datastore.SessionDataStore
 import com.example.movilexplora.domain.repository.UserRepository
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,6 +22,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
+import android.net.Uri
 
 data class CreatePostState(
     val selectedCategory: String? = null,
@@ -28,12 +30,14 @@ data class CreatePostState(
     val selectedPriceRange: Int = 2,
     val selectedTime: String? = null,
     val address: String = "",
-    val isRecommendingCategory: Boolean = false
+    val isRecommendingCategory: Boolean = false,
+    val imageUri: Uri? = null
 )
 
 @HiltViewModel
 class CreatePostViewModel @Inject constructor(
     private val postRepository: PostRepository,
+    private val imageRepository: ImageRepository,
     private val sessionDataStore: SessionDataStore,
     private val userRepository: UserRepository,
     private val resources: ResourceProvider,
@@ -96,14 +100,24 @@ class CreatePostViewModel @Inject constructor(
         _state.update { it.copy(selectedTime = time) }
     }
 
+    fun onImageSelected(uri: Uri?) {
+        _state.update { it.copy(imageUri = uri) }
+    }
+
     fun publish() {
         if (title.isValid && description.isValid && (_state.value.selectedCategory != null)) {
             viewModelScope.launch {
+                _publishResult.value = RequestResult.Loading
+                
                 val userId = sessionDataStore.sessionFlow.firstOrNull()?.userId ?: "1" // Defaulting if null
 
                 // TODO: Eliminar generación aleatoria de latitud y longitud una vez que se integre el mapa interactivo.
                 val randomLat = (Math.random() * 0.8) - 0.4
                 val randomLon = (Math.random() * 0.8) - 0.4
+
+                val imageUrl = _state.value.imageUri?.let { uri ->
+                    imageRepository.uploadImage(uri)
+                } ?: ""
 
                 val newPost = Post(
                     id = System.currentTimeMillis().toString(),
@@ -113,7 +127,7 @@ class CreatePostViewModel @Inject constructor(
                     category = _state.value.selectedCategory!!,
                     price = "$".repeat(_state.value.selectedPriceRange),
                     status = PostStatus.PENDIENTE,
-                    imageUrl = "",
+                    imageUrl = imageUrl,
                     description = description.value,
                     latitude = randomLat,
                     longitude = randomLon,

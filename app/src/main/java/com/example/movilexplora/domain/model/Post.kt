@@ -7,14 +7,14 @@ enum class PostStatus {
 }
 
 data class Post(
-    val id: String,
-    val title: String,
-    val location: String,
-    val rating: Double,
-    val category: String,
-    val price: String,
+    var id: String = "",
+    val title: String = "",
+    val location: String = "",
+    val rating: Double = 0.0,
+    val category: String = "",
+    val price: String = "",
     val status: PostStatus = PostStatus.PENDIENTE,
-    val imageUrl: String,
+    val imageUrl: String = "",
     val description: String = "",
     val latitude: Double = 0.0,
     val longitude: Double = 0.0,

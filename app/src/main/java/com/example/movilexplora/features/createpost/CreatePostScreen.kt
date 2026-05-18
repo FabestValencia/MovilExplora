@@ -53,9 +53,6 @@ fun CreatePostScreen(
     val state by viewModel.state.collectAsState()
     val publishResult by viewModel.publishResult.collectAsState()
     
-    // Estado para la imagen seleccionada localmente
-    var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
-    
     // Estado para el Pop-up de éxito
     var showSuccessDialog by remember { mutableStateOf(false) }
     var publishedTitle by remember { mutableStateOf("") }
@@ -64,8 +61,7 @@ fun CreatePostScreen(
     val galleryLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
-        selectedImageUri = uri
-        // Opcional: pasar el URI al viewModel si este lo requiere para subirlo
+        viewModel.onImageSelected(uri)
     }
 
     LaunchedEffect(publishResult) {
@@ -148,9 +144,9 @@ fun CreatePostScreen(
                     .clickable { galleryLauncher.launch("image/*") },
                 contentAlignment = Alignment.Center
             ) {
-                if (selectedImageUri != null) {
+                if (state.imageUri != null) {
                     AsyncImage(
-                        model = selectedImageUri,
+                        model = state.imageUri,
                         contentDescription = "Imagen seleccionada",
                         modifier = Modifier.fillMaxSize(),
                         contentScale = ContentScale.Crop
@@ -342,15 +338,20 @@ fun CreatePostScreen(
             // Publish Button
             Button(
                 onClick = { viewModel.publish() },
+                enabled = publishResult !is com.example.movilexplora.core.utils.RequestResult.Loading,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp),
                 shape = RoundedCornerShape(28.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = Turquoise)
             ) {
-                Icon(imageVector = Icons.Default.FileUpload, contentDescription = null)
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(text = stringResource(R.string.createpostscreen_publicar_11), fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                if (publishResult is com.example.movilexplora.core.utils.RequestResult.Loading) {
+                    CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
+                } else {
+                    Icon(imageVector = Icons.Default.FileUpload, contentDescription = null)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(text = stringResource(R.string.createpostscreen_publicar_11), fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                }
             }
             
             Spacer(modifier = Modifier.height(40.dp))

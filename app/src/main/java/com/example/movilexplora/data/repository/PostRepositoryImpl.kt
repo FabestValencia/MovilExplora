@@ -24,25 +24,30 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Singleton
 
+import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.tasks.await
+
 @Singleton
 class PostRepositoryImpl @Inject constructor(
     private val commentDao: CommentDao,
     private val likeDao: LikeDao,
     private val postDao: PostDao,
-    private val apiService: ApiService
+    firestore: FirebaseFirestore
 ) : PostRepository {
+    private val collection = firestore.collection("posts")
     private val scope = CoroutineScope(Dispatchers.IO)
 
     init {
-        scope.launch {
-            try {
-                // Sincronización con Retrofit (Simulada)
-                val remotePosts = apiService.getPosts()
-                remotePosts.forEach { remote ->
-                    postDao.insertPost(remote.toLocalEntity())
+        // Sincronizar posts desde Firestore en tiempo real
+        collection.addSnapshotListener { snapshot, _ ->
+            snapshot?.let {
+                scope.launch {
+                    val posts = it.documents.mapNotNull { doc ->
+                        doc.toObject(Post::class.java)?.apply { id = doc.id }
+                    }
+                    // Actualizar caché local
+                    postDao.insertPosts(posts.map { it.toEntity() })
                 }
-            } catch (e: Exception) {
-                // Manejar error de red
             }
         }
     }
@@ -94,14 +99,14 @@ class PostRepositoryImpl @Inject constructor(
     }
 
     override suspend fun addPost(post: Post) {
-        postDao.insertPost(post.toEntity())
+        val docRef = if (post.id.isEmpty()) collection.document() else collection.document(post.id)
+        val postToSave = post.copy(id = docRef.id)
+        docRef.set(postToSave).await()
     }
 
     override suspend fun updatePostStatus(postId: String, status: PostStatus, rejectionReason: String?) {
-        if (rejectionReason != null) {
-            postDao.updatePostStatusWithReason(postId, status.name, rejectionReason)
-        } else {
-            postDao.updatePostStatus(postId, status.name)
-        }
+        val updates = mutableMapOf<String, Any>("status" to status.name)
+        rejectionReason?.let { updates["rejectionReason"] = it }
+        collection.document(postId).update(updates).await()
     }
 }

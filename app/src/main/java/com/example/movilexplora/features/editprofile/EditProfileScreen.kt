@@ -126,8 +126,16 @@ fun EditProfileScreen(
                     }
                 },
                 actions = {
-                    TextButton(onClick = { viewModel.updateProfile() }, enabled = viewModel.isFormValid) {
-                        Text(stringResource(R.string.edit_profile_save), color = Turquoise, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                    val isSaving = updateResult is com.example.movilexplora.core.utils.RequestResult.Loading
+                    TextButton(
+                        onClick = { viewModel.updateProfile() },
+                        enabled = viewModel.isFormValid && !isSaving
+                    ) {
+                        if (isSaving) {
+                            CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp, color = Turquoise)
+                        } else {
+                            Text(stringResource(R.string.edit_profile_save), color = Turquoise, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                        }
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)

@@ -62,22 +62,29 @@ class RegisterViewModel @Inject constructor(
         confirmPassword.markAsDirty()
 
         if (isFormValid) {
-            // TODO: Eliminar direcciones (lat/lon quemadas mediante String) cuando se agregue mapa al registro de usuario.
-            val randomLat = (Math.random() * 0.8) - 0.4
-            val randomLon = (Math.random() * 0.8) - 0.4
-
-            val newUser = User(
-                id = UUID.randomUUID().toString(),
-                name = nombre.value,
-                email = email.value,
-                password = password.value,
-                city = resources.getString(R.string.mock_city),
-                address = resources.getString(R.string.mock_lat_lon_format, randomLat, randomLon),
-                profilePictureUrl = ""
-            )
             viewModelScope.launch {
-                userRepository.save(newUser)
-                _registerResult.value = RequestResult.Success(resources.getString(R.string.register_success_spanish))
+                _registerResult.value = RequestResult.Loading
+                
+                // TODO: Eliminar direcciones (lat/lon quemadas mediante String) cuando se agregue mapa al registro de usuario.
+                val randomLat = (Math.random() * 0.8) - 0.4
+                val randomLon = (Math.random() * 0.8) - 0.4
+
+                val newUser = User(
+                    id = "", // Se generará en Firebase
+                    name = nombre.value,
+                    email = email.value,
+                    password = password.value,
+                    city = resources.getString(R.string.mock_city),
+                    address = resources.getString(R.string.mock_lat_lon_format, randomLat, randomLon),
+                    profilePictureUrl = ""
+                )
+
+                _registerResult.value = runCatching {
+                    userRepository.save(newUser)
+                }.fold(
+                    onSuccess = { RequestResult.Success(resources.getString(R.string.register_success_spanish)) },
+                    onFailure = { RequestResult.Failure(it.message ?: "Error al registrar") }
+                )
             }
         }
     }

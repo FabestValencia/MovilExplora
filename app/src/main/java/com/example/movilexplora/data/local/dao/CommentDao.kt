@@ -13,8 +13,8 @@ interface CommentDao {
     fun getCommentsByPostId(postId: String): Flow<List<CommentEntity>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertComment(comment: CommentEntity)
+    suspend fun insertComment(comment: CommentEntity): Long
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
-    suspend fun insertComments(comments: List<CommentEntity>)
+    suspend fun insertComments(comments: List<CommentEntity>): List<Long>
 }

@@ -16,10 +16,10 @@ interface PostDao {
     fun getPostById(id: String): Flow<PostEntity?>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertPost(post: PostEntity)
+    suspend fun insertPost(post: PostEntity): Long
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertPosts(posts: List<PostEntity>)
+    suspend fun insertPosts(posts: List<PostEntity>): List<Long>
 
     @Query("UPDATE posts SET status = :status WHERE id = :postId")
     suspend fun updatePostStatus(postId: String, status: String): Int

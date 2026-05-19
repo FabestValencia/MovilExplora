@@ -12,7 +12,7 @@ interface LikeDao {
     @Query("SELECT * FROM likes WHERE itemType = 'EVENT'")
     fun getAllEventLikes(): Flow<List<LikeEntity>>
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertLike(like: LikeEntity)
+    suspend fun insertLike(like: LikeEntity): Long
     @Query("DELETE FROM likes WHERE itemId = :itemId AND userId = :userId AND itemType = :itemType")
     suspend fun deleteLike(itemId: String, userId: String, itemType: String): Int
     @Query("SELECT COUNT(*) FROM likes WHERE itemId = :itemId AND userId = :userId AND itemType = :itemType")

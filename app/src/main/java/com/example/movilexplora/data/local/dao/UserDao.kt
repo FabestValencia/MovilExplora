@@ -13,7 +13,7 @@ interface UserDao {
     fun getAllUsers(): Flow<List<UserEntity>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertUser(user: UserEntity)
+    suspend fun insertUser(user: UserEntity): Long
 
     @Query("SELECT * FROM users WHERE id = :id LIMIT 1")
     suspend fun getUserById(id: String): UserEntity?

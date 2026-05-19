@@ -14,13 +14,13 @@ interface EventDao {
     fun getAllEvents(): Flow<List<EventEntity>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertEvent(event: EventEntity)
+    suspend fun insertEvent(event: EventEntity): Long
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertEvents(events: List<EventEntity>)
+    suspend fun insertEvents(events: List<EventEntity>): List<Long>
 
     @Update
-    suspend fun updateEvent(event: EventEntity)
+    suspend fun updateEvent(event: EventEntity): Int
 
     @Query("UPDATE events SET status = :status WHERE id = :eventId")
     suspend fun updateEventStatus(eventId: String, status: String): Int

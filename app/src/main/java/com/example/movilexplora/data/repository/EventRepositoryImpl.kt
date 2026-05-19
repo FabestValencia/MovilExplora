@@ -21,7 +21,7 @@ import kotlinx.coroutines.launch
 @Singleton
 class EventRepositoryImpl @Inject constructor(
     private val eventDao: EventDao,
-    firestore: FirebaseFirestore
+    private val firestore: FirebaseFirestore
 ) : EventRepository {
     private val collection = firestore.collection("events")
     private val scope = CoroutineScope(Dispatchers.IO)
@@ -34,6 +34,8 @@ class EventRepositoryImpl @Inject constructor(
                     val events = it.documents.mapNotNull { doc ->
                         doc.toObject(Event::class.java)?.apply { id = doc.id }
                     }
+                    // Actualizar caché local: limpiar y reinsertar
+                    eventDao.clearAll()
                     eventDao.insertEvents(events.map { it.toEntity() })
                 }
             }

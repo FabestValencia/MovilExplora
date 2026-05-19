@@ -29,6 +29,33 @@ import com.example.movilexplora.core.utils.ValidatedField
 import com.example.movilexplora.ui.theme.GrayText
 import com.example.movilexplora.ui.theme.Turquoise
 
+import com.example.movilexplora.core.component.DropdownMenu
+import androidx.compose.material.icons.filled.Home
+
+@Composable
+fun ConfirmAlertDialog(
+    onDismiss: () -> Unit,
+    onConfirm: () -> Unit,
+    title: String,
+    text: String
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(text = title) },
+        text = { Text(text = text) },
+        confirmButton = {
+            TextButton(onClick = onConfirm) {
+                Text("Confirmar")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancelar")
+            }
+        }
+    )
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RegisterScreen(
@@ -37,6 +64,7 @@ fun RegisterScreen(
     viewModel: RegisterViewModel = hiltViewModel()
 ) {
     val registerResult by viewModel.registerResult.collectAsState()
+    var showConfirmDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(registerResult) {
         when (registerResult) {
@@ -49,6 +77,18 @@ fun RegisterScreen(
             }
             else -> {}
         }
+    }
+
+    if (showConfirmDialog) {
+        ConfirmAlertDialog(
+            onDismiss = { showConfirmDialog = false },
+            onConfirm = {
+                showConfirmDialog = false
+                viewModel.register()
+            },
+            title = "¿Confirmar Registro?",
+            text = "¿Está seguro de que desea crear esta cuenta con los datos proporcionados?"
+        )
     }
 
     Scaffold(
@@ -91,6 +131,16 @@ fun RegisterScreen(
             Spacer(modifier = Modifier.height(32.dp))
 
             RegisterField(label = stringResource(R.string.register_name_label), placeholder = stringResource(R.string.register_name_placeholder), field = viewModel.nombre)
+            
+            DropdownMenu(
+                value = viewModel.city.value,
+                onValueChange = { viewModel.city.onChange(it) },
+                label = stringResource(R.string.editprofilescreen_ubicaci_n_8),
+                icon = Icons.Default.Home,
+                list = viewModel.cities,
+                supportingText = viewModel.city.error
+            )
+
             RegisterField(label = stringResource(R.string.register_email_label), placeholder = stringResource(R.string.register_email_placeholder), field = viewModel.email, keyboardType = KeyboardType.Email)
             RegisterField(label = stringResource(R.string.register_password_label), placeholder = stringResource(R.string.register_password_placeholder), field = viewModel.password, isPassword = true)
             RegisterField(label = stringResource(R.string.register_confirm_password_label), placeholder = stringResource(R.string.register_confirm_password_placeholder), field = viewModel.confirmPassword, isPassword = true)
@@ -98,12 +148,13 @@ fun RegisterScreen(
             Spacer(modifier = Modifier.height(40.dp))
 
             Button(
-                onClick = { viewModel.register() },
+                onClick = { showConfirmDialog = true },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp),
                 shape = RoundedCornerShape(28.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Turquoise)
+                colors = ButtonDefaults.buttonColors(containerColor = Turquoise),
+                enabled = viewModel.isFormValid
             ) {
                 Text(text = stringResource(R.string.register_button), fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color.White)
             }

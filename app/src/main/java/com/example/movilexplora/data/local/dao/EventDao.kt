@@ -23,8 +23,11 @@ interface EventDao {
     suspend fun updateEvent(event: EventEntity)
 
     @Query("UPDATE events SET status = :status WHERE id = :eventId")
-    suspend fun updateEventStatus(eventId: String, status: String)
+    suspend fun updateEventStatus(eventId: String, status: String): Int
 
     @Query("UPDATE events SET status = :status, rejectionReason = :rejectionReason WHERE id = :eventId")
-    suspend fun updateEventStatusWithReason(eventId: String, status: String, rejectionReason: String)
+    suspend fun updateEventStatusWithReason(eventId: String, status: String, rejectionReason: String): Int
+
+    @Query("DELETE FROM events")
+    suspend fun clearAll(): Int
 }

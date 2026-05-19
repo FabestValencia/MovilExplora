@@ -43,6 +43,29 @@ import com.example.movilexplora.ui.theme.Turquoise
 import com.example.movilexplora.ui.theme.getCategoryColor
 import com.example.movilexplora.ui.theme.getCategoryIcon
 
+import android.Manifest
+import android.content.Context
+import androidx.core.content.FileProvider
+import java.io.File
+import androidx.compose.ui.platform.LocalContext
+import com.example.movilexplora.core.component.ImagePickerBottomSheet
+
+private fun createTempImageUri(context: Context): Uri {
+    val tempFile = File.createTempFile(
+        "post_photo_",
+        ".jpg",
+        context.cacheDir
+    ).apply {
+        createNewFile()
+        deleteOnExit()
+    }
+    return FileProvider.getUriForFile(
+        context,
+        "${context.packageName}.fileprovider",
+        tempFile
+    )
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreatePostScreen(
@@ -50,18 +73,42 @@ fun CreatePostScreen(
     onPublishSuccess: () -> Unit,
     viewModel: CreatePostViewModel = hiltViewModel()
 ) {
+    val context = LocalContext.current
     val state by viewModel.state.collectAsState()
     val publishResult by viewModel.publishResult.collectAsState()
     
     // Estado para el Pop-up de éxito
     var showSuccessDialog by remember { mutableStateOf(false) }
     var publishedTitle by remember { mutableStateOf("") }
+    
+    var showBottomSheet by remember { mutableStateOf(false) }
+    val bottomSheetState = rememberModalBottomSheetState()
+    var tempCameraUri by remember { mutableStateOf<Uri?>(null) }
 
     // Lanzador para la galería
     val galleryLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
         viewModel.onImageSelected(uri)
+    }
+
+    // Lanzador para la cámara
+    val cameraLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.TakePicture()
+    ) { success: Boolean ->
+        if (success) {
+            viewModel.onImageSelected(tempCameraUri)
+        }
+    }
+
+    // Permiso de cámara
+    val cameraPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted: Boolean ->
+        if (isGranted) {
+            tempCameraUri = createTempImageUri(context)
+            tempCameraUri?.let { cameraLauncher.launch(it) }
+        }
     }
 
     LaunchedEffect(publishResult) {
@@ -141,7 +188,7 @@ fun CreatePostScreen(
                     .border(1.dp, Color.LightGray.copy(alpha = 0.5f), RoundedCornerShape(16.dp))
                     .clip(RoundedCornerShape(16.dp))
                     .background(MaterialTheme.colorScheme.surfaceVariant)
-                    .clickable { galleryLauncher.launch("image/*") },
+                    .clickable { showBottomSheet = true },
                 contentAlignment = Alignment.Center
             ) {
                 if (state.imageUri != null) {
@@ -355,6 +402,25 @@ fun CreatePostScreen(
             }
             
             Spacer(modifier = Modifier.height(40.dp))
+        }
+
+        if (showBottomSheet) {
+            ModalBottomSheet(
+                onDismissRequest = { showBottomSheet = false },
+                sheetState = bottomSheetState
+            ) {
+                ImagePickerBottomSheet(
+                    onCameraClick = {
+                        showBottomSheet = false
+                        cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+                    },
+                    onGalleryClick = {
+                        showBottomSheet = false
+                        galleryLauncher.launch("image/*")
+                    },
+                    onDismiss = { showBottomSheet = false }
+                )
+            }
         }
     }
 }

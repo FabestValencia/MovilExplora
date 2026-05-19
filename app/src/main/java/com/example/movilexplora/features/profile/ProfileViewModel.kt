@@ -39,82 +39,102 @@ class ProfileViewModel @Inject constructor(
     private val _userPosts = MutableStateFlow<List<com.example.movilexplora.domain.model.Post>>(emptyList())
     val userPosts: StateFlow<List<com.example.movilexplora.domain.model.Post>> = _userPosts.asStateFlow()
 
+    private var profileJob: kotlinx.coroutines.Job? = null
+
     init {
-        loadUserProfile()
-
-        // Removiendo los datos quemados a solicitud del usuario. Los eventos ahora
-        // vendran organicos si se añaden o puedes enlazarlos con EventRepository
-    }
-
-    private fun loadUserProfile() {
         viewModelScope.launch {
-            val userId = sessionDataStore.sessionFlow.firstOrNull()?.userId ?: return@launch
-
-            userRepository.users.collect { users ->
-                val user = users.find { it.id == userId } ?: return@collect
-                val roleMapping = when (user.role.name) {
-                    "ADMIN" -> resourceProvider.getString(R.string.role_admin)
-                    "MODERATOR" -> resourceProvider.getString(R.string.role_moderator)
-                    else -> resourceProvider.getString(R.string.role_local_ambassador)
+            sessionDataStore.sessionFlow.collect { session ->
+                val userId = session?.userId
+                if (userId != null && userId != "guest") {
+                    profileJob?.cancel()
+                    profileJob = loadDataForUser(userId)
+                } else {
+                    _userProfile.value = null
                 }
-
-                val userPostsList = postRepository.getPosts().firstOrNull()?.filter { it.creatorId == userId } ?: emptyList()
-                _userPosts.value = userPostsList
-
-                var activeCount = 0
-                var finishedCount = 0
-                var pendingCount = 0
-                var rejectedCount = 0
-
-                userPostsList.forEach { post ->
-                    when (post.status.name) {
-                        "ACTIVO", "VERIFICADO" -> {
-                            activeCount++
-                        }
-                        "FINALIZADO" -> finishedCount++
-                        "PENDIENTE" -> {
-                            pendingCount++
-                        }
-                        "RECHAZADO" -> {
-                            rejectedCount++
-                        }
-                    }
-                }
-
-                val postCount = userPostsList.size
-
-                val userEventsList = eventRepository.getEvents().firstOrNull()?.filter { it.creatorId == userId } ?: emptyList()
-                _userEvents.value = userEventsList
-
-                val actualPoints = user.points
-                val (calculatedLevel, calcTarget) = when {
-                    actualPoints < 100 -> Pair(ReputationLevel.TURISTA, 100)
-                    actualPoints < 500 -> Pair(ReputationLevel.EXPLORADOR, 500)
-                    actualPoints < 1000 -> Pair(ReputationLevel.AVENTURERO, 1000)
-                    else -> Pair(ReputationLevel.EMBAJADOR, 2000)
-                }
-
-                _userProfile.value = UserProfile(
-                    name = user.name,
-                    email = user.email,
-                    role = roleMapping,
-                    profilePictureUrl = user.profilePictureUrl,
-                    activePosts = activeCount,
-                    finishedPosts = finishedCount,
-                    pendingPosts = pendingCount,
-                    rejectedPosts = rejectedCount,
-                    currentXp = actualPoints,
-                    maxXp = calcTarget,
-                    reputationLevel = calculatedLevel,
-                    achievements = listOf(
-                        Achievement(resourceProvider.getString(R.string.achievement_1_title), resourceProvider.getString(R.string.achievement_1_desc), "celebration", postCount >= 1),
-                        Achievement(resourceProvider.getString(R.string.achievement_2_title), resourceProvider.getString(R.string.achievement_2_desc), "verified", postCount >= 10),
-                        Achievement(resourceProvider.getString(R.string.achievement_3_title), resourceProvider.getString(R.string.achievement_3_desc), "map", activeCount >= 5),
-                        Achievement(resourceProvider.getString(R.string.achievement_4_title), resourceProvider.getString(R.string.achievement_4_desc), "stars", postCount >= 20)
-                    )
-                )
             }
         }
+    }
+
+    private fun loadDataForUser(userId: String): kotlinx.coroutines.Job {
+        return viewModelScope.launch {
+            kotlinx.coroutines.flow.combine(
+                userRepository.users,
+                postRepository.getPosts(),
+                eventRepository.getEvents()
+            ) { users, posts, events ->
+                val user = users.find { it.id == userId }
+                Triple(user, posts, events)
+            }.collect { (user, posts, events) ->
+                if (user != null) {
+                    updateProfileStateWithData(user, posts, events)
+                } else {
+                    // Intento de carga directa si no está en la lista general
+                    userRepository.findById(userId)?.let { directUser ->
+                        updateProfileStateWithData(directUser, posts, events)
+                    }
+                }
+            }
+        }
+    }
+
+    private fun updateProfileStateWithData(
+        user: com.example.movilexplora.domain.model.User,
+        allPosts: List<com.example.movilexplora.domain.model.Post>,
+        allEvents: List<Event>
+    ) {
+        val roleMapping = when (user.role.name) {
+            "ADMIN" -> resourceProvider.getString(R.string.role_admin)
+            "MODERATOR" -> resourceProvider.getString(R.string.role_moderator)
+            else -> resourceProvider.getString(R.string.role_local_ambassador)
+        }
+
+        val userPostsList = allPosts.filter { it.creatorId == user.id }
+        _userPosts.value = userPostsList
+
+        var activeCount = 0
+        var finishedCount = 0
+        var pendingCount = 0
+        var rejectedCount = 0
+
+        userPostsList.forEach { post ->
+            when (post.status.name) {
+                "ACTIVO", "VERIFICADO" -> activeCount++
+                "FINALIZADO" -> finishedCount++
+                "PENDIENTE" -> pendingCount++
+                "RECHAZADO" -> rejectedCount++
+            }
+        }
+
+        val userEventsList = allEvents.filter { it.creatorId == user.id }
+        _userEvents.value = userEventsList
+
+        val actualPoints = user.points
+        val (calculatedLevel, calcTarget) = when {
+            actualPoints < 100 -> Pair(ReputationLevel.TURISTA, 100)
+            actualPoints < 500 -> Pair(ReputationLevel.EXPLORADOR, 500)
+            actualPoints < 1000 -> Pair(ReputationLevel.AVENTURERO, 1000)
+            else -> Pair(ReputationLevel.EMBAJADOR, 2000)
+        }
+
+        _userProfile.value = UserProfile(
+            name = user.name,
+            email = user.email,
+            role = roleMapping,
+            profilePictureUrl = user.profilePictureUrl,
+            activePosts = activeCount,
+            finishedPosts = finishedCount,
+            pendingPosts = pendingCount,
+            rejectedPosts = rejectedCount,
+            currentXp = actualPoints,
+            maxXp = calcTarget,
+            reputationLevel = calculatedLevel,
+            achievements = listOf(
+                Achievement(resourceProvider.getString(R.string.achievement_1_title), resourceProvider.getString(R.string.achievement_1_desc), "celebration", userPostsList.size >= 1),
+                Achievement(resourceProvider.getString(R.string.achievement_2_title), resourceProvider.getString(R.string.achievement_2_desc), "verified", userPostsList.size >= 10),
+                Achievement(resourceProvider.getString(R.string.achievement_3_title), resourceProvider.getString(R.string.achievement_3_desc), "map", activeCount >= 5),
+                Achievement(resourceProvider.getString(R.string.achievement_4_title), resourceProvider.getString(R.string.achievement_4_desc), "stars", userPostsList.size >= 20)
+            )
+        )
     }
 
     fun deleteAccount() {

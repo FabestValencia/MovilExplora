@@ -22,11 +22,14 @@ interface PostDao {
     suspend fun insertPosts(posts: List<PostEntity>)
 
     @Query("UPDATE posts SET status = :status WHERE id = :postId")
-    suspend fun updatePostStatus(postId: String, status: String)
+    suspend fun updatePostStatus(postId: String, status: String): Int
 
     @Query("UPDATE posts SET status = :status, rejectionReason = :reason WHERE id = :postId")
-    suspend fun updatePostStatusWithReason(postId: String, status: String, reason: String?)
+    suspend fun updatePostStatusWithReason(postId: String, status: String, reason: String?): Int
 
     @Query("DELETE FROM posts WHERE id = :postId")
-    suspend fun deletePost(postId: String)
+    suspend fun deletePost(postId: String): Int
+
+    @Query("DELETE FROM posts")
+    suspend fun clearAll(): Int
 }

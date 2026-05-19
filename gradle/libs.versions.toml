@@ -1,5 +1,5 @@
 [versions]
-agp = "8.13.2"
+agp = "9.2.1"
 coreKtx = "1.15.0"
 retrofit = "2.11.0"
 generative-ai = "0.9.0"
@@ -8,14 +8,14 @@ junitVersion = "1.2.1"
 espressoCore = "3.6.1"
 lifecycleRuntimeKtx = "2.8.7"
 activityCompose = "1.10.1"
-kotlin = "2.1.10"
+kotlin = "2.2.10"
 composeBom = "2025.02.00"
 runtime = "1.7.5"
 lifecycleViewmodelCompose = "2.8.7"
 navigationCompose = "2.8.8"
 mapsCompose = "4.4.1"
 playServicesMaps = "18.2.0"
-ksp = "2.1.10-1.0.30"
+ksp = "2.3.2"
 hilt = "2.55"
 hiltNavigationCompose = "1.2.0"
 coreKtxVersion = "1.18.0"
@@ -27,6 +27,9 @@ kotlinxCoroutinesPlayServices = "1.10.1"
 cloudinary = "3.1.2"
 firebase-bom = "33.9.0"
 google-services = "4.4.2"
+credentials = "1.5.0-rc01"
+googleid = "1.1.1"
+playServicesAuth = "21.3.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -68,6 +71,10 @@ cloudinary-android = { group = "com.cloudinary", name = "cloudinary-android", ve
 firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.ref = "firebase-bom" }
 firebase-auth = { group = "com.google.firebase", name = "firebase-auth" }
 firebase-firestore = { group = "com.google.firebase", name = "firebase-firestore" }
+play-services-auth = { group = "com.google.android.gms", name = "play-services-auth", version.ref = "playServicesAuth" }
+androidx-credentials = { group = "androidx.credentials", name = "credentials", version.ref = "credentials" }
+androidx-credentials-play-services-auth = { group = "androidx.credentials", name = "credentials-play-services-auth", version.ref = "credentials" }
+googleid = { group = "com.google.android.libraries.identity.googleid", name = "googleid", version.ref = "googleid" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

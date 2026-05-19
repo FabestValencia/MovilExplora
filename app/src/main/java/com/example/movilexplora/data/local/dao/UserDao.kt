@@ -22,5 +22,8 @@ interface UserDao {
     suspend fun login(email: String, password: String): UserEntity?
 
     @Query("UPDATE users SET points = points + :points WHERE id = :userId")
-    suspend fun addPoints(userId: String, points: Int)
+    suspend fun addPoints(userId: String, points: Int): Int
+
+    @Query("DELETE FROM users")
+    suspend fun clearAll(): Int
 }

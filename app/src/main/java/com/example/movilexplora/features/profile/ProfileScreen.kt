@@ -104,7 +104,12 @@ fun ProfileScreen(
             )
         }
     ) { paddingValues ->
-        userProfile?.let { profile ->
+        if (userProfile == null) {
+            Box(modifier = Modifier.fillMaxSize().padding(paddingValues), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator(color = Turquoise)
+            }
+        } else {
+            userProfile?.let { profile ->
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -334,6 +339,7 @@ fun ProfileScreen(
             }
         }
     }
+}
 }
 
 @Composable

@@ -15,9 +15,9 @@ import com.example.movilexplora.data.local.entity.EventEntity
 
 @Database(entities = [UserEntity::class, CommentEntity::class, LikeEntity::class, PostEntity::class, EventEntity::class], version = 8, exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
-    abstract val userDao: UserDao
-    abstract val commentDao: CommentDao
-    abstract val likeDao: LikeDao
-    abstract val postDao: PostDao
-    abstract val eventDao: EventDao
+    abstract fun userDao(): UserDao
+    abstract fun commentDao(): CommentDao
+    abstract fun likeDao(): LikeDao
+    abstract fun postDao(): PostDao
+    abstract fun eventDao(): EventDao
 }

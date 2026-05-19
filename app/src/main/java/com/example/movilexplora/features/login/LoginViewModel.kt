@@ -69,6 +69,24 @@ class LoginViewModel @Inject constructor(
         }
     }
 
+    fun loginWithGoogle(idToken: String) {
+        viewModelScope.launch {
+            _loginResult.value = RequestResult.Loading
+            runCatching {
+                userRepository.loginWithGoogle(idToken)
+            }.onSuccess { user ->
+                if (user != null) {
+                    sessionDataStore.saveSession(userId = user.id, role = user.role)
+                    _loginResult.value = RequestResult.Success(resources.getString(R.string.login_success))
+                } else {
+                    _loginResult.value = RequestResult.Failure("Error al autenticar con Google")
+                }
+            }.onFailure {
+                _loginResult.value = RequestResult.Failure(it.message ?: "Error en autenticación Google")
+            }
+        }
+    }
+
     fun resetLoginResult() {
         _loginResult.value = null
     }

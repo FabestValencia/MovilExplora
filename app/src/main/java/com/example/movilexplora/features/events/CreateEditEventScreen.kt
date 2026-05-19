@@ -67,6 +67,30 @@ import com.example.movilexplora.ui.theme.Turquoise
 import com.example.movilexplora.ui.theme.getCategoryColor
 import com.example.movilexplora.ui.theme.getCategoryIcon
 
+import android.Manifest
+import android.content.Context
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.core.content.FileProvider
+import java.io.File
+import com.example.movilexplora.core.component.ImagePickerBottomSheet
+
+private fun createTempImageUri(context: Context): Uri {
+    val tempFile = File.createTempFile(
+        "event_photo_",
+        ".jpg",
+        context.cacheDir
+    ).apply {
+        createNewFile()
+        deleteOnExit()
+    }
+    return FileProvider.getUriForFile(
+        context,
+        "${context.packageName}.fileprovider",
+        tempFile
+    )
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreateEditEventScreen(
@@ -84,6 +108,11 @@ fun CreateEditEventScreen(
     var imageUri by remember { mutableStateOf<Uri?>(null) } // URI de la imagen seleccionada
 
     val context = LocalContext.current
+    
+    var showBottomSheet by remember { mutableStateOf(false) }
+    val bottomSheetState = rememberModalBottomSheetState()
+    var tempCameraUri by remember { mutableStateOf<Uri?>(null) }
+
     val calendar = Calendar.getInstance()
 
     val startDatePickerDialog = DatePickerDialog(
@@ -105,6 +134,23 @@ fun CreateEditEventScreen(
     val galleryLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? -> imageUri = uri }
+
+    val cameraLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.TakePicture()
+    ) { success: Boolean ->
+        if (success) {
+            imageUri = tempCameraUri
+        }
+    }
+
+    val cameraPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted: Boolean ->
+        if (isGranted) {
+            tempCameraUri = createTempImageUri(context)
+            tempCameraUri?.let { cameraLauncher.launch(it) }
+        }
+    }
 
     val isEditing = (eventId != null) && (eventId != "{eventId}")
 
@@ -173,7 +219,7 @@ fun CreateEditEventScreen(
                     .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(12.dp))
                     .border(2.dp, Turquoise.copy(alpha = 0.4f), RoundedCornerShape(12.dp))
                     .clip(RoundedCornerShape(12.dp))
-                    .clickable { galleryLauncher.launch("image/*") },
+                    .clickable { showBottomSheet = true },
                 contentAlignment = Alignment.Center
             ) {
                 if (imageUri != null) {
@@ -358,6 +404,25 @@ fun CreateEditEventScreen(
             }
             
             Spacer(modifier = Modifier.height(32.dp))
+        }
+
+        if (showBottomSheet) {
+            ModalBottomSheet(
+                onDismissRequest = { showBottomSheet = false },
+                sheetState = bottomSheetState
+            ) {
+                ImagePickerBottomSheet(
+                    onCameraClick = {
+                        showBottomSheet = false
+                        cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+                    },
+                    onGalleryClick = {
+                        showBottomSheet = false
+                        galleryLauncher.launch("image/*")
+                    },
+                    onDismiss = { showBottomSheet = false }
+                )
+            }
         }
     }
 }

@@ -32,7 +32,7 @@ class PostRepositoryImpl @Inject constructor(
     private val commentDao: CommentDao,
     private val likeDao: LikeDao,
     private val postDao: PostDao,
-    firestore: FirebaseFirestore
+    private val firestore: FirebaseFirestore
 ) : PostRepository {
     private val collection = firestore.collection("posts")
     private val scope = CoroutineScope(Dispatchers.IO)
@@ -45,7 +45,8 @@ class PostRepositoryImpl @Inject constructor(
                     val posts = it.documents.mapNotNull { doc ->
                         doc.toObject(Post::class.java)?.apply { id = doc.id }
                     }
-                    // Actualizar caché local
+                    // Actualizar caché local: limpiar y reinsertar para mantener sincronización exacta
+                    postDao.clearAll()
                     postDao.insertPosts(posts.map { it.toEntity() })
                 }
             }

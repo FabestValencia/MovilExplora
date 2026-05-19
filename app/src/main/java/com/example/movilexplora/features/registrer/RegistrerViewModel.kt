@@ -50,7 +50,13 @@ class RegisterViewModel @Inject constructor(
     }
 
     val isFormValid: Boolean
-        get() = nombre.isValid && email.isValid && password.isValid && confirmPassword.isValid
+        get() = nombre.isValid && email.isValid && password.isValid && confirmPassword.isValid && city.isValid
+
+    val cities = listOf("Armenia", "Pereira", "Manizales", "Calarca", "Circasia")
+    
+    val city = ValidatedField("") { value ->
+        if (value.isEmpty()) "Selecciona una ciudad" else null
+    }
 
     private val _registerResult = MutableStateFlow<RequestResult?>(null)
     val registerResult: StateFlow<RequestResult?> = _registerResult.asStateFlow()
@@ -60,6 +66,7 @@ class RegisterViewModel @Inject constructor(
         email.markAsDirty()
         password.markAsDirty()
         confirmPassword.markAsDirty()
+        city.markAsDirty()
 
         if (isFormValid) {
             viewModelScope.launch {
@@ -74,7 +81,7 @@ class RegisterViewModel @Inject constructor(
                     name = nombre.value,
                     email = email.value,
                     password = password.value,
-                    city = resources.getString(R.string.mock_city),
+                    city = city.value,
                     address = resources.getString(R.string.mock_lat_lon_format, randomLat, randomLon),
                     profilePictureUrl = ""
                 )

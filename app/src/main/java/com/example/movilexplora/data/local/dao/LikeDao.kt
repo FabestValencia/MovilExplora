@@ -14,7 +14,7 @@ interface LikeDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertLike(like: LikeEntity)
     @Query("DELETE FROM likes WHERE itemId = :itemId AND userId = :userId AND itemType = :itemType")
-    suspend fun deleteLike(itemId: String, userId: String, itemType: String)
+    suspend fun deleteLike(itemId: String, userId: String, itemType: String): Int
     @Query("SELECT COUNT(*) FROM likes WHERE itemId = :itemId AND userId = :userId AND itemType = :itemType")
     suspend fun isLiked(itemId: String, userId: String, itemType: String): Int
 }

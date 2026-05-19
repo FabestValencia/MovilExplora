@@ -27,24 +27,24 @@ object AppModule {
     @Provides
     @Singleton
     fun provideUserDao(database: AppDatabase): UserDao {
-        return database.userDao
+        return database.userDao()
     }
 
     @Provides
     @Singleton
-    fun provideCommentDao(database: AppDatabase) = database.commentDao
+    fun provideCommentDao(database: AppDatabase) = database.commentDao()
 
     @Provides
     @Singleton
-    fun provideLikeDao(database: AppDatabase) = database.likeDao
+    fun provideLikeDao(database: AppDatabase) = database.likeDao()
 
     @Provides
     @Singleton
-    fun providePostDao(database: AppDatabase) = database.postDao
+    fun providePostDao(database: AppDatabase) = database.postDao()
 
     @Provides
     @Singleton
-    fun provideEventDao(database: AppDatabase) = database.eventDao
+    fun provideEventDao(database: AppDatabase) = database.eventDao()
 
     @Provides
     @Singleton

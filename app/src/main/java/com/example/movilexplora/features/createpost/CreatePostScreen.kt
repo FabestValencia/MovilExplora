@@ -1,5 +1,8 @@
 package com.example.movilexplora.features.createpost
 
+import android.Manifest
+import android.content.Context
+import android.content.pm.PackageManager
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -30,25 +33,26 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.example.movilexplora.R
+import com.example.movilexplora.core.component.ImagePickerBottomSheet
+import com.example.movilexplora.core.component.OnboardingPermissionDialog
+import com.example.movilexplora.features.onboarding.OnboardingViewModel
+import com.example.movilexplora.features.onboarding.PermissionType
 import com.example.movilexplora.ui.theme.GrayText
 import com.example.movilexplora.ui.theme.Turquoise
 import com.example.movilexplora.ui.theme.getCategoryColor
 import com.example.movilexplora.ui.theme.getCategoryIcon
-
-import android.Manifest
-import android.content.Context
-import androidx.core.content.FileProvider
 import java.io.File
-import androidx.compose.ui.platform.LocalContext
-import com.example.movilexplora.core.component.ImagePickerBottomSheet
 
 private fun createTempImageUri(context: Context): Uri {
     val tempFile = File.createTempFile(
@@ -71,10 +75,12 @@ private fun createTempImageUri(context: Context): Uri {
 fun CreatePostScreen(
     onNavigateBack: () -> Unit,
     onPublishSuccess: () -> Unit,
-    viewModel: CreatePostViewModel = hiltViewModel()
+    viewModel: CreatePostViewModel = hiltViewModel(),
+    onboardingViewModel: OnboardingViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
     val state by viewModel.state.collectAsState()
+    val onboardingState by onboardingViewModel.state.collectAsState()
     val publishResult by viewModel.publishResult.collectAsState()
     
     // Estado para el Pop-up de éxito
@@ -109,6 +115,34 @@ fun CreatePostScreen(
             tempCameraUri = createTempImageUri(context)
             tempCameraUri?.let { cameraLauncher.launch(it) }
         }
+    }
+
+    val triggerCamera = {
+        if (ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
+            tempCameraUri = createTempImageUri(context)
+            tempCameraUri?.let { cameraLauncher.launch(it) }
+        } else {
+            cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+        }
+    }
+
+    val triggerGallery = {
+        galleryLauncher.launch("image/*")
+    }
+
+    // Permission Dialog
+    onboardingState.showPermissionDialog?.let { permissionType ->
+        OnboardingPermissionDialog(
+            permissionType = permissionType,
+            onChoiceMade = { always ->
+                onboardingViewModel.onPermissionChoice(permissionType, always)
+                if (permissionType == PermissionType.CAMERA) triggerCamera()
+                else if (permissionType == PermissionType.GALLERY) triggerGallery()
+            },
+            onDismiss = {
+                onboardingViewModel.dismissPermissionDialog()
+            }
+        )
     }
 
     LaunchedEffect(publishResult) {
@@ -240,6 +274,46 @@ fun CreatePostScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
+            // Description Field
+            Text(text = stringResource(R.string.createpostscreen_descripci_n_6), fontSize = 14.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
+            Spacer(modifier = Modifier.height(8.dp))
+            OutlinedTextField(
+                value = viewModel.description.value,
+                onValueChange = { viewModel.description.onChange(it) },
+                modifier = Modifier.fillMaxWidth().height(120.dp),
+                placeholder = { Text(stringResource(R.string.create_post_placeholder_desc), color = GrayText.copy(alpha = 0.4f)) },
+                shape = RoundedCornerShape(12.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    unfocusedBorderColor = Color.Transparent
+                )
+            )
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Location Section
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(text = stringResource(R.string.createpostscreen_ubicaci_n_8), fontSize = 14.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
+                Text(text = stringResource(R.string.createpostscreen_pin_interactivo_9), fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Turquoise)
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(150.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
+            ) {
+                Text(stringResource(R.string.create_post_map_placeholder), modifier = Modifier.align(Alignment.Center), color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
             // Category Section
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -298,24 +372,6 @@ fun CreatePostScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Description Field
-            Text(text = stringResource(R.string.createpostscreen_descripci_n_6), fontSize = 14.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
-            Spacer(modifier = Modifier.height(8.dp))
-            OutlinedTextField(
-                value = viewModel.description.value,
-                onValueChange = { viewModel.description.onChange(it) },
-                modifier = Modifier.fillMaxWidth().height(120.dp),
-                placeholder = { Text(stringResource(R.string.create_post_placeholder_desc), color = GrayText.copy(alpha = 0.4f)) },
-                shape = RoundedCornerShape(12.dp),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
-                    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
-                    unfocusedBorderColor = Color.Transparent
-                )
-            )
-
-            Spacer(modifier = Modifier.height(24.dp))
-
             // Price Range
             Text(text = stringResource(R.string.createpostscreen_price_range_7), fontSize = 14.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
             Spacer(modifier = Modifier.height(12.dp))
@@ -331,28 +387,6 @@ fun CreatePostScreen(
                         onSelect = { viewModel.selectPriceRange(i) }
                     )
                 }
-            }
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // Location Section
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(text = stringResource(R.string.createpostscreen_ubicaci_n_8), fontSize = 14.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
-                Text(text = stringResource(R.string.createpostscreen_pin_interactivo_9), fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Turquoise)
-            }
-            Spacer(modifier = Modifier.height(8.dp))
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(150.dp)
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(MaterialTheme.colorScheme.surfaceVariant)
-            ) {
-                Text(stringResource(R.string.create_post_map_placeholder), modifier = Modifier.align(Alignment.Center), color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -412,11 +446,15 @@ fun CreatePostScreen(
                 ImagePickerBottomSheet(
                     onCameraClick = {
                         showBottomSheet = false
-                        cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+                        onboardingViewModel.checkAndShowPermissionOnboarding(PermissionType.CAMERA) {
+                            triggerCamera()
+                        }
                     },
                     onGalleryClick = {
                         showBottomSheet = false
-                        galleryLauncher.launch("image/*")
+                        onboardingViewModel.checkAndShowPermissionOnboarding(PermissionType.GALLERY) {
+                            triggerGallery()
+                        }
                     },
                     onDismiss = { showBottomSheet = false }
                 )

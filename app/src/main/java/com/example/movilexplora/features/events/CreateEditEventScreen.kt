@@ -1,22 +1,16 @@
 package com.example.movilexplora.features.events
 
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.ui.res.stringResource
-import com.example.movilexplora.R
+import android.Manifest
+import android.app.DatePickerDialog
+import android.content.Context
+import android.content.pm.PackageManager
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -26,54 +20,35 @@ import androidx.compose.material.icons.automirrored.outlined.Send
 import androidx.compose.material.icons.filled.AddAPhoto
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.CalendarToday
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.compose.runtime.collectAsState
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
-import android.app.DatePickerDialog
-import android.net.Uri
+import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
 import androidx.core.net.toUri
+import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
-import java.util.Calendar
+import com.example.movilexplora.R
+import com.example.movilexplora.core.component.ImagePickerBottomSheet
+import com.example.movilexplora.core.component.OnboardingPermissionDialog
 import com.example.movilexplora.features.createpost.CategorySelectableItem
+import com.example.movilexplora.features.onboarding.OnboardingViewModel
+import com.example.movilexplora.features.onboarding.PermissionType
 import com.example.movilexplora.ui.theme.GrayText
 import com.example.movilexplora.ui.theme.Turquoise
 import com.example.movilexplora.ui.theme.getCategoryColor
 import com.example.movilexplora.ui.theme.getCategoryIcon
-
-import android.Manifest
-import android.content.Context
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.rememberModalBottomSheetState
-import androidx.core.content.FileProvider
 import java.io.File
-import com.example.movilexplora.core.component.ImagePickerBottomSheet
+import java.util.Calendar
 
 private fun createTempImageUri(context: Context): Uri {
     val tempFile = File.createTempFile(
@@ -97,7 +72,8 @@ fun CreateEditEventScreen(
     eventId: String? = null,
     onNavigateBack: () -> Unit,
     onSaveSuccess: () -> Unit,
-    viewModel: CreateEventViewModel = hiltViewModel()
+    viewModel: CreateEventViewModel = hiltViewModel(),
+    onboardingViewModel: OnboardingViewModel = hiltViewModel()
 ) {
     var title by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
@@ -108,6 +84,7 @@ fun CreateEditEventScreen(
     var imageUri by remember { mutableStateOf<Uri?>(null) } // URI de la imagen seleccionada
 
     val context = LocalContext.current
+    val onboardingState by onboardingViewModel.state.collectAsState()
     
     var showBottomSheet by remember { mutableStateOf(false) }
     val bottomSheetState = rememberModalBottomSheetState()
@@ -150,6 +127,34 @@ fun CreateEditEventScreen(
             tempCameraUri = createTempImageUri(context)
             tempCameraUri?.let { cameraLauncher.launch(it) }
         }
+    }
+
+    val triggerCamera = {
+        if (ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
+            tempCameraUri = createTempImageUri(context)
+            tempCameraUri?.let { cameraLauncher.launch(it) }
+        } else {
+            cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+        }
+    }
+
+    val triggerGallery = {
+        galleryLauncher.launch("image/*")
+    }
+
+    // Permission Dialog
+    onboardingState.showPermissionDialog?.let { permissionType ->
+        OnboardingPermissionDialog(
+            permissionType = permissionType,
+            onChoiceMade = { always ->
+                onboardingViewModel.onPermissionChoice(permissionType, always)
+                if (permissionType == PermissionType.CAMERA) triggerCamera()
+                else if (permissionType == PermissionType.GALLERY) triggerGallery()
+            },
+            onDismiss = {
+                onboardingViewModel.dismissPermissionDialog()
+            }
+        )
     }
 
     val isEditing = (eventId != null) && (eventId != "{eventId}")
@@ -414,11 +419,15 @@ fun CreateEditEventScreen(
                 ImagePickerBottomSheet(
                     onCameraClick = {
                         showBottomSheet = false
-                        cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+                        onboardingViewModel.checkAndShowPermissionOnboarding(PermissionType.CAMERA) {
+                            triggerCamera()
+                        }
                     },
                     onGalleryClick = {
                         showBottomSheet = false
-                        galleryLauncher.launch("image/*")
+                        onboardingViewModel.checkAndShowPermissionOnboarding(PermissionType.GALLERY) {
+                            triggerGallery()
+                        }
                     },
                     onDismiss = { showBottomSheet = false }
                 )

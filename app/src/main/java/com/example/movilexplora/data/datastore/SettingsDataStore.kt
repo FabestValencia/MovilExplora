@@ -21,6 +21,42 @@ class SettingsDataStore @Inject constructor(
     private object Keys {
         val IS_DARK_MODE = booleanPreferencesKey("is_dark_mode")
         val NOTIFICATIONS_ENABLED = booleanPreferencesKey("notifications_enabled")
+        val IS_FIRST_LAUNCH = booleanPreferencesKey("is_first_launch")
+        val LOCATION_ALWAYS = booleanPreferencesKey("location_always")
+        val CAMERA_ALWAYS = booleanPreferencesKey("camera_always")
+        val GALLERY_ALWAYS = booleanPreferencesKey("gallery_gallery")
+    }
+
+    val isFirstLaunchFlow: Flow<Boolean> = context.settingsDataStore.data.map { prefs ->
+        prefs[Keys.IS_FIRST_LAUNCH] ?: true
+    }
+
+    val locationAlwaysFlow: Flow<Boolean> = context.settingsDataStore.data.map { prefs ->
+        prefs[Keys.LOCATION_ALWAYS] ?: false
+    }
+
+    val cameraAlwaysFlow: Flow<Boolean> = context.settingsDataStore.data.map { prefs ->
+        prefs[Keys.CAMERA_ALWAYS] ?: false
+    }
+
+    val galleryAlwaysFlow: Flow<Boolean> = context.settingsDataStore.data.map { prefs ->
+        prefs[Keys.GALLERY_ALWAYS] ?: false
+    }
+
+    suspend fun setFirstLaunchCompleted() {
+        context.settingsDataStore.edit { prefs ->
+            prefs[Keys.IS_FIRST_LAUNCH] = false
+        }
+    }
+
+    suspend fun setPermissionAlways(permission: String, always: Boolean) {
+        context.settingsDataStore.edit { prefs ->
+            when (permission) {
+                "LOCATION" -> prefs[Keys.LOCATION_ALWAYS] = always
+                "CAMERA" -> prefs[Keys.CAMERA_ALWAYS] = always
+                "GALLERY" -> prefs[Keys.GALLERY_ALWAYS] = always
+            }
+        }
     }
 
     val isDarkModeFlow: Flow<Boolean> = context.settingsDataStore.data.map { prefs ->

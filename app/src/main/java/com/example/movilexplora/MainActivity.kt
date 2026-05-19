@@ -199,7 +199,8 @@ private fun MainNavigation(
                 MapScreen(
                     onNavigateToCreatePost = { navController.navigate(CreatePost) },
                     onNavigateToFeed = { navController.navigate(Feed) },
-                    onNavigateToDetail = { postId -> navController.navigate(PostDetail(postId)) }
+                    onNavigateToDetail = { postId -> navController.navigate(PostDetail(postId)) },
+                    onNavigateToEventDetail = { eventId -> navController.navigate(EventDetail(eventId)) }
                 )
             }
             composable<CreatePost> {

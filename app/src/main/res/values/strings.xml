@@ -428,4 +428,19 @@
     <string name="tbd">TBD</string>
     <string name="percent_zero">+0%</string>
     <string name="percent_zero_neutral">0%</string>
+
+    <!-- Onboarding Permissions -->
+    <string name="permission_location_title">Location Permission</string>
+    <string name="permission_location_desc">We need your location to show you nearby posts and events.</string>
+    <string name="permission_camera_title">Camera Permission</string>
+    <string name="permission_camera_desc">We need access to your camera so you can take photos and post them.</string>
+    <string name="permission_gallery_title">Gallery Permission</string>
+    <string name="permission_gallery_desc">We need access to your gallery so you can select existing photos.</string>
+    <string name="permission_always">Allow always</string>
+    <string name="permission_only_once">Only this time</string>
+    <string name="permission_not_now">Not now</string>
+
+    <!-- Map Features -->
+    <string name="map_feature_post">Post</string>
+    <string name="map_feature_event">Event</string>
 </resources>

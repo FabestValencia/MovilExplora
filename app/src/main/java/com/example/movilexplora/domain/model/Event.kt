@@ -14,6 +14,8 @@ data class Event(
     val isJoined: Boolean = false,
     val likedBy: Set<String> = emptySet(), // Added for likes
     val category: String = "",
+    val latitude: Double = 0.0,
+    val longitude: Double = 0.0,
     val creatorId: String = "admin", // For identifying who created it
     val status: PostStatus = PostStatus.PENDIENTE,
     val rejectionReason: String? = null

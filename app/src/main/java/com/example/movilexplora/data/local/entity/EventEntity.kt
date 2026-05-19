@@ -19,6 +19,8 @@ data class EventEntity(
     val imageUrl: String,
     val attendeesCount: Int,
     val category: String,
+    val latitude: Double,
+    val longitude: Double,
     val creatorId: String,
     val status: String,
     val rejectionReason: String?
@@ -37,6 +39,8 @@ fun EventEntity.toDomainModel(): Event {
         imageUrl = imageUrl,
         attendeesCount = attendeesCount,
         category = category,
+        latitude = latitude,
+        longitude = longitude,
         creatorId = creatorId,
         status = PostStatus.valueOf(status),
         rejectionReason = rejectionReason
@@ -56,6 +60,8 @@ fun Event.toEntity(): EventEntity {
         imageUrl = imageUrl,
         attendeesCount = attendeesCount,
         category = category,
+        latitude = latitude,
+        longitude = longitude,
         creatorId = creatorId,
         status = status.name,
         rejectionReason = rejectionReason

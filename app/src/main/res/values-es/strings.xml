@@ -430,4 +430,19 @@
     <string name="tbd">TBD</string>
     <string name="percent_zero">+0%</string>
     <string name="percent_zero_neutral">0%</string>
+
+    <!-- Onboarding Permissions -->
+    <string name="permission_location_title">Permiso de Ubicación</string>
+    <string name="permission_location_desc">Necesitamos tu ubicación para mostrarte publicaciones y eventos cercanos a ti.</string>
+    <string name="permission_camera_title">Permiso de Cámara</string>
+    <string name="permission_camera_desc">Necesitamos acceso a tu cámara para que puedas tomar fotos y publicarlas.</string>
+    <string name="permission_gallery_title">Permiso de Galería</string>
+    <string name="permission_gallery_desc">Necesitamos acceso a tu galería para que puedas seleccionar fotos existentes.</string>
+    <string name="permission_always">Permitir siempre</string>
+    <string name="permission_only_once">Solo esta vez</string>
+    <string name="permission_not_now">Ahora no</string>
+
+    <!-- Map Features -->
+    <string name="map_feature_post">Publicación</string>
+    <string name="map_feature_event">Evento</string>
 </resources>

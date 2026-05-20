@@ -12,6 +12,8 @@ class MovilExploraApplication : Application() {
         MapboxOptions.accessToken = BuildConfig.MAPBOX_ACCESS_TOKEN
         val config = mapOf(
             "cloud_name" to "ducmuziql",
+            "api_key" to BuildConfig.CLOUDINARY_API_KEY,
+            "api_secret" to BuildConfig.CLOUDINARY_API_SECRET,
             "secure" to true
         )
         MediaManager.init(this, config)

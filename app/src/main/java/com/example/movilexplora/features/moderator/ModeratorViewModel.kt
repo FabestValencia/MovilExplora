@@ -48,13 +48,21 @@ class ModeratorViewModel @Inject constructor(
     fun loginAdmin() {
         if (isFormValid) {
             viewModelScope.launch {
-                val user = userRepository.login(email.value, password.value)
+                _accessResult.value = RequestResult.Loading
+                
+                runCatching {
+                    userRepository.login(email.value, password.value)
+                }.onSuccess { user ->
+                    android.util.Log.d("DEBUG_ROLE", "Usuario: ${user?.name}, Rol: ${user?.role}")
 
-                if (user != null && (user.role == UserRole.ADMIN || user.role == UserRole.MODERATOR)) {
-                    sessionDataStore.saveSession(user.id, user.role)
-                    _accessResult.value = RequestResult.Success(resources.getString(R.string.moderator_access_granted))
-                } else {
-                    _accessResult.value = RequestResult.Failure(resources.getString(R.string.moderator_invalid_credentials))
+                    if (user != null && (user.role == UserRole.ADMIN || user.role == UserRole.MODERATOR)) {
+                        sessionDataStore.saveSession(user.id, user.role)
+                        _accessResult.value = RequestResult.Success(resources.getString(R.string.moderator_access_granted))
+                    } else {
+                        _accessResult.value = RequestResult.Failure(resources.getString(R.string.moderator_invalid_credentials))
+                    }
+                }.onFailure { exception ->
+                    _accessResult.value = RequestResult.Failure(exception.message ?: "Error de autenticación")
                 }
             }
         }

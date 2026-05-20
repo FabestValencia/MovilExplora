@@ -177,7 +177,7 @@ private fun MainNavigation(
             composable<Feed> {
                 FeedScreen(
                     onNavigateToDetail = { postId -> navController.navigate(PostDetail(postId)) },
-                    onNavigateToCreatePost = { navController.navigate(CreatePost) },
+                    onNavigateToCreatePost = { navController.navigate(CreatePost()) },
                     onNavigateToMap = { navController.navigate(MapRoute) },
                     onNavigateToEvents = { navController.navigate(Events) },
                     onNavigateToNotifications = { navController.navigate(Notifications) },
@@ -187,7 +187,7 @@ private fun MainNavigation(
             composable<Events> {
                 EventsScreen(
                     onNavigateToEventDetail = { eventId -> navController.navigate(EventDetail(eventId)) },
-                    onNavigateToCreatePost = { navController.navigate(CreatePost) },
+                    onNavigateToCreatePost = { navController.navigate(CreatePost()) },
                     onNavigateToCreateEvent = { navController.navigate(CreateEditEvent(null)) },
                     onNavigateToHome = { navController.navigate(Feed) },
                     onNavigateToMap = { navController.navigate(MapRoute) },
@@ -197,14 +197,16 @@ private fun MainNavigation(
             }
             composable<MapRoute> {
                 MapScreen(
-                    onNavigateToCreatePost = { navController.navigate(CreatePost) },
+                    onNavigateToCreatePost = { navController.navigate(CreatePost()) },
                     onNavigateToFeed = { navController.navigate(Feed) },
                     onNavigateToDetail = { postId -> navController.navigate(PostDetail(postId)) },
                     onNavigateToEventDetail = { eventId -> navController.navigate(EventDetail(eventId)) }
                 )
             }
-            composable<CreatePost> {
+            composable<CreatePost> { backStackEntry ->
+                val args = backStackEntry.toRoute<CreatePost>()
                 CreatePostScreen(
+                    postId = args.postId,
                     onNavigateBack = { navController.popBackStack() },
                     onPublishSuccess = { navController.popBackStack() }
                 )
@@ -234,7 +236,7 @@ private fun MainNavigation(
             composable<Statistics> {
                 StatisticsScreen(
                     onNavigateBack = { navController.popBackStack() },
-                    onNavigateToCreatePost = { navController.navigate(CreatePost) },
+                    onNavigateToCreatePost = { navController.navigate(CreatePost()) },
                     onNavigateToHome = { navController.navigate(Feed) },
                     onNavigateToEvents = { navController.navigate(Events) },
                     onNavigateToNotifications = { navController.navigate(Notifications) },
@@ -243,12 +245,13 @@ private fun MainNavigation(
             }
             composable<Profile> {
                 ProfileScreen(
-                    onNavigateToCreatePost = { navController.navigate(CreatePost) },
+                    onNavigateToCreatePost = { navController.navigate(CreatePost()) },
                     onNavigateToHome = { navController.navigate(Feed) },
                     onNavigateToEvents = { navController.navigate(Events) },
                     onNavigateToNotifications = { navController.navigate(Notifications) },
                     onEditData = { navController.navigate(EditProfile) },
                     onNavigateToEditEvent = { eventId -> navController.navigate(CreateEditEvent(eventId)) },
+                    onNavigateToEditPost = { postId -> navController.navigate(CreatePost(postId)) },
                     onNavigateToReputation = { navController.navigate(Reputation) },
                     onNavigateToBadges = { navController.navigate(Badges) },
                     onNavigateToStatistics = { navController.navigate(Statistics) },
@@ -264,7 +267,7 @@ private fun MainNavigation(
             composable<Notifications> {
                 NotificationsScreen(
                     onNavigateBack = { navController.popBackStack() },
-                    onNavigateToCreatePost = { navController.navigate(CreatePost) },
+                    onNavigateToCreatePost = { navController.navigate(CreatePost()) },
                     onNavigateToHome = { navController.navigate(Feed) },
                     onNavigateToEvents = { navController.navigate(Events) },
                     onNavigateToProfile = { navController.navigate(Profile) }

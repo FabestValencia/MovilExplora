@@ -18,10 +18,11 @@ data class Post(
     val description: String = "",
     val latitude: Double = 0.0,
     val longitude: Double = 0.0,
-    val likedBy: Set<String> = emptySet(),
+    val likedBy: List<String> = emptyList(),
     val distance: Float = 5f,
     val creatorId: String = "",
-    val rejectionReason: String? = null
+    val rejectionReason: String? = null,
+    val isDeleted: Boolean = false
 ) {
     val isVerified: Boolean get() = status == PostStatus.VERIFICADO
 

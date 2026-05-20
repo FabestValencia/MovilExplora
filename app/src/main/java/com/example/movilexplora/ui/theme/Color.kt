@@ -19,8 +19,8 @@ val DarkBlue = Color(0xFF0B1425)
 val GrayText = Color(0xFF667085)
 
 fun getCategoryColor(category: String): Color {
-    return when (category) {
-        "Gastronomía" -> Color(0xFFE91E63) // Pink
+    return when (category.trim()) {
+        "Gastronomía", "Gastronomia" -> Color(0xFFE91E63) // Pink
         "Cultura" -> Color(0xFF9C27B0) // Purple
         "Naturaleza" -> Color(0xFF4CAF50) // Green
         "Entretenimiento" -> Color(0xFFFF9800) // Orange
@@ -30,8 +30,8 @@ fun getCategoryColor(category: String): Color {
 }
 
 fun getCategoryIcon(category: String): androidx.compose.ui.graphics.vector.ImageVector {
-    return when (category) {
-        "Gastronomía" -> Icons.Default.Restaurant
+    return when (category.trim()) {
+        "Gastronomía", "Gastronomia" -> Icons.Default.Restaurant
         "Cultura" -> Icons.Default.Museum
         "Naturaleza" -> Icons.Default.Park
         "Entretenimiento" -> Icons.Default.LocalActivity

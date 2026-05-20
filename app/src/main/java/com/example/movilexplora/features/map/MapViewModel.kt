@@ -61,6 +61,9 @@ class MapViewModel @Inject constructor(
     private val _state = MutableStateFlow(MapState())
     val state: StateFlow<MapState> = _state.asStateFlow()
 
+    private val _userLocation = MutableStateFlow<Pair<Double, Double>?>(null)
+    val userLocation: StateFlow<Pair<Double, Double>?> = _userLocation.asStateFlow()
+
     init {
         val nearbyFilter = resources.getString(R.string.filter_nearby)
         _state.update { it.copy(selectedFilter = nearbyFilter) }
@@ -70,7 +73,8 @@ class MapViewModel @Inject constructor(
                 postRepository.getPosts(),
                 eventRepository.getEvents()
             ) { posts, events ->
-                val features = posts.map { MapFeature.PostFeature(it) } +
+                val verifiedPosts = posts.filter { it.status == com.example.movilexplora.domain.model.PostStatus.VERIFICADO }
+                val features = verifiedPosts.map { MapFeature.PostFeature(it) } +
                               events.map { MapFeature.EventFeature(it) }
                 features
             }.collect { features ->
@@ -84,12 +88,42 @@ class MapViewModel @Inject constructor(
         }
     }
 
-    private fun filterFeatures(features: List<MapFeature>, filter: String, query: String): List<MapFeature> {
-        return features.filter { feature ->
-            val matchesFilter = if (filter == resources.getString(R.string.filter_nearby) || filter.isEmpty()) {
-                true
-            } else {
-                feature.category.equals(filter, ignoreCase = true)
+    private fun calculateDistanceInKm(lat1: Double, lon1: Double, lat2: Double, lon2: Double): Double {
+        val r = 6371.0 // Earth radius in kilometers
+        val dLat = Math.toRadians(lat2 - lat1)
+        val dLon = Math.toRadians(lon2 - lon1)
+        val a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2)) *
+                Math.sin(dLon / 2) * Math.sin(dLon / 2)
+        val c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+        return r * c
+    }
+
+    private fun filterFeatures(
+        features: List<MapFeature>,
+        filter: String,
+        query: String,
+        userLoc: Pair<Double, Double>? = _userLocation.value
+    ): List<MapFeature> {
+        val filtered = features.filter { feature ->
+            val matchesFilter = when {
+                filter == resources.getString(R.string.filter_nearby) || filter.isEmpty() || filter == "Cercanos" || filter == "Nearby" -> {
+                    if ((filter == resources.getString(R.string.filter_nearby) || filter == "Cercanos" || filter == "Nearby") && userLoc != null) {
+                        val distance = calculateDistanceInKm(
+                            userLoc.first, userLoc.second,
+                            feature.latitude, feature.longitude
+                        )
+                        distance <= 50.0 // 50 km radius limit
+                    } else {
+                        true
+                    }
+                }
+                filter == "En la ciudad" || filter == "In the city" -> {
+                    true // Show all posts and events in the database on the map
+                }
+                else -> {
+                    feature.category.equals(filter, ignoreCase = true)
+                }
             }
             val matchesQuery = if (query.isEmpty()) {
                 true
@@ -97,6 +131,26 @@ class MapViewModel @Inject constructor(
                 feature.title.contains(query, ignoreCase = true)
             }
             matchesFilter && matchesQuery
+        }
+
+        return if ((filter == resources.getString(R.string.filter_nearby) || filter == "Cercanos" || filter == "Nearby") && userLoc != null) {
+            filtered.sortedBy { feature ->
+                calculateDistanceInKm(
+                    userLoc.first, userLoc.second,
+                    feature.latitude, feature.longitude
+                )
+            }
+        } else {
+            filtered
+        }
+    }
+
+    fun updateUserLocation(latitude: Double, longitude: Double) {
+        _userLocation.value = Pair(latitude, longitude)
+        _state.update { 
+            it.copy(
+                filteredFeatures = filterFeatures(it.features, it.selectedFilter, it.searchQuery, Pair(latitude, longitude))
+            )
         }
     }
 

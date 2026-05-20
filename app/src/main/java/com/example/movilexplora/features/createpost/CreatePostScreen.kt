@@ -4,6 +4,16 @@ import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
 import android.net.Uri
+import com.google.android.gms.location.LocationServices
+import com.mapbox.geojson.Point
+import com.mapbox.maps.extension.compose.MapboxMap
+import com.mapbox.maps.extension.compose.animation.viewport.rememberMapViewportState
+import com.mapbox.maps.extension.compose.style.ColorValue
+import com.mapbox.maps.extension.compose.style.DoubleValue
+import com.mapbox.maps.extension.compose.style.layers.generated.CircleLayer
+import com.mapbox.maps.extension.compose.style.sources.GeoJSONData
+import com.mapbox.maps.extension.compose.style.sources.generated.rememberGeoJsonSourceState
+import com.mapbox.maps.extension.style.expressions.generated.Expression
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
@@ -32,6 +42,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -73,6 +84,7 @@ private fun createTempImageUri(context: Context): Uri {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreatePostScreen(
+    postId: String? = null,
     onNavigateBack: () -> Unit,
     onPublishSuccess: () -> Unit,
     viewModel: CreatePostViewModel = hiltViewModel(),
@@ -88,6 +100,112 @@ fun CreatePostScreen(
     var publishedTitle by remember { mutableStateOf("") }
     
     var showBottomSheet by remember { mutableStateOf(false) }
+
+    val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
+    val mapViewportState = rememberMapViewportState {
+        setCameraOptions {
+            center(Point.fromLngLat(2.1734, 41.3851)) // Default
+            zoom(12.0)
+        }
+    }
+
+    val requestPermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
+        if (permissions.values.any { it }) {
+            fusedLocationClient.lastLocation.addOnSuccessListener { location ->
+                if (location != null) {
+                    mapViewportState.setCameraOptions {
+                        center(Point.fromLngLat(location.longitude, location.latitude))
+                        zoom(14.0)
+                    }
+                } else {
+                    fusedLocationClient.getCurrentLocation(
+                        com.google.android.gms.location.Priority.PRIORITY_HIGH_ACCURACY,
+                        com.google.android.gms.tasks.CancellationTokenSource().token
+                    ).addOnSuccessListener { currentLocation ->
+                        currentLocation?.let {
+                            mapViewportState.setCameraOptions {
+                                center(Point.fromLngLat(it.longitude, it.latitude))
+                                zoom(14.0)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        val permissions = arrayOf(
+            Manifest.permission.ACCESS_FINE_LOCATION,
+            Manifest.permission.ACCESS_COARSE_LOCATION
+        )
+        if (permissions.all { ContextCompat.checkSelfPermission(context, it) == PackageManager.PERMISSION_GRANTED }) {
+            fusedLocationClient.lastLocation.addOnSuccessListener { location ->
+                if (location != null) {
+                    mapViewportState.setCameraOptions {
+                        center(Point.fromLngLat(location.longitude, location.latitude))
+                        zoom(14.0)
+                    }
+                } else {
+                    fusedLocationClient.getCurrentLocation(
+                        com.google.android.gms.location.Priority.PRIORITY_HIGH_ACCURACY,
+                        com.google.android.gms.tasks.CancellationTokenSource().token
+                    ).addOnSuccessListener { currentLocation ->
+                        currentLocation?.let {
+                            mapViewportState.setCameraOptions {
+                                center(Point.fromLngLat(it.longitude, it.latitude))
+                                zoom(14.0)
+                            }
+                        }
+                    }
+                }
+            }
+        } else {
+            requestPermissionLauncher.launch(permissions)
+        }
+    }
+
+    val selectedPinGeoJson = remember(state.selectedLatitude, state.selectedLongitude) {
+        val lat = state.selectedLatitude
+        val lon = state.selectedLongitude
+        if (lat != null && lon != null) {
+            """
+            {
+              "type": "FeatureCollection",
+              "features": [
+                {
+                  "type": "Feature",
+                  "geometry": {
+                    "type": "Point",
+                    "coordinates": [$lon, $lat]
+                  },
+                  "properties": {
+                    "title": "Ubicación Seleccionada",
+                    "category": "Selected"
+                  }
+                }
+              ]
+            }
+            """.trimIndent()
+        } else {
+            """
+            {
+              "type": "FeatureCollection",
+              "features": []
+            }
+            """.trimIndent()
+        }
+    }
+
+    val selectedPinSourceState = rememberGeoJsonSourceState {
+        data = GeoJSONData(selectedPinGeoJson)
+    }
+
+    LaunchedEffect(selectedPinGeoJson) {
+        selectedPinSourceState.data = GeoJSONData(selectedPinGeoJson)
+    }
     val bottomSheetState = rememberModalBottomSheetState()
     var tempCameraUri by remember { mutableStateOf<Uri?>(null) }
 
@@ -150,6 +268,13 @@ fun CreatePostScreen(
             publishedTitle = viewModel.title.value
             showSuccessDialog = true
             viewModel.resetResult()
+        } else if (publishResult is com.example.movilexplora.core.utils.RequestResult.Failure) {
+            android.widget.Toast.makeText(
+                context,
+                (publishResult as com.example.movilexplora.core.utils.RequestResult.Failure).errorMessage,
+                android.widget.Toast.LENGTH_LONG
+            ).show()
+            viewModel.resetResult()
         }
     }
 
@@ -169,14 +294,124 @@ fun CreatePostScreen(
                 }
             },
             title = {
-                Text(text = "¡Publicación Creada!", fontWeight = FontWeight.Bold)
+                Text(text = if (postId == null) "¡Publicación Creada!" else "¡Cambios Guardados!", fontWeight = FontWeight.Bold)
             },
             text = {
-                Text(text = "Tu publicación \"$publishedTitle\" ha sido creada exitosamente y pronto estará disponible para la comunidad.")
+                Text(text = if (postId == null) {
+                    "Tu publicación \"$publishedTitle\" ha sido creada exitosamente y pronto estará disponible para la comunidad."
+                } else {
+                    "Tus modificaciones han sido guardadas. La publicación pasará por el proceso de verificación administrativa."
+                })
             },
             shape = RoundedCornerShape(16.dp),
             containerColor = MaterialTheme.colorScheme.surface
         )
+    }
+
+    // Diálogo de Recomendación de IA
+    if (state.showAiRecommendationDialog) {
+        state.pendingRecommendation?.let { recommendation ->
+            val categoryColor = getCategoryColor(recommendation.category)
+            val categoryIcon = getCategoryIcon(recommendation.category)
+            
+            AlertDialog(
+                onDismissRequest = { viewModel.dismissRecommendation() },
+                confirmButton = {
+                    Button(
+                        onClick = { viewModel.acceptRecommendation() },
+                        colors = ButtonDefaults.buttonColors(containerColor = categoryColor)
+                    ) {
+                        Text("Aceptar", color = Color.White, fontWeight = FontWeight.Bold)
+                    }
+                },
+                dismissButton = {
+                    TextButton(
+                        onClick = { viewModel.dismissRecommendation() }
+                    ) {
+                        Text("Descartar", color = GrayText, fontWeight = FontWeight.Medium)
+                    }
+                },
+                title = {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.AutoAwesome,
+                            contentDescription = null,
+                            tint = categoryColor,
+                            modifier = Modifier.size(24.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "Recomendación de IA",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 18.sp,
+                            color = MaterialTheme.colorScheme.onBackground
+                        )
+                    }
+                },
+                text = {
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Spacer(modifier = Modifier.height(12.dp))
+                        // Category Badge
+                        Surface(
+                            shape = CircleShape,
+                            color = categoryColor.copy(alpha = 0.15f),
+                            modifier = Modifier.size(72.dp),
+                            border = BorderStroke(2.dp, categoryColor)
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Icon(
+                                    imageVector = categoryIcon,
+                                    contentDescription = recommendation.category,
+                                    tint = categoryColor,
+                                    modifier = Modifier.size(36.dp)
+                                )
+                            }
+                        }
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text(
+                            text = recommendation.category.replaceFirstChar { it.uppercase() },
+                            color = categoryColor,
+                            fontWeight = FontWeight.ExtraBold,
+                            fontSize = 24.sp,
+                            textAlign = TextAlign.Center
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+                        // Reason Container
+                        Surface(
+                            shape = RoundedCornerShape(12.dp),
+                            color = MaterialTheme.colorScheme.surfaceVariant,
+                            modifier = Modifier.fillMaxWidth(),
+                            border = BorderStroke(1.dp, Color.LightGray.copy(alpha = 0.2f))
+                        ) {
+                            Column(modifier = Modifier.padding(16.dp)) {
+                                Text(
+                                    text = "¿Por qué?",
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 12.sp,
+                                    color = categoryColor,
+                                    modifier = Modifier.padding(bottom = 4.dp)
+                                )
+                                Text(
+                                    text = recommendation.reason,
+                                    fontSize = 13.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    lineHeight = 18.sp
+                                )
+                            }
+                        }
+                    }
+                },
+                shape = RoundedCornerShape(24.dp),
+                containerColor = MaterialTheme.colorScheme.surface
+            )
+        }
     }
 
     Scaffold(
@@ -184,7 +419,7 @@ fun CreatePostScreen(
             TopAppBar(
                 title = {
                     Text(
-                        text = stringResource(R.string.createpostscreen_nueva_publicaci_n_0),
+                        text = if (postId == null) stringResource(R.string.createpostscreen_nueva_publicaci_n_0) else "Editar Publicación",
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onBackground,
@@ -305,11 +540,29 @@ fun CreatePostScreen(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(150.dp)
-                    .clip(RoundedCornerShape(12.dp))
+                    .height(200.dp)
+                    .clip(RoundedCornerShape(16.dp))
+                    .border(1.dp, Color.LightGray.copy(alpha = 0.5f), RoundedCornerShape(16.dp))
                     .background(MaterialTheme.colorScheme.surfaceVariant)
             ) {
-                Text(stringResource(R.string.create_post_map_placeholder), modifier = Modifier.align(Alignment.Center), color = MaterialTheme.colorScheme.onSurfaceVariant)
+                MapboxMap(
+                    modifier = Modifier.fillMaxSize(),
+                    mapViewportState = mapViewportState,
+                    onMapClickListener = { point ->
+                        viewModel.updateLocation(point.latitude(), point.longitude(), context.getString(R.string.mock_lat_lon_format, point.latitude(), point.longitude()))
+                        true
+                    }
+                ) {
+                    CircleLayer(
+                        sourceState = selectedPinSourceState,
+                        layerId = "selected-pin-layer"
+                    ) {
+                        circleRadius = DoubleValue(10.0)
+                        circleColor = ColorValue(Expression.color(Color(0xFFFFAB00).toArgb())) // Matching premium golden-orange
+                        circleStrokeWidth = DoubleValue(3.0)
+                        circleStrokeColor = ColorValue(Color.White)
+                    }
+                }
             }
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -431,7 +684,7 @@ fun CreatePostScreen(
                 } else {
                     Icon(imageVector = Icons.Default.FileUpload, contentDescription = null)
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text(text = stringResource(R.string.createpostscreen_publicar_11), fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                    Text(text = if (postId == null) stringResource(R.string.createpostscreen_publicar_11) else "Guardar Cambios", fontSize = 18.sp, fontWeight = FontWeight.Bold)
                 }
             }
             

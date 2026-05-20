@@ -72,9 +72,9 @@ class PostRepositoryImpl @Inject constructor(
     override fun getPosts(): Flow<List<Post>> = postDao.getAllPosts().combine(likeDao.getAllPostLikes()) { postEntities, likes ->
         postEntities.map { entity ->
             val post = entity.toDomainModel()
-            val postLikes = likes.filter { it.itemId == post.id }.map { it.userId }.toSet()
+            val postLikes = likes.filter { it.itemId == post.id }.map { it.userId }
             post.copy(likedBy = postLikes)
-        }
+        }.filter { !it.isDeleted }
     }
 
     override fun getPost(id: String): Flow<Post?> = getPosts().map { posts ->
@@ -109,5 +109,9 @@ class PostRepositoryImpl @Inject constructor(
         val updates = mutableMapOf<String, Any>("status" to status.name)
         rejectionReason?.let { updates["rejectionReason"] = it }
         collection.document(postId).update(updates).await()
+    }
+
+    override suspend fun softDeletePost(postId: String) {
+        collection.document(postId).update("isDeleted", true).await()
     }
 }

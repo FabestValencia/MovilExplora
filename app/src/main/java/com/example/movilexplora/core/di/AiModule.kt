@@ -17,7 +17,7 @@ object AiModule {
     @Singleton
     fun provideGenerativeModel(): GenerativeModel {
         return GenerativeModel(
-            modelName = "gemini-flash-latest",
+            modelName = "gemini-2.5-flash",
             apiKey = com.example.movilexplora.BuildConfig.GEMINI_API_KEY
         )
     }

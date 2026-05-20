@@ -12,7 +12,7 @@ data class Event(
     val imageUrl: String = "",
     val attendeesCount: Int = 0,
     val isJoined: Boolean = false,
-    val likedBy: Set<String> = emptySet(), // Added for likes
+    val likedBy: List<String> = emptyList(), // Added for likes
     val category: String = "",
     val latitude: Double = 0.0,
     val longitude: Double = 0.0,

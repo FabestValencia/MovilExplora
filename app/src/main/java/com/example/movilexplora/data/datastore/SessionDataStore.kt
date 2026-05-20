@@ -41,7 +41,7 @@ class SessionDataStore @Inject constructor(
             try {
                 UserSession(
                     userId = userId,
-                    role = UserRole.valueOf(roleStr)
+                    role = UserRole.valueOf(roleStr.trim().uppercase())
                 )
             } catch (e: Exception) {
                 null

@@ -42,7 +42,7 @@ object Events
 object MapRoute
 
 @Serializable
-object CreatePost
+data class CreatePost(val postId: String? = null)
 
 @Serializable
 data class CreateEditEvent(val eventId: String? = null)

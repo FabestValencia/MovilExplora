@@ -53,7 +53,7 @@ class EventsViewModel @Inject constructor(
                 val query = currentState.searchQuery
                 val currentId = _currentUserId.value
                 events.map { event ->
-                    val eventLikes = likes.filter { it.itemId == event.id }.map { it.userId }.toSet()
+                    val eventLikes = likes.filter { it.itemId == event.id }.map { it.userId }
                     event.copy(likedBy = eventLikes)
                 }.filter { event ->
                     val matchesVisibility = event.status == PostStatus.VERIFICADO || event.creatorId == currentId

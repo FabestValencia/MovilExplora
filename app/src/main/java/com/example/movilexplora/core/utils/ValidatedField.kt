@@ -25,6 +25,11 @@ class ValidatedField<T>(
         showError = true
     }
 
+    fun setValueDirectly(newValue: T) {
+        value = newValue
+        showError = false
+    }
+
     fun markAsDirty() {
         showError = true
     }

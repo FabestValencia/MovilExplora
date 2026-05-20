@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.pm.PackageManager
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -109,10 +110,24 @@ fun MapScreen(
     ) { permissions ->
         if (permissions.values.any { it }) {
             fusedLocationClient.lastLocation.addOnSuccessListener { location ->
-                location?.let {
+                if (location != null) {
+                    viewModel.updateUserLocation(location.latitude, location.longitude)
                     mapViewportState.setCameraOptions {
-                        center(Point.fromLngLat(it.longitude, it.latitude))
+                        center(Point.fromLngLat(location.longitude, location.latitude))
                         zoom(14.0)
+                    }
+                } else {
+                    fusedLocationClient.getCurrentLocation(
+                        com.google.android.gms.location.Priority.PRIORITY_HIGH_ACCURACY,
+                        com.google.android.gms.tasks.CancellationTokenSource().token
+                    ).addOnSuccessListener { currentLocation ->
+                        currentLocation?.let {
+                            viewModel.updateUserLocation(it.latitude, it.longitude)
+                            mapViewportState.setCameraOptions {
+                                center(Point.fromLngLat(it.longitude, it.latitude))
+                                zoom(14.0)
+                            }
+                        }
                     }
                 }
             }
@@ -126,10 +141,24 @@ fun MapScreen(
         )
         if (permissions.all { ContextCompat.checkSelfPermission(context, it) == PackageManager.PERMISSION_GRANTED }) {
             fusedLocationClient.lastLocation.addOnSuccessListener { location ->
-                location?.let {
+                if (location != null) {
+                    viewModel.updateUserLocation(location.latitude, location.longitude)
                     mapViewportState.setCameraOptions {
-                        center(Point.fromLngLat(it.longitude, it.latitude))
+                        center(Point.fromLngLat(location.longitude, location.latitude))
                         zoom(14.0)
+                    }
+                } else {
+                    fusedLocationClient.getCurrentLocation(
+                        com.google.android.gms.location.Priority.PRIORITY_HIGH_ACCURACY,
+                        com.google.android.gms.tasks.CancellationTokenSource().token
+                    ).addOnSuccessListener { currentLocation ->
+                        currentLocation?.let {
+                            viewModel.updateUserLocation(it.latitude, it.longitude)
+                            mapViewportState.setCameraOptions {
+                                center(Point.fromLngLat(it.longitude, it.latitude))
+                                zoom(14.0)
+                            }
+                        }
                     }
                 }
             }
@@ -139,8 +168,37 @@ fun MapScreen(
     }
 
     LaunchedEffect(Unit) {
-        onboardingViewModel.checkAndShowPermissionOnboarding(PermissionType.LOCATION) {
-            triggerPermissionRequest()
+        val permissions = arrayOf(
+            Manifest.permission.ACCESS_FINE_LOCATION,
+            Manifest.permission.ACCESS_COARSE_LOCATION
+        )
+        if (permissions.all { ContextCompat.checkSelfPermission(context, it) == PackageManager.PERMISSION_GRANTED }) {
+            fusedLocationClient.lastLocation.addOnSuccessListener { location ->
+                if (location != null) {
+                    viewModel.updateUserLocation(location.latitude, location.longitude)
+                    mapViewportState.setCameraOptions {
+                        center(Point.fromLngLat(location.longitude, location.latitude))
+                        zoom(14.0)
+                    }
+                } else {
+                    fusedLocationClient.getCurrentLocation(
+                        com.google.android.gms.location.Priority.PRIORITY_HIGH_ACCURACY,
+                        com.google.android.gms.tasks.CancellationTokenSource().token
+                    ).addOnSuccessListener { currentLocation ->
+                        currentLocation?.let {
+                            viewModel.updateUserLocation(it.latitude, it.longitude)
+                            mapViewportState.setCameraOptions {
+                                center(Point.fromLngLat(it.longitude, it.latitude))
+                                zoom(14.0)
+                            }
+                        }
+                    }
+                }
+            }
+        } else {
+            onboardingViewModel.checkAndShowPermissionOnboarding(PermissionType.LOCATION) {
+                triggerPermissionRequest()
+            }
         }
     }
 
@@ -163,6 +221,47 @@ fun MapScreen(
 
     LaunchedEffect(state.filteredFeatures) {
         geoJsonSourceState.data = GeoJSONData(state.filteredFeatures.toGeoJson())
+    }
+
+    val userLocation by viewModel.userLocation.collectAsState()
+
+    val userLocationGeoJson = remember(userLocation) {
+        val loc = userLocation
+        if (loc != null) {
+            """
+            {
+              "type": "FeatureCollection",
+              "features": [
+                {
+                  "type": "Feature",
+                  "geometry": {
+                    "type": "Point",
+                    "coordinates": [${loc.second}, ${loc.first}]
+                  },
+                  "properties": {
+                    "title": "Mi Ubicación",
+                    "category": "User"
+                  }
+                }
+              ]
+            }
+            """.trimIndent()
+        } else {
+            """
+            {
+              "type": "FeatureCollection",
+              "features": []
+            }
+            """.trimIndent()
+        }
+    }
+
+    val userLocationSourceState = rememberGeoJsonSourceState {
+        data = GeoJSONData(userLocationGeoJson)
+    }
+
+    LaunchedEffect(userLocationGeoJson) {
+        userLocationSourceState.data = GeoJSONData(userLocationGeoJson)
     }
 
     Scaffold(
@@ -226,6 +325,16 @@ fun MapScreen(
                     circleStrokeWidth = DoubleValue(2.0)
                     circleStrokeColor = ColorValue(Color.White)
                 }
+
+                CircleLayer(
+                    sourceState = userLocationSourceState,
+                    layerId = "user-location-layer"
+                ) {
+                    circleRadius = DoubleValue(12.0)
+                    circleColor = ColorValue(Expression.color(Color(0xFFFFAB00).toArgb()))
+                    circleStrokeWidth = DoubleValue(3.0)
+                    circleStrokeColor = ColorValue(Color.White)
+                }
             }
 
             // Overlay Components
@@ -273,10 +382,24 @@ fun MapScreen(
                 MapControlAction(icon = Icons.Default.MyLocation) {
                     if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
                         fusedLocationClient.lastLocation.addOnSuccessListener { location ->
-                            location?.let {
+                            if (location != null) {
+                                viewModel.updateUserLocation(location.latitude, location.longitude)
                                 mapViewportState.setCameraOptions {
-                                    center(Point.fromLngLat(it.longitude, it.latitude))
+                                    center(Point.fromLngLat(location.longitude, location.latitude))
                                     zoom(14.0)
+                                }
+                            } else {
+                                fusedLocationClient.getCurrentLocation(
+                                    com.google.android.gms.location.Priority.PRIORITY_HIGH_ACCURACY,
+                                    com.google.android.gms.tasks.CancellationTokenSource().token
+                                ).addOnSuccessListener { currentLocation ->
+                                    currentLocation?.let {
+                                        viewModel.updateUserLocation(it.latitude, it.longitude)
+                                        mapViewportState.setCameraOptions {
+                                            center(Point.fromLngLat(it.longitude, it.latitude))
+                                            zoom(14.0)
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -444,6 +567,19 @@ fun FeaturePreviewCard(
 }
 
 @Composable
+fun getTranslatedCategoryName(categoryKey: String): String {
+    return when (categoryKey.lowercase().replace("í", "i")) {
+        "gastronomia" -> stringResource(R.string.create_post_cat_gastronomy)
+        "cultura" -> stringResource(R.string.create_post_cat_culture)
+        "naturaleza" -> stringResource(R.string.create_post_cat_nature)
+        "entretenimiento" -> stringResource(R.string.create_post_cat_entertainment)
+        "historia" -> stringResource(R.string.create_post_cat_history)
+        "cercanos" -> stringResource(R.string.filter_nearby)
+        else -> categoryKey
+    }
+}
+
+@Composable
 fun FilterChipsRow(selectedFilter: String, onFilterSelected: (String) -> Unit) {
     val filters = listOf(
         Pair("Cercanos", Icons.Default.NearMe),
@@ -455,13 +591,20 @@ fun FilterChipsRow(selectedFilter: String, onFilterSelected: (String) -> Unit) {
         Pair("Historia", getCategoryIcon("Historia"))
     )
 
+    val hasSelection = selectedFilter.isNotEmpty()
+
     LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         items(filters) { (name, icon) ->
-            val isSelected = selectedFilter == name
+            val isSelected = selectedFilter == name || 
+                (name == "Cercanos" && (selectedFilter == "Cercanos" || selectedFilter == "Nearby" || selectedFilter == stringResource(R.string.filter_nearby)))
+            val baseColor = getCategoryColor(name)
+            val displayColor = if (hasSelection && !isSelected) MaterialTheme.colorScheme.onSurfaceVariant else baseColor
+
             Surface(
                 onClick = { onFilterSelected(name) },
                 shape = RoundedCornerShape(20.dp),
-                color = if (isSelected) Turquoise else Color.White,
+                border = BorderStroke(1.dp, displayColor),
+                color = if (isSelected) displayColor else Color.White,
                 shadowElevation = 2.dp
             ) {
                 Row(
@@ -472,12 +615,12 @@ fun FilterChipsRow(selectedFilter: String, onFilterSelected: (String) -> Unit) {
                         imageVector = icon,
                         contentDescription = null,
                         modifier = Modifier.size(16.dp),
-                        tint = if (isSelected) Color.White else Turquoise
+                        tint = if (isSelected) Color.Black else displayColor
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = name,
-                        color = if (isSelected) Color.White else GrayText,
+                        text = getTranslatedCategoryName(name),
+                        color = Color.Black,
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Medium
                     )

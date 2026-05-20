@@ -20,16 +20,19 @@ data class PostEntity(
     val longitude: Double,
     val distance: Float,
     val creatorId: String,
-    val rejectionReason: String? = null
+    val rejectionReason: String? = null,
+    val isDeleted: Boolean = false
 )
 
 fun PostEntity.toDomainModel(): Post {
-    // TODO: Eliminar este uso fijo de imageUrl una vez que se retome la integración
-    // real con imágenes en la nube o persistencia real de archivos en el dispositivo.
-    val mockImageUrl = if (id.hashCode() % 2 == 0) {
-        "android.resource://com.example.movilexplora/drawable/circasia"
+    val finalImageUrl = if (imageUrl.isNotEmpty()) {
+        imageUrl
     } else {
-        "android.resource://com.example.movilexplora/drawable/salento"
+        if (id.hashCode() % 2 == 0) {
+            "android.resource://com.example.movilexplora/drawable/circasia"
+        } else {
+            "android.resource://com.example.movilexplora/drawable/salento"
+        }
     }
 
     return Post(
@@ -40,13 +43,14 @@ fun PostEntity.toDomainModel(): Post {
         category = category,
         price = price,
         status = PostStatus.valueOf(status),
-        imageUrl = mockImageUrl, // Usamos la imagen quemada
+        imageUrl = finalImageUrl,
         description = description,
         latitude = latitude,
         longitude = longitude,
         distance = distance,
         creatorId = creatorId,
-        rejectionReason = rejectionReason
+        rejectionReason = rejectionReason,
+        isDeleted = isDeleted
     )
 }
 
@@ -65,6 +69,7 @@ fun Post.toEntity(): PostEntity {
         longitude = longitude,
         distance = distance,
         creatorId = creatorId,
-        rejectionReason = rejectionReason
+        rejectionReason = rejectionReason,
+        isDeleted = isDeleted
     )
 }

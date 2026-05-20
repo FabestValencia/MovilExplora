@@ -12,6 +12,10 @@ class ResourceProviderImpl @Inject constructor(
     @ApplicationContext private val context: Context
 ) : ResourceProvider {
     override fun getString(id: Int, vararg formatArgs: Any): String {
-        return context.getString(id, *formatArgs)
+        return if (formatArgs.isEmpty()) {
+            context.getString(id)
+        } else {
+            context.getString(id, *formatArgs)
+        }
     }
 }

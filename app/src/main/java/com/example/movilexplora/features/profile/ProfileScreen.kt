@@ -35,6 +35,11 @@ import com.example.movilexplora.domain.model.UserProfile
 import com.example.movilexplora.ui.theme.GrayText
 import com.example.movilexplora.ui.theme.Turquoise
 import com.example.movilexplora.ui.theme.getTranslatedBadgeName
+import coil.compose.AsyncImage
+import androidx.compose.ui.layout.ContentScale
+import com.example.movilexplora.features.map.getTranslatedCategoryName
+import com.example.movilexplora.ui.theme.getCategoryColor
+import com.example.movilexplora.ui.theme.getCategoryIcon
 
 import com.example.movilexplora.core.component.BottomNavigationBar
 
@@ -47,6 +52,7 @@ fun ProfileScreen(
     onNavigateToNotifications: () -> Unit,
     onEditData: () -> Unit,
     onNavigateToEditEvent: (String) -> Unit = {},
+    onNavigateToEditPost: (String) -> Unit = {},
     onNavigateToReputation: () -> Unit = {},
     onNavigateToBadges: () -> Unit = {},
     onNavigateToStatistics: () -> Unit = {},
@@ -55,10 +61,12 @@ fun ProfileScreen(
 ) {
     val userProfile by viewModel.userProfile.collectAsState()
     val userEvents by viewModel.userEvents.collectAsState()
+    val userPosts by viewModel.userPosts.collectAsState()
     var showDeleteDialog by remember { mutableStateOf(false) }
     var eventToDeleteId by remember { mutableStateOf<String?>(null) }
+    var postToDeleteId by remember { mutableStateOf<String?>(null) }
     
-    // 0 -> Mis Lugares, 1 -> Mis Eventos
+    // 0 -> Estadísticas, 1 -> Mis Lugares, 2 -> Mis Eventos
     var selectedTabIndex by remember { mutableStateOf(0) }
 
     if (showDeleteDialog) {
@@ -77,6 +85,16 @@ fun ProfileScreen(
             onConfirm = {
                 viewModel.deleteEvent(eventToDeleteId!!)
                 eventToDeleteId = null
+            }
+        )
+    }
+
+    if (postToDeleteId != null) {
+        DeletePostDialog(
+            onDismiss = { postToDeleteId = null },
+            onConfirm = {
+                viewModel.deletePost(postToDeleteId!!)
+                postToDeleteId = null
             }
         )
     }
@@ -177,11 +195,16 @@ fun ProfileScreen(
                     Tab(
                         selected = selectedTabIndex == 0,
                         onClick = { selectedTabIndex = 0 },
-                        text = { Text(stringResource(R.string.profile_my_places), fontWeight = FontWeight.Bold) }
+                        text = { Text(stringResource(R.string.profile_statistics), fontWeight = FontWeight.Bold) }
                     )
                     Tab(
                         selected = selectedTabIndex == 1,
                         onClick = { selectedTabIndex = 1 },
+                        text = { Text(stringResource(R.string.profile_my_places), fontWeight = FontWeight.Bold) }
+                    )
+                    Tab(
+                        selected = selectedTabIndex == 2,
+                        onClick = { selectedTabIndex = 2 },
                         text = { Text(stringResource(R.string.profile_my_events), fontWeight = FontWeight.Bold) }
                     )
                 }
@@ -252,6 +275,23 @@ fun ProfileScreen(
                     }
                     Spacer(modifier = Modifier.height(16.dp))
                     AchievementsRow(profile.achievements)
+                } else if (selectedTabIndex == 1) {
+                    if (userPosts.isEmpty()) {
+                        Text("No tienes publicaciones creadas aún", color = GrayText, modifier = Modifier.padding(32.dp))
+                    } else {
+                        Column(
+                            verticalArrangement = Arrangement.spacedBy(16.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            userPosts.forEach { post ->
+                                MyPostCard(
+                                    post = post,
+                                    onEditClick = { onNavigateToEditPost(post.id) },
+                                    onDeleteClick = { postToDeleteId = post.id }
+                                )
+                            }
+                        }
+                    }
                 } else {
                     if (userEvents.isEmpty()) {
                         Text(stringResource(R.string.profile_no_events), color = GrayText, modifier = Modifier.padding(32.dp))
@@ -726,5 +766,215 @@ fun AchievementItem(achievement: Achievement, modifier: Modifier = Modifier) {
             color = if (achievement.isUnlocked) MaterialTheme.colorScheme.primary else GrayText,
             textAlign = TextAlign.Center
         )
+    }
+}
+
+@Composable
+fun MyPostCard(
+    post: com.example.movilexplora.domain.model.Post,
+    onEditClick: () -> Unit,
+    onDeleteClick: () -> Unit
+) {
+    val statusColor = when (post.status) {
+        com.example.movilexplora.domain.model.PostStatus.VERIFICADO -> Color(0xFF4CAF50)
+        com.example.movilexplora.domain.model.PostStatus.PENDIENTE -> Color(0xFFFF9800)
+        com.example.movilexplora.domain.model.PostStatus.RECHAZADO -> Color(0xFFF44336)
+    }
+
+    val statusText = when (post.status) {
+        com.example.movilexplora.domain.model.PostStatus.VERIFICADO -> "Verificada"
+        com.example.movilexplora.domain.model.PostStatus.PENDIENTE -> "Pendiente"
+        com.example.movilexplora.domain.model.PostStatus.RECHAZADO -> "Rechazada"
+    }
+
+    val isEditable = post.status == com.example.movilexplora.domain.model.PostStatus.PENDIENTE || 
+            post.status == com.example.movilexplora.domain.model.PostStatus.RECHAZADO
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(bottom = 12.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        shape = RoundedCornerShape(16.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                // Post Image or Category placeholder
+                if (post.imageUrl.isNotEmpty()) {
+                    AsyncImage(
+                        model = post.imageUrl,
+                        contentDescription = post.title,
+                        modifier = Modifier
+                            .size(64.dp)
+                            .clip(RoundedCornerShape(8.dp)),
+                        contentScale = ContentScale.Crop
+                    )
+                } else {
+                    Box(
+                        modifier = Modifier
+                            .size(64.dp)
+                            .background(
+                                getCategoryColor(post.category).copy(alpha = 0.15f),
+                                RoundedCornerShape(8.dp)
+                            ),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = getCategoryIcon(post.category),
+                            contentDescription = null,
+                            tint = getCategoryColor(post.category)
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.width(16.dp))
+
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = post.title,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 16.sp,
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Surface(
+                            shape = RoundedCornerShape(6.dp),
+                            color = statusColor.copy(alpha = 0.15f)
+                        ) {
+                            Text(
+                                text = statusText,
+                                color = statusColor,
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = getTranslatedCategoryName(post.category),
+                            fontSize = 12.sp,
+                            color = GrayText
+                        )
+                    }
+                }
+
+                if (isEditable) {
+                    IconButton(onClick = onEditClick) {
+                        Icon(
+                            imageVector = Icons.Default.Edit,
+                            contentDescription = "Editar",
+                            tint = Turquoise
+                        )
+                    }
+                }
+                
+                IconButton(onClick = onDeleteClick) {
+                    Icon(
+                        imageVector = Icons.Default.Delete,
+                        contentDescription = "Eliminar",
+                        tint = Color.Red.copy(alpha = 0.7f)
+                    )
+                }
+            }
+
+            // Si está rechazada y tiene motivo, mostrarlo
+            if (post.status == com.example.movilexplora.domain.model.PostStatus.RECHAZADO && !post.rejectionReason.isNullOrEmpty()) {
+                Spacer(modifier = Modifier.height(12.dp))
+                Surface(
+                    shape = RoundedCornerShape(8.dp),
+                    color = Color.Red.copy(alpha = 0.05f),
+                    border = BorderStroke(1.dp, Color.Red.copy(alpha = 0.15f)),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(
+                        modifier = Modifier.padding(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Warning,
+                            contentDescription = null,
+                            tint = Color.Red,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "Motivo de rechazo: ${post.rejectionReason}",
+                            fontSize = 12.sp,
+                            color = Color.Red,
+                            fontWeight = FontWeight.Medium
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun DeletePostDialog(onDismiss: () -> Unit, onConfirm: () -> Unit) {
+    Dialog(onDismissRequest = onDismiss) {
+        Surface(
+            shape = RoundedCornerShape(28.dp),
+            color = Color.White,
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)
+        ) {
+            Column(
+                modifier = Modifier.padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Warning,
+                    contentDescription = null,
+                    tint = Color(0xFFE57373),
+                    modifier = Modifier.size(40.dp)
+                )
+                
+                Spacer(modifier = Modifier.height(16.dp))
+                
+                Text(
+                    text = "Eliminar Publicación",
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.Black,
+                    textAlign = TextAlign.Center
+                )
+                
+                Spacer(modifier = Modifier.height(16.dp))
+                
+                Text(
+                    text = "¿Estás seguro de que deseas eliminar esta publicación? Esta acción no se puede deshacer.",
+                    fontSize = 14.sp,
+                    color = GrayText,
+                    textAlign = TextAlign.Center,
+                    lineHeight = 20.sp
+                )
+                
+                Spacer(modifier = Modifier.height(32.dp))
+                
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    TextButton(
+                        onClick = onDismiss,
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text(text = stringResource(R.string.profilescreen_cancelar_8), color = Turquoise, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                    }
+                    
+                    Button(
+                        onClick = onConfirm,
+                        modifier = Modifier.weight(1.2f).height(48.dp),
+                        shape = RoundedCornerShape(24.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF5252))
+                    ) {
+                        Text(text = stringResource(R.string.profilescreen_eliminar_9), fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                    }
+                }
+            }
+        }
     }
 }

@@ -20,6 +20,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import android.net.Uri
@@ -31,7 +33,11 @@ data class CreatePostState(
     val selectedTime: String? = null,
     val address: String = "",
     val isRecommendingCategory: Boolean = false,
-    val imageUri: Uri? = null
+    val imageUri: Uri? = null,
+    val pendingRecommendation: com.example.movilexplora.domain.ai.Recommendation? = null,
+    val showAiRecommendationDialog: Boolean = false,
+    val selectedLatitude: Double? = null,
+    val selectedLongitude: Double? = null
 )
 
 @HiltViewModel
@@ -41,7 +47,8 @@ class CreatePostViewModel @Inject constructor(
     private val sessionDataStore: SessionDataStore,
     private val userRepository: UserRepository,
     private val resources: ResourceProvider,
-    private val categoryRecommender: CategoryRecommender
+    private val categoryRecommender: CategoryRecommender,
+    savedStateHandle: androidx.lifecycle.SavedStateHandle
 ) : ViewModel() {
     val title = ValidatedField("") { value ->
         if (value.isEmpty()) resources.getString(R.string.error_post_title_empty) else null
@@ -51,8 +58,38 @@ class CreatePostViewModel @Inject constructor(
         if (value.isEmpty()) resources.getString(R.string.error_post_description_empty) else null
     }
 
+    private val postId: String? = savedStateHandle.get<String>("postId")
+
     private val _state = MutableStateFlow(CreatePostState())
     val state: StateFlow<CreatePostState> = _state.asStateFlow()
+
+    init {
+        if (postId != null) {
+            loadExistingPost(postId)
+        }
+    }
+
+    private fun loadExistingPost(postId: String) {
+        viewModelScope.launch {
+            postRepository.getPost(postId)
+                .filterNotNull()
+                .first()
+                .let { post ->
+                    title.setValueDirectly(post.title)
+                    description.setValueDirectly(post.description)
+                    _state.update {
+                        it.copy(
+                            selectedCategory = post.category,
+                            selectedPriceRange = post.price.length.coerceIn(1, 4),
+                            selectedLatitude = post.latitude,
+                            selectedLongitude = post.longitude,
+                            address = post.location,
+                            imageUri = if (post.imageUrl.isNotEmpty()) Uri.parse(post.imageUrl) else null
+                        )
+                    }
+                }
+        }
+    }
 
     private val _publishResult = MutableStateFlow<RequestResult?>(null)
     val publishResult: StateFlow<RequestResult?> = _publishResult.asStateFlow()
@@ -73,22 +110,44 @@ class CreatePostViewModel @Inject constructor(
                 if (recommendation != null) {
                     _state.update { 
                         it.copy(
-                            selectedCategory = recommendation.category,
-                            aiRecommendationReason = recommendation.reason
+                            pendingRecommendation = recommendation,
+                            showAiRecommendationDialog = true
                         )
                     }
                 }
             } catch (e: Exception) {
                 _state.update { 
                     it.copy(
-                        selectedCategory = "Gastronomia",
-                        aiRecommendationReason = "Error inesperado: ${e.message?.take(15)}"
+                        pendingRecommendation = com.example.movilexplora.domain.ai.Recommendation("Gastronomia", "Error inesperado: ${e.message?.take(15)}"),
+                        showAiRecommendationDialog = true
                     )
                 }
                 e.printStackTrace()
             } finally {
                 _state.update { it.copy(isRecommendingCategory = false) }
             }
+        }
+    }
+
+    fun acceptRecommendation() {
+        _state.value.pendingRecommendation?.let { recommendation ->
+            _state.update {
+                it.copy(
+                    selectedCategory = recommendation.category,
+                    aiRecommendationReason = recommendation.reason,
+                    pendingRecommendation = null,
+                    showAiRecommendationDialog = false
+                )
+            }
+        }
+    }
+
+    fun dismissRecommendation() {
+        _state.update {
+            it.copy(
+                pendingRecommendation = null,
+                showAiRecommendationDialog = false
+            )
         }
     }
 
@@ -104,40 +163,60 @@ class CreatePostViewModel @Inject constructor(
         _state.update { it.copy(imageUri = uri) }
     }
 
+    fun updateLocation(latitude: Double, longitude: Double, address: String) {
+        _state.update {
+            it.copy(
+                selectedLatitude = latitude,
+                selectedLongitude = longitude,
+                address = address
+            )
+        }
+    }
+
     fun publish() {
         if (title.isValid && description.isValid && (_state.value.selectedCategory != null)) {
             viewModelScope.launch {
                 _publishResult.value = RequestResult.Loading
                 
-                val userId = sessionDataStore.sessionFlow.firstOrNull()?.userId ?: "1" // Defaulting if null
-
-                // TODO: Eliminar generación aleatoria de latitud y longitud una vez que se integre el mapa interactivo.
-                val randomLat = (Math.random() * 0.8) - 0.4
-                val randomLon = (Math.random() * 0.8) - 0.4
-
-                val imageUrl = _state.value.imageUri?.let { uri ->
-                    imageRepository.uploadImage(uri)
-                } ?: ""
-
-                val newPost = Post(
-                    id = System.currentTimeMillis().toString(),
-                    title = title.value,
-                    location = _state.value.address.ifEmpty { resources.getString(R.string.location_not_specified) },
-                    rating = 0.0,
-                    category = _state.value.selectedCategory!!,
-                    price = "$".repeat(_state.value.selectedPriceRange),
-                    status = PostStatus.PENDIENTE,
-                    imageUrl = imageUrl,
-                    description = description.value,
-                    latitude = randomLat,
-                    longitude = randomLon,
-                    likedBy = emptySet(),
-                    distance = 5f,
-                    creatorId = userId
-                )
-                postRepository.addPost(newPost)
-                userRepository.addPoints(userId, 50) // Granting initial 50 points
-                _publishResult.value = RequestResult.Success(resources.getString(R.string.post_created_success_points))
+                try {
+                    val userId = sessionDataStore.sessionFlow.firstOrNull()?.userId ?: "1" // Defaulting if null
+                    var imageUrl = ""
+                    val currentUri = _state.value.imageUri
+                    if (currentUri != null) {
+                        if (currentUri.toString().startsWith("http://") || currentUri.toString().startsWith("https://")) {
+                            imageUrl = currentUri.toString()
+                        } else {
+                            imageUrl = imageRepository.uploadImage(currentUri) ?: ""
+                        }
+                    }
+                    val newPost = Post(
+                        id = postId ?: System.currentTimeMillis().toString(),
+                        title = title.value,
+                        location = _state.value.address.ifEmpty { resources.getString(R.string.location_not_specified) },
+                        rating = 0.0,
+                        category = _state.value.selectedCategory!!,
+                        price = "$".repeat(_state.value.selectedPriceRange),
+                        status = PostStatus.PENDIENTE,
+                        imageUrl = imageUrl,
+                        description = description.value,
+                        latitude = _state.value.selectedLatitude ?: 0.0,
+                        longitude = _state.value.selectedLongitude ?: 0.0,
+                        likedBy = emptyList(),
+                        distance = 5f,
+                        creatorId = userId
+                    )
+                    postRepository.addPost(newPost)
+                    
+                    if (postId == null) {
+                        userRepository.addPoints(userId, 50) // Granting initial 50 points
+                        _publishResult.value = RequestResult.Success(resources.getString(R.string.post_created_success_points))
+                    } else {
+                        _publishResult.value = RequestResult.Success("")
+                    }
+                } catch (e: Exception) {
+                    _publishResult.value = RequestResult.Failure(e.message ?: "Error al publicar")
+                    e.printStackTrace()
+                }
             }
         }
     }

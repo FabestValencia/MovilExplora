@@ -5,6 +5,16 @@ import android.app.DatePickerDialog
 import android.content.Context
 import android.content.pm.PackageManager
 import android.net.Uri
+import com.google.android.gms.location.LocationServices
+import com.mapbox.geojson.Point
+import com.mapbox.maps.extension.compose.MapboxMap
+import com.mapbox.maps.extension.compose.animation.viewport.rememberMapViewportState
+import com.mapbox.maps.extension.compose.style.ColorValue
+import com.mapbox.maps.extension.compose.style.DoubleValue
+import com.mapbox.maps.extension.compose.style.layers.generated.CircleLayer
+import com.mapbox.maps.extension.compose.style.sources.GeoJSONData
+import com.mapbox.maps.extension.compose.style.sources.generated.rememberGeoJsonSourceState
+import com.mapbox.maps.extension.style.expressions.generated.Expression
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -26,6 +36,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -78,13 +89,63 @@ fun CreateEditEventScreen(
     var title by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
     var location by remember { mutableStateOf("") }
+    var lat by remember { mutableStateOf<Double?>(null) }
+    var lon by remember { mutableStateOf<Double?>(null) }
     var category by remember { mutableStateOf("") }
     var startDate by remember { mutableStateOf("") }
     var endDate by remember { mutableStateOf("") }
-    var imageUri by remember { mutableStateOf<Uri?>(null) } // URI de la imagen seleccionada
+    var imageUri by remember { mutableStateOf<Uri?>(null) }
 
     val context = LocalContext.current
     val onboardingState by onboardingViewModel.state.collectAsState()
+    
+    val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
+    val mapViewportState = rememberMapViewportState {
+        setCameraOptions {
+            center(Point.fromLngLat(2.1734, 41.3851))
+            zoom(12.0)
+        }
+    }
+
+    val selectedPinGeoJson = remember(lat, lon) {
+        if (lat != null && lon != null) {
+            """
+            {
+              "type": "FeatureCollection",
+              "features": [
+                {
+                  "type": "Feature",
+                  "geometry": {
+                    "type": "Point",
+                    "coordinates": [$lon, $lat]
+                  },
+                  "properties": {
+                    "title": "Ubicación Seleccionada",
+                    "category": "Selected"
+                  }
+                }
+              ]
+            }
+            """.trimIndent()
+        } else {
+            """
+            {
+              "type": "FeatureCollection",
+              "features": []
+            }
+            """.trimIndent()
+        }
+    }
+
+    val selectedPinSourceState = rememberGeoJsonSourceState {
+        data = GeoJSONData(selectedPinGeoJson)
+    }
+
+    LaunchedEffect(selectedPinGeoJson) {
+        selectedPinSourceState.data = GeoJSONData(selectedPinGeoJson)
+    }
+
+    // (Permissions logic for map follows)...
     
     var showBottomSheet by remember { mutableStateOf(false) }
     val bottomSheetState = rememberModalBottomSheetState()
@@ -281,11 +342,31 @@ fun CreateEditEventScreen(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(150.dp)
-                    .clip(RoundedCornerShape(12.dp))
+                    .height(200.dp)
+                    .clip(RoundedCornerShape(16.dp))
+                    .border(1.dp, Color.LightGray.copy(alpha = 0.5f), RoundedCornerShape(16.dp))
                     .background(MaterialTheme.colorScheme.surfaceVariant)
             ) {
-                Text(stringResource(R.string.create_post_map_placeholder), modifier = Modifier.align(Alignment.Center), color = MaterialTheme.colorScheme.onSurfaceVariant)
+                MapboxMap(
+                    modifier = Modifier.fillMaxSize(),
+                    mapViewportState = mapViewportState,
+                    onMapClickListener = { point ->
+                        lat = point.latitude()
+                        lon = point.longitude()
+                        location = "Lat: %.4f, Lon: %.4f".format(lat, lon)
+                        true
+                    }
+                ) {
+                    CircleLayer(
+                        sourceState = selectedPinSourceState,
+                        layerId = "selected-pin-layer"
+                    ) {
+                        circleRadius = DoubleValue(10.0)
+                        circleColor = ColorValue(Expression.color(Color(0xFFFFAB00).toArgb()))
+                        circleStrokeWidth = DoubleValue(3.0)
+                        circleStrokeColor = ColorValue(Color.White)
+                    }
+                }
             }
 
             Spacer(modifier = Modifier.height(24.dp))

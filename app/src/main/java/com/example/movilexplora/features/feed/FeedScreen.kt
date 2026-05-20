@@ -51,11 +51,7 @@ fun getTranslatedCategoryName(categoryKey: String): String {
 @Composable
 fun FeedScreen(
     onNavigateToDetail: (String) -> Unit,
-    onNavigateToCreatePost: () -> Unit = {},
     onNavigateToMap: () -> Unit,
-    onNavigateToEvents: () -> Unit = {},
-    onNavigateToNotifications: () -> Unit = {},
-    onNavigateToProfile: () -> Unit = {},
     viewModel: FeedViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
@@ -74,59 +70,46 @@ fun FeedScreen(
         )
     }
 
-    Scaffold(
-        bottomBar = { 
-            BottomNavigationBar(
-                onCreateClick = onNavigateToCreatePost,
-                onEventsClick = onNavigateToEvents,
-                onAlertsClick = onNavigateToNotifications,
-                onProfileClick = onNavigateToProfile,
-                onHomeClick = { /* Already here */ },
-                selectedItem = "Inicio"
-            ) 
-        }
-    ) { paddingValues ->
-        Column(modifier = Modifier.padding(paddingValues).fillMaxSize()) {
-            HeaderSection(
-                userName = state.userName, 
-                searchQuery = state.searchQuery,
-                onSearchQueryChange = { viewModel.updateSearchQuery(it) },
-                onMapClick = onNavigateToMap
-            )
-            
-            FilterToggleSection(
-                onFilterClick = { showFilterSheet = true },
-                onFeedClick = { viewModel.clearFilters() }
-            )
+    Column(modifier = Modifier.fillMaxSize()) {
+        HeaderSection(
+            userName = state.userName, 
+            searchQuery = state.searchQuery,
+            onSearchQueryChange = { viewModel.updateSearchQuery(it) },
+            onMapClick = onNavigateToMap
+        )
+        
+        FilterToggleSection(
+            onFilterClick = { showFilterSheet = true },
+            onFeedClick = { viewModel.clearFilters() }
+        )
 
-            Spacer(modifier = Modifier.height(16.dp))
-            
-            CategoriesSection(
-                categories = state.categories.map { it.name },
-                selectedCategory = state.filterState.selectedCategory,
-                onCategorySelect = { viewModel.toggleCategoryFilter(it) }
-            )
-            
-            Spacer(modifier = Modifier.height(16.dp))
-            
-            LazyColumn(
-                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-                modifier = Modifier.weight(1f)
-            ) {
-                items(
-                    count = pagedPosts.itemCount,
-                    key = { index -> pagedPosts[index]?.id ?: index }
-                ) { index ->
-                    val post = pagedPosts[index]
-                    if (post != null) {
-                        PostCard(
-                            post = post,
-                            currentUserId = currentUserId,
-                            onFavoriteClick = { viewModel.toggleFavorite(post.id) },
-                            onDetailClick = { onNavigateToDetail(post.id) }
-                        )
-                    }
+        Spacer(modifier = Modifier.height(16.dp))
+        
+        CategoriesSection(
+            categories = state.categories.map { it.name },
+            selectedCategory = state.filterState.selectedCategory,
+            onCategorySelect = { viewModel.toggleCategoryFilter(it) }
+        )
+        
+        Spacer(modifier = Modifier.height(16.dp))
+        
+        LazyColumn(
+            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            modifier = Modifier.weight(1f)
+        ) {
+            items(
+                count = pagedPosts.itemCount,
+                key = { index -> pagedPosts[index]?.id ?: index }
+            ) { index ->
+                val post = pagedPosts[index]
+                if (post != null) {
+                    PostCard(
+                        post = post,
+                        currentUserId = currentUserId,
+                        onFavoriteClick = { viewModel.toggleFavorite(post.id) },
+                        onDetailClick = { onNavigateToDetail(post.id) }
+                    )
                 }
             }
         }

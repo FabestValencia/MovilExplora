@@ -6,6 +6,7 @@ import javax.inject.Inject
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.movilexplora.R
+import com.example.movilexplora.core.utils.NotificationHelper
 import com.example.movilexplora.core.utils.ResourceProvider
 import com.example.movilexplora.domain.model.VerificationItem
 import com.example.movilexplora.domain.model.VerificationType
@@ -35,7 +36,8 @@ class ModeratorFeedViewModel @Inject constructor(
     private val postRepository: PostRepository,
     private val eventRepository: EventRepository,
     private val userRepository: UserRepository,
-    private val resources: ResourceProvider
+    private val resources: ResourceProvider,
+    private val notificationHelper: NotificationHelper
 ) : ViewModel() {
     private val _state = MutableStateFlow(ModeratorFeedState())
     val state: StateFlow<ModeratorFeedState> = _state.asStateFlow()
@@ -150,12 +152,32 @@ class ModeratorFeedViewModel @Inject constructor(
                 val realId = itemId.removePrefix("POST_")
                 val postToUpdate = postRepository.getPosts().firstOrNull()?.find { it.id == realId }
                 postRepository.updatePostStatus(realId, status, reason)
-                if (status == PostStatus.VERIFICADO && postToUpdate != null) {
-                    userRepository.addPoints(postToUpdate.creatorId, 50)
+                
+                if (postToUpdate != null) {
+                    val title = if (status == PostStatus.VERIFICADO) "¡Lugar Aprobado!" else "Lugar Rechazado"
+                    val body = if (status == PostStatus.VERIFICADO) 
+                        "Tu publicación \"${postToUpdate.title}\" ha sido verificada." 
+                        else "Tu publicación \"${postToUpdate.title}\" no pudo ser aprobada."
+                    
+                    notificationHelper.showStatusNotification(title, body)
+
+                    if (status == PostStatus.VERIFICADO) {
+                        userRepository.addPoints(postToUpdate.creatorId, 50)
+                    }
                 }
             } else if (itemId.startsWith("EVENT_")) {
                 val realId = itemId.removePrefix("EVENT_")
+                val eventToUpdate = eventRepository.getEvents().firstOrNull()?.find { it.id == realId }
                 eventRepository.updateEventStatus(realId, status, reason)
+
+                if (eventToUpdate != null) {
+                    val title = if (status == PostStatus.VERIFICADO) "¡Evento Aprobado!" else "Evento Rechazado"
+                    val body = if (status == PostStatus.VERIFICADO)
+                        "Tu evento \"${eventToUpdate.title}\" ha sido verificado."
+                        else "Tu evento \"${eventToUpdate.title}\" no pudo ser aprobado."
+                    
+                    notificationHelper.showStatusNotification(title, body)
+                }
             }
         }
     }

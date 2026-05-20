@@ -86,7 +86,6 @@ import com.mapbox.maps.extension.style.expressions.generated.Expression
 @Composable
 fun MapScreen(
     onNavigateToCreatePost: () -> Unit,
-    onNavigateToFeed: () -> Unit,
     onNavigateToDetail: (String) -> Unit = {},
     onNavigateToEventDetail: (String) -> Unit = {},
     viewModel: MapViewModel = hiltViewModel(),
@@ -264,217 +263,204 @@ fun MapScreen(
         userLocationSourceState.data = GeoJSONData(userLocationGeoJson)
     }
 
-    Scaffold(
-        bottomBar = {
-            BottomNavigationBar(
-                onCreateClick = onNavigateToCreatePost,
-                onHomeClick = onNavigateToFeed,
-                selectedItem = "Mapa"
+    Box(modifier = Modifier.fillMaxSize()) {
+        MapboxMap(
+            modifier = Modifier.fillMaxSize(),
+            mapViewportState = mapViewportState,
+            onMapClickListener = { point ->
+                viewModel.onDismissDetail()
+                val threshold = 0.005 
+                val nearest = state.filteredFeatures.minByOrNull {
+                    val dx = it.longitude - point.longitude()
+                    val dy = it.latitude - point.latitude()
+                    dx * dx + dy * dy
+                }?.takeIf {
+                    val dx = it.longitude - point.longitude()
+                    val dy = it.latitude - point.latitude()
+                    (dx * dx + dy * dy) < threshold * threshold
+                }
+                
+                if (nearest != null) {
+                    viewModel.onFeatureClick(nearest)
+                }
+                true
+            },
+            onMapLongClickListener = { point ->
+                val threshold = 0.005
+                val nearest = state.filteredFeatures.minByOrNull {
+                    val dx = it.longitude - point.longitude()
+                    val dy = it.latitude - point.latitude()
+                    dx * dx + dy * dy
+                }?.takeIf {
+                    val dx = it.longitude - point.longitude()
+                    val dy = it.latitude - point.latitude()
+                    (dx * dx + dy * dy) < threshold * threshold
+                }
+                
+                if (nearest != null) {
+                    if (nearest is MapFeature.PostFeature) {
+                        onNavigateToDetail(nearest.id)
+                    } else if (nearest is MapFeature.EventFeature) {
+                        onNavigateToEventDetail(nearest.id)
+                    }
+                }
+                true
+            }
+        ) {
+            CircleLayer(
+                sourceState = geoJsonSourceState,
+                layerId = "features-layer"
+            ) {
+                circleRadius = DoubleValue(
+                    Expression.interpolate(
+                        Expression.linear(),
+                        Expression.zoom(),
+                        Expression.literal(10.0), Expression.literal(8.0),
+                        Expression.literal(15.0), Expression.literal(12.0)
+                    )
+                )
+                circleColor = ColorValue(
+                    Expression.match(
+                        Expression.get("category"),
+                        Expression.literal("Gastronomía"), Expression.color(getCategoryColor("Gastronomía").toArgb()),
+                        Expression.literal("Cultura"), Expression.color(getCategoryColor("Cultura").toArgb()),
+                        Expression.literal("Naturaleza"), Expression.color(getCategoryColor("Naturaleza").toArgb()),
+                        Expression.literal("Entretenimiento"), Expression.color(getCategoryColor("Entretenimiento").toArgb()),
+                        Expression.literal("Historia"), Expression.color(getCategoryColor("Historia").toArgb()),
+                        Expression.color(Turquoise.toArgb())
+                    )
+                )
+                circleStrokeWidth = DoubleValue(2.0)
+                circleStrokeColor = ColorValue(Color.White)
+            }
+
+            CircleLayer(
+                sourceState = userLocationSourceState,
+                layerId = "user-location-layer"
+            ) {
+                circleRadius = DoubleValue(12.0)
+                circleColor = ColorValue(Expression.color(Color(0xFFFFAB00).toArgb()))
+                circleStrokeWidth = DoubleValue(3.0)
+                circleStrokeColor = ColorValue(Color.White)
+            }
+        }
+
+        // Overlay Components
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp)
+        ) {
+            // Search Bar
+            OutlinedTextField(
+                value = state.searchQuery,
+                onValueChange = { viewModel.onSearchQueryChange(it) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp, vertical = 16.dp)
+                    .clip(RoundedCornerShape(30.dp))
+                    .background(Color.White),
+                placeholder = { Text(stringResource(R.string.map_search_placeholder), fontSize = 14.sp, color = GrayText.copy(alpha = 0.6f)) },
+                leadingIcon = { Icon(imageVector = Icons.Default.Search, contentDescription = "Search", tint = GrayText) },
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedContainerColor = Color.White,
+                    unfocusedContainerColor = Color.White,
+                    focusedBorderColor = Color.Transparent,
+                    unfocusedBorderColor = Color.Transparent
+                )
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // Quick Filters
+            FilterChipsRow(
+                selectedFilter = state.selectedFilter,
+                onFilterSelected = { viewModel.onFilterSelected(it) }
             )
         }
-    ) { paddingValues ->
-        Box(modifier = Modifier
-            .fillMaxSize()
-            .padding(paddingValues)
+
+        // Floating Controls
+        Column(
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(bottom = if (state.selectedFeature == null) 20.dp else 340.dp, end = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            MapboxMap(
-                modifier = Modifier.fillMaxSize(),
-                mapViewportState = mapViewportState,
-                onMapClickListener = { point ->
-                    viewModel.onDismissDetail()
-                    val threshold = 0.005 
-                    val nearest = state.filteredFeatures.minByOrNull {
-                        val dx = it.longitude - point.longitude()
-                        val dy = it.latitude - point.latitude()
-                        dx * dx + dy * dy
-                    }?.takeIf {
-                        val dx = it.longitude - point.longitude()
-                        val dy = it.latitude - point.latitude()
-                        (dx * dx + dy * dy) < threshold * threshold
-                    }
-                    
-                    if (nearest != null) {
-                        viewModel.onFeatureClick(nearest)
-                    }
-                    true
-                },
-                onMapLongClickListener = { point ->
-                    val threshold = 0.005
-                    val nearest = state.filteredFeatures.minByOrNull {
-                        val dx = it.longitude - point.longitude()
-                        val dy = it.latitude - point.latitude()
-                        dx * dx + dy * dy
-                    }?.takeIf {
-                        val dx = it.longitude - point.longitude()
-                        val dy = it.latitude - point.latitude()
-                        (dx * dx + dy * dy) < threshold * threshold
-                    }
-                    
-                    if (nearest != null) {
-                        if (nearest is MapFeature.PostFeature) {
-                            onNavigateToDetail(nearest.id)
-                        } else if (nearest is MapFeature.EventFeature) {
-                            onNavigateToEventDetail(nearest.id)
-                        }
-                    }
-                    true
-                }
-            ) {
-                CircleLayer(
-                    sourceState = geoJsonSourceState,
-                    layerId = "features-layer"
-                ) {
-                    circleRadius = DoubleValue(
-                        Expression.interpolate(
-                            Expression.linear(),
-                            Expression.zoom(),
-                            Expression.literal(10.0), Expression.literal(8.0),
-                            Expression.literal(15.0), Expression.literal(12.0)
-                        )
-                    )
-                    circleColor = ColorValue(
-                        Expression.match(
-                            Expression.get("category"),
-                            Expression.literal("Gastronomía"), Expression.color(getCategoryColor("Gastronomía").toArgb()),
-                            Expression.literal("Cultura"), Expression.color(getCategoryColor("Cultura").toArgb()),
-                            Expression.literal("Naturaleza"), Expression.color(getCategoryColor("Naturaleza").toArgb()),
-                            Expression.literal("Entretenimiento"), Expression.color(getCategoryColor("Entretenimiento").toArgb()),
-                            Expression.literal("Historia"), Expression.color(getCategoryColor("Historia").toArgb()),
-                            Expression.color(Turquoise.toArgb())
-                        )
-                    )
-                    circleStrokeWidth = DoubleValue(2.0)
-                    circleStrokeColor = ColorValue(Color.White)
-                }
-
-                CircleLayer(
-                    sourceState = userLocationSourceState,
-                    layerId = "user-location-layer"
-                ) {
-                    circleRadius = DoubleValue(12.0)
-                    circleColor = ColorValue(Expression.color(Color(0xFFFFAB00).toArgb()))
-                    circleStrokeWidth = DoubleValue(3.0)
-                    circleStrokeColor = ColorValue(Color.White)
-                }
-            }
-
-            // Overlay Components
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(16.dp)
-            ) {
-                // Search Bar
-                OutlinedTextField(
-                    value = state.searchQuery,
-                    onValueChange = { viewModel.onSearchQueryChange(it) },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 24.dp, vertical = 16.dp)
-                        .clip(RoundedCornerShape(30.dp))
-                        .background(Color.White),
-                    placeholder = { Text(stringResource(R.string.map_search_placeholder), fontSize = 14.sp, color = GrayText.copy(alpha = 0.6f)) },
-                    leadingIcon = { Icon(imageVector = Icons.Default.Search, contentDescription = "Search", tint = GrayText) },
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedContainerColor = Color.White,
-                        unfocusedContainerColor = Color.White,
-                        focusedBorderColor = Color.Transparent,
-                        unfocusedBorderColor = Color.Transparent
-                    )
-                )
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                // Quick Filters
-                FilterChipsRow(
-                    selectedFilter = state.selectedFilter,
-                    onFilterSelected = { viewModel.onFilterSelected(it) }
-                )
-            }
-
-            // Floating Controls
-            Column(
-                modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .padding(bottom = if (state.selectedFeature == null) 100.dp else 420.dp, end = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                MapControlAction(icon = Icons.Default.MyLocation) {
-                    if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-                        fusedLocationClient.lastLocation.addOnSuccessListener { location ->
-                            if (location != null) {
-                                viewModel.updateUserLocation(location.latitude, location.longitude)
-                                mapViewportState.setCameraOptions {
-                                    center(Point.fromLngLat(location.longitude, location.latitude))
-                                    zoom(14.0)
-                                }
-                            } else {
-                                fusedLocationClient.getCurrentLocation(
-                                    com.google.android.gms.location.Priority.PRIORITY_HIGH_ACCURACY,
-                                    com.google.android.gms.tasks.CancellationTokenSource().token
-                                ).addOnSuccessListener { currentLocation ->
-                                    currentLocation?.let {
-                                        viewModel.updateUserLocation(it.latitude, it.longitude)
-                                        mapViewportState.setCameraOptions {
-                                            center(Point.fromLngLat(it.longitude, it.latitude))
-                                            zoom(14.0)
-                                        }
+            MapControlAction(icon = Icons.Default.MyLocation) {
+                if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                    fusedLocationClient.lastLocation.addOnSuccessListener { location ->
+                        if (location != null) {
+                            viewModel.updateUserLocation(location.latitude, location.longitude)
+                            mapViewportState.setCameraOptions {
+                                center(Point.fromLngLat(location.longitude, location.latitude))
+                                zoom(14.0)
+                            }
+                        } else {
+                            fusedLocationClient.getCurrentLocation(
+                                com.google.android.gms.location.Priority.PRIORITY_HIGH_ACCURACY,
+                                com.google.android.gms.tasks.CancellationTokenSource().token
+                            ).addOnSuccessListener { currentLocation ->
+                                currentLocation?.let {
+                                    viewModel.updateUserLocation(it.latitude, it.longitude)
+                                    mapViewportState.setCameraOptions {
+                                        center(Point.fromLngLat(it.longitude, it.latitude))
+                                        zoom(14.0)
                                     }
                                 }
                             }
                         }
-                    } else {
-                        requestPermissionLauncher.launch(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION))
                     }
-                }
-                MapControlAction(icon = Icons.Default.Add) {
-                    mapViewportState.setCameraOptions {
-                        zoom((mapViewportState.cameraState?.zoom ?: 12.0) + 1.0)
-                    }
-                }
-                MapControlAction(icon = Icons.Default.Remove) {
-                    mapViewportState.setCameraOptions {
-                        zoom((mapViewportState.cameraState?.zoom ?: 12.0) - 1.0)
-                    }
+                } else {
+                    requestPermissionLauncher.launch(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION))
                 }
             }
+            MapControlAction(icon = Icons.Default.Add) {
+                mapViewportState.setCameraOptions {
+                    zoom((mapViewportState.cameraState?.zoom ?: 12.0) + 1.0)
+                }
+            }
+            MapControlAction(icon = Icons.Default.Remove) {
+                mapViewportState.setCameraOptions {
+                    zoom((mapViewportState.cameraState?.zoom ?: 12.0) - 1.0)
+                }
+            }
+        }
 
-            // Preview Card or Create Button
-            if (state.selectedFeature != null) {
-                FeaturePreviewCard(
-                    feature = state.selectedFeature!!,
-                    onDetailClick = {
-                        val feature = state.selectedFeature!!
-                        if (feature is MapFeature.PostFeature) {
-                            onNavigateToDetail(feature.id)
-                        } else if (feature is MapFeature.EventFeature) {
-                            onNavigateToEventDetail(feature.id)
-                        }
-                    },
-                    modifier = Modifier
-                        .align(Alignment.BottomCenter)
-                        .padding(horizontal = 16.dp, vertical = 16.dp)
-                )
-            } else {
-                // Create Post Button
-                Button(
-                    onClick = onNavigateToCreatePost,
-                    modifier = Modifier
-                        .align(Alignment.BottomCenter)
-                        .padding(bottom = 32.dp)
-                        .height(56.dp)
-                        .width(220.dp)
-                        .shadow(8.dp, RoundedCornerShape(28.dp)),
-                    shape = RoundedCornerShape(28.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Turquoise)
-                ) {
-                    Icon(imageVector = Icons.Default.AddCircleOutline, contentDescription = null)
-                    Spacer(modifier = Modifier.width(12.dp))
-                    Column {
-                        Text(text = stringResource(R.string.mapscreen_crear_0), fontSize = 14.sp, fontWeight = FontWeight.Bold)
-                        Text(text = stringResource(R.string.mapscreen_publicaci_n_1), fontSize = 14.sp, fontWeight = FontWeight.Bold)
+        // Preview Card or Create Button
+        if (state.selectedFeature != null) {
+            FeaturePreviewCard(
+                feature = state.selectedFeature!!,
+                onDetailClick = {
+                    val feature = state.selectedFeature!!
+                    if (feature is MapFeature.PostFeature) {
+                        onNavigateToDetail(feature.id)
+                    } else if (feature is MapFeature.EventFeature) {
+                        onNavigateToEventDetail(feature.id)
                     }
+                },
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(horizontal = 16.dp, vertical = 16.dp)
+            )
+        } else {
+            // Create Post Button
+            Button(
+                onClick = onNavigateToCreatePost,
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = 16.dp)
+                    .height(56.dp)
+                    .width(220.dp)
+                    .shadow(8.dp, RoundedCornerShape(28.dp)),
+                shape = RoundedCornerShape(28.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Turquoise)
+            ) {
+                Icon(imageVector = Icons.Default.AddCircleOutline, contentDescription = null)
+                Spacer(modifier = Modifier.width(12.dp))
+                Column {
+                    Text(text = stringResource(R.string.mapscreen_crear_0), fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                    Text(text = stringResource(R.string.mapscreen_publicaci_n_1), fontSize = 14.sp, fontWeight = FontWeight.Bold)
                 }
             }
         }

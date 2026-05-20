@@ -29,16 +29,12 @@ import com.example.movilexplora.domain.model.NotificationType
 import com.example.movilexplora.ui.theme.GrayText
 import com.example.movilexplora.ui.theme.Turquoise
 
-import com.example.movilexplora.core.component.BottomNavigationBar
+import androidx.compose.foundation.layout.PaddingValues
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NotificationsScreen(
     onNavigateBack: () -> Unit,
-    onNavigateToCreatePost: () -> Unit = {},
-    onNavigateToHome: () -> Unit = {},
-    onNavigateToEvents: () -> Unit = {},
-    onNavigateToProfile: () -> Unit = {},
     viewModel: NotificationsViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
@@ -82,17 +78,7 @@ fun NotificationsScreen(
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface)
             )
         },
-        containerColor = MaterialTheme.colorScheme.background,
-        bottomBar = {
-            BottomNavigationBar(
-                onCreateClick = onNavigateToCreatePost,
-                onHomeClick = onNavigateToHome,
-                onEventsClick = onNavigateToEvents,
-                onAlertsClick = { /* Ya estamos aquí */ },
-                onProfileClick = onNavigateToProfile,
-                selectedItem = "Alertas"
-            )
-        }
+        containerColor = MaterialTheme.colorScheme.background
     ) { paddingValues ->
         LazyColumn(
             modifier = Modifier

@@ -22,6 +22,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -33,6 +34,15 @@ import com.example.movilexplora.ui.theme.GrayText
 import com.example.movilexplora.ui.theme.Turquoise
 import com.example.movilexplora.ui.theme.VerifiedBlue
 import com.example.movilexplora.ui.theme.getCategoryColor
+import com.mapbox.geojson.Point
+import com.mapbox.maps.extension.compose.MapboxMap
+import com.mapbox.maps.extension.compose.animation.viewport.rememberMapViewportState
+import com.mapbox.maps.extension.compose.style.ColorValue
+import com.mapbox.maps.extension.compose.style.DoubleValue
+import com.mapbox.maps.extension.compose.style.layers.generated.CircleLayer
+import com.mapbox.maps.extension.compose.style.sources.GeoJSONData
+import com.mapbox.maps.extension.compose.style.sources.generated.rememberGeoJsonSourceState
+import com.mapbox.maps.extension.style.expressions.generated.Expression
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
@@ -193,14 +203,70 @@ fun PostDetailScreen(
                     Spacer(modifier = Modifier.height(12.dp))
 
                     if (!isAdmin) {
+                        val mapViewportState = rememberMapViewportState {
+                            setCameraOptions {
+                                center(Point.fromLngLat(post.longitude, post.latitude))
+                                zoom(14.0)
+                            }
+                        }
+
+                        LaunchedEffect(post.latitude, post.longitude) {
+                            mapViewportState.setCameraOptions {
+                                center(Point.fromLngLat(post.longitude, post.latitude))
+                                zoom(14.0)
+                            }
+                        }
+
+                        val postLocationGeoJson = remember(post.latitude, post.longitude) {
+                            """
+                            {
+                              "type": "FeatureCollection",
+                              "features": [
+                                {
+                                  "type": "Feature",
+                                  "geometry": {
+                                    "type": "Point",
+                                    "coordinates": [${post.longitude}, ${post.latitude}]
+                                  },
+                                  "properties": {
+                                    "title": "${post.title}",
+                                    "category": "${post.category}"
+                                  }
+                                }
+                              ]
+                            }
+                            """.trimIndent()
+                        }
+
+                        val sourceState = rememberGeoJsonSourceState {
+                            data = GeoJSONData(postLocationGeoJson)
+                        }
+
+                        LaunchedEffect(postLocationGeoJson) {
+                            sourceState.data = GeoJSONData(postLocationGeoJson)
+                        }
+
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .height(150.dp)
+                                .height(200.dp)
                                 .clip(RoundedCornerShape(16.dp))
                                 .background(MaterialTheme.colorScheme.surfaceVariant)
                         ) {
-                            Text(stringResource(R.string.common_map_view), color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.align(Alignment.Center))
+                            MapboxMap(
+                                modifier = Modifier.fillMaxSize(),
+                                mapViewportState = mapViewportState
+                            ) {
+                                CircleLayer(
+                                    sourceState = sourceState,
+                                    layerId = "post-location-layer"
+                                ) {
+                                    circleRadius = DoubleValue(10.0)
+                                    circleColor = ColorValue(Expression.color(Turquoise.toArgb()))
+                                    circleStrokeWidth = DoubleValue(2.0)
+                                    circleStrokeColor = ColorValue(Expression.color(Color.White.toArgb()))
+                                }
+                            }
                         }
                     }
                 }

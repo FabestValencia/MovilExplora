@@ -1,7 +1,5 @@
 package com.example.movilexplora.features.profile
 
-import androidx.compose.ui.res.stringResource
-import com.example.movilexplora.R
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -12,44 +10,39 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
+import coil.compose.AsyncImage
+import com.example.movilexplora.R
 import com.example.movilexplora.domain.model.Achievement
 import com.example.movilexplora.domain.model.ReputationLevel
 import com.example.movilexplora.domain.model.UserProfile
+import com.example.movilexplora.features.map.getTranslatedCategoryName
 import com.example.movilexplora.ui.theme.GrayText
 import com.example.movilexplora.ui.theme.Turquoise
-import com.example.movilexplora.ui.theme.getTranslatedBadgeName
-import coil.compose.AsyncImage
-import androidx.compose.ui.layout.ContentScale
-import com.example.movilexplora.features.map.getTranslatedCategoryName
 import com.example.movilexplora.ui.theme.getCategoryColor
 import com.example.movilexplora.ui.theme.getCategoryIcon
-
-import com.example.movilexplora.core.component.BottomNavigationBar
+import com.example.movilexplora.ui.theme.getTranslatedBadgeName
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreen(
-    onNavigateToCreatePost: () -> Unit,
-    onNavigateToHome: () -> Unit,
-    onNavigateToEvents: () -> Unit,
-    onNavigateToNotifications: () -> Unit,
     onEditData: () -> Unit,
     onNavigateToEditEvent: (String) -> Unit = {},
     onNavigateToEditPost: (String) -> Unit = {},
@@ -65,6 +58,8 @@ fun ProfileScreen(
     var showDeleteDialog by remember { mutableStateOf(false) }
     var eventToDeleteId by remember { mutableStateOf<String?>(null) }
     var postToDeleteId by remember { mutableStateOf<String?>(null) }
+    var postForRejectionReason by remember { mutableStateOf<com.example.movilexplora.domain.model.Post?>(null) }
+    var eventForRejectionReason by remember { mutableStateOf<com.example.movilexplora.domain.model.Event?>(null) }
     
     // 0 -> Estadísticas, 1 -> Mis Lugares, 2 -> Mis Eventos
     var selectedTabIndex by remember { mutableStateOf(0) }
@@ -99,287 +94,321 @@ fun ProfileScreen(
         )
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.profile_screen_title), fontSize = 18.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground) },
-                actions = {
-                    IconButton(onClick = onEditData) {
-                        Icon(imageVector = Icons.Default.Settings, contentDescription = stringResource(R.string.profilescreen_edit_15), tint = MaterialTheme.colorScheme.onBackground)
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
-            )
-        },
-        bottomBar = {
-            BottomNavigationBar(
-                onCreateClick = onNavigateToCreatePost,
-                onHomeClick = onNavigateToHome,
-                onEventsClick = onNavigateToEvents,
-                onAlertsClick = onNavigateToNotifications,
-                onProfileClick = { /* Already here */ },
-                selectedItem = "Perfil"
-            )
-        }
-    ) { paddingValues ->
+    if (postForRejectionReason != null) {
+        RejectionReasonDialog(
+            title = postForRejectionReason!!.title,
+            reason = postForRejectionReason!!.rejectionReason ?: stringResource(R.string.no_description),
+            onDismiss = { postForRejectionReason = null }
+        )
+    }
+
+    if (eventForRejectionReason != null) {
+        RejectionReasonDialog(
+            title = eventForRejectionReason!!.title,
+            reason = eventForRejectionReason!!.rejectionReason ?: stringResource(R.string.no_description),
+            onDismiss = { eventForRejectionReason = null }
+        )
+    }
+
+    Column(modifier = Modifier.fillMaxSize()) {
+        TopAppBar(
+            title = { Text(stringResource(R.string.profile_screen_title), fontSize = 18.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground) },
+            actions = {
+                IconButton(onClick = onEditData) {
+                    Icon(imageVector = Icons.Default.Settings, contentDescription = stringResource(R.string.profilescreen_edit_15), tint = MaterialTheme.colorScheme.onBackground)
+                }
+            },
+            colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
+        )
+
         if (userProfile == null) {
-            Box(modifier = Modifier.fillMaxSize().padding(paddingValues), contentAlignment = Alignment.Center) {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator(color = Turquoise)
             }
         } else {
             userProfile?.let { profile ->
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues)
-                    .padding(horizontal = 24.dp)
-                    .verticalScroll(rememberScrollState()),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                // Profile Image Section
-                Box(contentAlignment = Alignment.BottomEnd) {
-                    Box(
-                        modifier = Modifier
-                            .size(120.dp)
-                            .clip(CircleShape)
-                            .background(Color.LightGray)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Person,
-                            contentDescription = null,
-                            modifier = Modifier.fillMaxSize().padding(20.dp),
-                            tint = Color.White
-                        )
-                    }
-                    Box(
-                        modifier = Modifier
-                            .size(32.dp)
-                            .background(Turquoise, CircleShape)
-                            .border(2.dp, Color.White, CircleShape),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(imageVector = Icons.Default.Edit, contentDescription = null, tint = Color.White, modifier = Modifier.size(16.dp))
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Text(text = profile.name, fontSize = 22.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
-                Text(text = profile.email, fontSize = 14.sp, color = GrayText)
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                Surface(
-                    shape = RoundedCornerShape(16.dp),
-                    color = Turquoise.copy(alpha = 0.1f),
-                    border = BorderStroke(1.dp, Turquoise.copy(alpha = 0.2f))
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(horizontal = 24.dp)
+                        .verticalScroll(rememberScrollState()),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Row(
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(imageVector = Icons.Default.CheckCircle, contentDescription = null, tint = Turquoise, modifier = Modifier.size(14.dp))
-                        Spacer(modifier = Modifier.width(6.dp))
-                        Text(text = profile.role, color = Turquoise, fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(24.dp))
-
-                TabRow(
-                    selectedTabIndex = selectedTabIndex,
-                    containerColor = Color.Transparent,
-                    contentColor = Turquoise,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Tab(
-                        selected = selectedTabIndex == 0,
-                        onClick = { selectedTabIndex = 0 },
-                        text = { Text(stringResource(R.string.profile_statistics), fontWeight = FontWeight.Bold) }
-                    )
-                    Tab(
-                        selected = selectedTabIndex == 1,
-                        onClick = { selectedTabIndex = 1 },
-                        text = { Text(stringResource(R.string.profile_my_places), fontWeight = FontWeight.Bold) }
-                    )
-                    Tab(
-                        selected = selectedTabIndex == 2,
-                        onClick = { selectedTabIndex = 2 },
-                        text = { Text(stringResource(R.string.profile_my_events), fontWeight = FontWeight.Bold) }
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
-                
-                if (selectedTabIndex == 0) {
-                    // Post Stats Cards
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(stringResource(R.string.profile_statistics), fontSize = 18.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
-                        TextButton(onClick = onNavigateToStatistics) {
-                            Text(stringResource(R.string.profile_statistics_detail), color = Turquoise, fontWeight = FontWeight.Bold)
-                        }
-                    }
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        StatCard(stringResource(R.string.profile_stat_active), profile.activePosts.toString(), Turquoise, Modifier.weight(1f))
-                        StatCard(stringResource(R.string.profile_stat_finished), profile.finishedPosts.toString(), Color(0xFF0F9D58), Modifier.weight(1f))
-                        StatCard(stringResource(R.string.profile_stat_pending), profile.pendingPosts.toString(), Color(0xFFF4B400), Modifier.weight(1f))
-                    }
-    
-                    Spacer(modifier = Modifier.height(24.dp))
-    
-                    // Points Card
-                    ParticipationPointsCard(profile)
-    
-                    Spacer(modifier = Modifier.height(32.dp))
-    
-                    // Reputation Levels
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = stringResource(R.string.profilescreen_niveles_de_reputaci_n_0),
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onBackground
-                        )
-                        TextButton(onClick = onNavigateToReputation) {
-                            Text(text = stringResource(R.string.profilescreen_ver_detalles_1), color = Turquoise, fontWeight = FontWeight.Bold)
-                        }
-                    }
-                    Spacer(modifier = Modifier.height(24.dp))
-                    ReputationTimeline(profile.reputationLevel)
-    
-                    Spacer(modifier = Modifier.height(32.dp))
-    
-                    // Achievements
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(text = stringResource(R.string.profilescreen_logros_2), fontSize = 18.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
-                        TextButton(onClick = onNavigateToBadges) {
-                            Text(text = stringResource(R.string.profilescreen_ver_todos_3), color = Turquoise, fontWeight = FontWeight.Bold)
-                        }
-                    }
-                    Spacer(modifier = Modifier.height(16.dp))
-                    AchievementsRow(profile.achievements)
-                } else if (selectedTabIndex == 1) {
-                    if (userPosts.isEmpty()) {
-                        Text("No tienes publicaciones creadas aún", color = GrayText, modifier = Modifier.padding(32.dp))
-                    } else {
-                        Column(
-                            verticalArrangement = Arrangement.spacedBy(16.dp),
-                            modifier = Modifier.fillMaxWidth()
+                    // Profile Image Section
+                    Box(contentAlignment = Alignment.BottomEnd) {
+                        Box(
+                            modifier = Modifier
+                                .size(120.dp)
+                                .clip(CircleShape)
+                                .background(Color.LightGray)
                         ) {
-                            userPosts.forEach { post ->
-                                MyPostCard(
-                                    post = post,
-                                    onEditClick = { onNavigateToEditPost(post.id) },
-                                    onDeleteClick = { postToDeleteId = post.id }
+                            if (profile.profilePictureUrl != null) {
+                                AsyncImage(
+                                    model = profile.profilePictureUrl,
+                                    contentDescription = null,
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentScale = ContentScale.Crop
+                                )
+                            } else {
+                                Icon(
+                                    imageVector = Icons.Default.Person,
+                                    contentDescription = null,
+                                    modifier = Modifier.fillMaxSize().padding(20.dp),
+                                    tint = Color.White
                                 )
                             }
                         }
-                    }
-                } else {
-                    if (userEvents.isEmpty()) {
-                        Text(stringResource(R.string.profile_no_events), color = GrayText, modifier = Modifier.padding(32.dp))
-                    } else {
-                        Column(
-                            verticalArrangement = Arrangement.spacedBy(16.dp),
-                            modifier = Modifier.fillMaxWidth()
+                        Box(
+                            modifier = Modifier
+                                .size(32.dp)
+                                .background(Turquoise, CircleShape)
+                                .border(2.dp, Color.White, CircleShape),
+                            contentAlignment = Alignment.Center
                         ) {
-                            userEvents.forEach { event ->
-                                Card(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(bottom = 12.dp)
-                                        .clickable { onNavigateToEditEvent(event.id) },
-                                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                                    shape = RoundedCornerShape(16.dp),
-                                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-                                ) {
-                                    Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
-                                        Box(modifier = Modifier.size(60.dp).background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(8.dp)))
-                                        Spacer(modifier = Modifier.width(12.dp))
-                                        Column(modifier = Modifier.weight(1f)) {
-                                            Text(text = event.title, fontWeight = FontWeight.Bold, fontSize = 16.sp, color = MaterialTheme.colorScheme.onBackground)
-                                            Spacer(modifier = Modifier.height(4.dp))
-                                            Text(text = "${stringResource(R.string.profile_event_start)} ${event.date} • ${event.time}", fontSize = 12.sp, color = GrayText)
-                                            if (event.endDate.isNotEmpty() && event.endTime.isNotEmpty()) {
-                                                Text(text = "${stringResource(R.string.profile_event_end)} ${event.endDate} • ${event.endTime}", fontSize = 12.sp, color = GrayText)
+                            Icon(imageVector = Icons.Default.Edit, contentDescription = null, tint = Color.White, modifier = Modifier.size(16.dp))
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    Text(text = profile.name, fontSize = 22.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
+                    Text(text = profile.email, fontSize = 14.sp, color = GrayText)
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    Surface(
+                        shape = RoundedCornerShape(16.dp),
+                        color = Turquoise.copy(alpha = 0.1f),
+                        border = BorderStroke(1.dp, Turquoise.copy(alpha = 0.2f))
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(imageVector = Icons.Default.CheckCircle, contentDescription = null, tint = Turquoise, modifier = Modifier.size(14.dp))
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(text = profile.role, color = Turquoise, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(24.dp))
+
+                    TabRow(
+                        selectedTabIndex = selectedTabIndex,
+                        containerColor = Color.Transparent,
+                        contentColor = Turquoise,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Tab(
+                            selected = selectedTabIndex == 0,
+                            onClick = { selectedTabIndex = 0 },
+                            text = { Text(stringResource(R.string.profile_statistics), fontWeight = FontWeight.Bold) }
+                        )
+                        Tab(
+                            selected = selectedTabIndex == 1,
+                            onClick = { selectedTabIndex = 1 },
+                            text = { Text(stringResource(R.string.profile_my_places), fontWeight = FontWeight.Bold) }
+                        )
+                        Tab(
+                            selected = selectedTabIndex == 2,
+                            onClick = { selectedTabIndex = 2 },
+                            text = { Text(stringResource(R.string.profile_my_events), fontWeight = FontWeight.Bold) }
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+                    
+                    if (selectedTabIndex == 0) {
+                        // Post Stats Cards
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(stringResource(R.string.profile_statistics), fontSize = 18.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
+                            TextButton(onClick = onNavigateToStatistics) {
+                                Text(stringResource(R.string.profile_statistics_detail), color = Turquoise, fontWeight = FontWeight.Bold)
+                            }
+                        }
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            StatCard(stringResource(R.string.profile_stat_active), profile.activePosts.toString(), Turquoise, Modifier.weight(1f))
+                            StatCard(stringResource(R.string.profile_stat_finished), profile.finishedPosts.toString(), Color(0xFF0F9D58), Modifier.weight(1f))
+                            StatCard(stringResource(R.string.profile_stat_pending), profile.pendingPosts.toString(), Color(0xFFF4B400), Modifier.weight(1f))
+                        }
+        
+                        Spacer(modifier = Modifier.height(24.dp))
+        
+                        // Points Card
+                        ParticipationPointsCard(profile)
+        
+                        Spacer(modifier = Modifier.height(32.dp))
+        
+                        // Reputation Levels
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = stringResource(R.string.profilescreen_niveles_de_reputaci_n_0),
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onBackground
+                            )
+                            TextButton(onClick = onNavigateToReputation) {
+                                Text(text = stringResource(R.string.profilescreen_ver_detalles_1), color = Turquoise, fontWeight = FontWeight.Bold)
+                            }
+                        }
+                        Spacer(modifier = Modifier.height(24.dp))
+                        ReputationTimeline(profile.reputationLevel)
+        
+                        Spacer(modifier = Modifier.height(32.dp))
+        
+                        // Achievements
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(text = stringResource(R.string.profilescreen_logros_2), fontSize = 18.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
+                            TextButton(onClick = onNavigateToBadges) {
+                                Text(text = stringResource(R.string.profilescreen_ver_todos_3), color = Turquoise, fontWeight = FontWeight.Bold)
+                            }
+                        }
+                        Spacer(modifier = Modifier.height(16.dp))
+                        AchievementsRow(profile.achievements)
+                    } else if (selectedTabIndex == 1) {
+                        if (userPosts.isEmpty()) {
+                            Text("No tienes publicaciones creadas aún", color = GrayText, modifier = Modifier.padding(32.dp))
+                        } else {
+                            Column(
+                                verticalArrangement = Arrangement.spacedBy(24.dp),
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                userPosts.forEach { post ->
+                                    MyPostCard(
+                                        post = post,
+                                        onEditClick = { onNavigateToEditPost(post.id) },
+                                        onDeleteClick = { postToDeleteId = post.id },
+                                        onCardClick = {
+                                            if (post.status == com.example.movilexplora.domain.model.PostStatus.RECHAZADO) {
+                                                postForRejectionReason = post
                                             }
-                                            Spacer(modifier = Modifier.height(4.dp))
-                                            Text(text = event.location, fontSize = 12.sp, color = Turquoise)
                                         }
-                                        IconButton(onClick = { eventToDeleteId = event.id }) {
-                                            Icon(imageVector = Icons.Default.Delete, contentDescription = stringResource(R.string.profilescreen_eliminar_16), tint = Color.Red.copy(alpha = 0.7f))
+                                    )
+                                }
+                            }
+                        }
+                    } else {
+                        if (userEvents.isEmpty()) {
+                            Text(stringResource(R.string.profile_no_events), color = GrayText, modifier = Modifier.padding(32.dp))
+                        } else {
+                            Column(
+                                verticalArrangement = Arrangement.spacedBy(24.dp),
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                userEvents.forEach { event ->
+                                    MyEventCard(
+                                        event = event,
+                                        onEditClick = { onNavigateToEditEvent(event.id) },
+                                        onDeleteClick = { eventToDeleteId = event.id },
+                                        onCardClick = {
+                                            if (event.status == com.example.movilexplora.domain.model.PostStatus.RECHAZADO) {
+                                                eventForRejectionReason = event
+                                            }
                                         }
-                                    }
+                                    )
                                 }
                             }
                         }
                     }
+
+                    Spacer(modifier = Modifier.height(48.dp))
+
+                    // Action Buttons at the bottom
+                    HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp), color = GrayText.copy(alpha = 0.1f))
+                    
+                    Text(
+                        text = stringResource(R.string.editprofilescreen_preferencias_0),
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = GrayText,
+                        modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)
+                    )
+
+                    Button(
+                        onClick = onEditData,
+                        modifier = Modifier.fillMaxWidth().height(56.dp),
+                        shape = RoundedCornerShape(28.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = Turquoise)
+                    ) {
+                        Icon(imageVector = Icons.Default.EditNote, contentDescription = null)
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(text = stringResource(R.string.profilescreen_editar_datos_4), fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                    }
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    OutlinedButton(
+                        onClick = { showDeleteDialog = true },
+                        modifier = Modifier.fillMaxWidth().height(56.dp),
+                        shape = RoundedCornerShape(28.dp),
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.Red),
+                        border = BorderStroke(1.dp, Color.Red.copy(alpha = 0.2f))
+                    ) {
+                        Icon(imageVector = Icons.Default.Delete, contentDescription = null)
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(text = stringResource(R.string.profilescreen_eliminar_cuenta_5), fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                    }
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    OutlinedButton(
+                        onClick = onLogout,
+                        modifier = Modifier.fillMaxWidth().height(56.dp),
+                        shape = RoundedCornerShape(28.dp),
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = Turquoise),
+                        border = BorderStroke(1.dp, Turquoise.copy(alpha = 0.5f))
+                    ) {
+                        Icon(imageVector = Icons.AutoMirrored.Filled.Logout, contentDescription = null)
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(text = stringResource(R.string.profilescreen_cerrar_sesion), fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                    }
+
+                    Spacer(modifier = Modifier.height(60.dp))
                 }
-
-                Spacer(modifier = Modifier.height(40.dp))
-
-                // Action Buttons
-                Button(
-                    onClick = onEditData,
-                    modifier = Modifier.fillMaxWidth().height(56.dp),
-                    shape = RoundedCornerShape(28.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Turquoise)
-                ) {
-                    Icon(imageVector = Icons.Default.EditNote, contentDescription = null)
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(text = stringResource(R.string.profilescreen_editar_datos_4), fontSize = 16.sp, fontWeight = FontWeight.Bold)
-                }
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                OutlinedButton(
-                    onClick = { showDeleteDialog = true },
-                    modifier = Modifier.fillMaxWidth().height(56.dp),
-                    shape = RoundedCornerShape(28.dp),
-                    colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.Red),
-                    border = BorderStroke(1.dp, Color.Red.copy(alpha = 0.2f))
-                ) {
-                    Icon(imageVector = Icons.Default.Delete, contentDescription = null)
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(text = stringResource(R.string.profilescreen_eliminar_cuenta_5), fontSize = 16.sp, fontWeight = FontWeight.Bold)
-                }
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                OutlinedButton(
-                    onClick = onLogout,
-                    modifier = Modifier.fillMaxWidth().height(56.dp),
-                    shape = RoundedCornerShape(28.dp),
-                    colors = ButtonDefaults.outlinedButtonColors(contentColor = Turquoise),
-                    border = BorderStroke(1.dp, Turquoise.copy(alpha = 0.5f))
-                ) {
-                    Icon(imageVector = Icons.AutoMirrored.Filled.Logout, contentDescription = null)
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(text = stringResource(R.string.profilescreen_cerrar_sesion), fontSize = 16.sp, fontWeight = FontWeight.Bold)
-                }
-
-                Spacer(modifier = Modifier.height(40.dp))
             }
         }
     }
 }
+
+@Composable
+fun RejectionReasonDialog(title: String, reason: String, onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        icon = { Icon(imageVector = Icons.Default.Cancel, contentDescription = null, tint = Color.Red) },
+        title = { Text(text = "Publicación Rechazada", fontWeight = FontWeight.Bold) },
+        text = {
+            Column {
+                Text(text = title, fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(text = "Motivo del rechazo:", color = GrayText, fontSize = 12.sp)
+                Text(text = reason, fontSize = 14.sp)
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Entendido", color = Turquoise)
+            }
+        },
+        shape = RoundedCornerShape(20.dp),
+        containerColor = MaterialTheme.colorScheme.surface
+    )
 }
 
 @Composable
@@ -536,33 +565,120 @@ fun DeleteEventDialog(onDismiss: () -> Unit, onConfirm: () -> Unit) {
 }
 
 @Composable
-fun MyEventCard(event: com.example.movilexplora.domain.model.Event, onEditClick: () -> Unit, onDeleteClick: () -> Unit) {
+fun MyEventCard(event: com.example.movilexplora.domain.model.Event, onEditClick: () -> Unit, onDeleteClick: () -> Unit, onCardClick: () -> Unit = {}) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .shadow(4.dp, RoundedCornerShape(20.dp))
+            .clickable { onCardClick() },
+        shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text(text = event.title, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(text = event.description, fontSize = 14.sp, color = GrayText)
-            Spacer(modifier = Modifier.height(8.dp))
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Default.CalendarToday, contentDescription = null, tint = Turquoise, modifier = Modifier.size(16.dp))
-                Spacer(modifier = Modifier.width(4.dp))
-                Text(text = "${event.date} • ${event.time}", fontSize = 12.sp, color = GrayText)
-            }
-            Spacer(modifier = Modifier.height(16.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.End
+        Column {
+            // Event Image or Placeholder
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(150.dp)
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
+                contentAlignment = Alignment.Center
             ) {
-                IconButton(onClick = onEditClick) {
-                    Icon(imageVector = Icons.Default.Edit, contentDescription = stringResource(R.string.profilescreen_edit_15), tint = Turquoise)
+                if (event.imageUrl.isNotEmpty() && (event.imageUrl.startsWith("http") || event.imageUrl.startsWith("content"))) {
+                    AsyncImage(
+                        model = event.imageUrl,
+                        contentDescription = null,
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
+                    )
+                } else {
+                    Icon(
+                        imageVector = Icons.Default.Event,
+                        contentDescription = null,
+                        modifier = Modifier.size(48.dp),
+                        tint = GrayText.copy(alpha = 0.3f)
+                    )
                 }
-                IconButton(onClick = onDeleteClick) {
-                    Icon(imageVector = Icons.Default.Delete, contentDescription = stringResource(R.string.profilescreen_delete_18), tint = Color.Red.copy(alpha = 0.7f))
+            }
+
+            Column(modifier = Modifier.padding(16.dp)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.Top
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = event.title,
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onBackground
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = event.location,
+                            fontSize = 14.sp,
+                            color = Turquoise,
+                            fontWeight = FontWeight.Medium
+                        )
+                    }
+                    
+                    Surface(
+                        shape = RoundedCornerShape(8.dp),
+                        color = Turquoise.copy(alpha = 0.1f)
+                    ) {
+                        Text(
+                            text = event.category,
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Turquoise
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = Icons.Default.CalendarToday,
+                        contentDescription = null,
+                        tint = GrayText,
+                        modifier = Modifier.size(14.dp)
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(
+                        text = "${event.date} • ${event.time}",
+                        fontSize = 13.sp,
+                        color = GrayText
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    TextButton(
+                        onClick = onEditClick,
+                        colors = ButtonDefaults.textButtonColors(contentColor = Turquoise)
+                    ) {
+                        Icon(Icons.Default.Edit, contentDescription = null, modifier = Modifier.size(18.dp))
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(stringResource(R.string.profilescreen_edit_15))
+                    }
+                    
+                    Spacer(modifier = Modifier.width(8.dp))
+                    
+                    TextButton(
+                        onClick = onDeleteClick,
+                        colors = ButtonDefaults.textButtonColors(contentColor = Color.Red.copy(alpha = 0.7f))
+                    ) {
+                        Icon(Icons.Default.Delete, contentDescription = null, modifier = Modifier.size(18.dp))
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(stringResource(R.string.profilescreen_delete_18))
+                    }
                 }
             }
         }
@@ -773,7 +889,8 @@ fun AchievementItem(achievement: Achievement, modifier: Modifier = Modifier) {
 fun MyPostCard(
     post: com.example.movilexplora.domain.model.Post,
     onEditClick: () -> Unit,
-    onDeleteClick: () -> Unit
+    onDeleteClick: () -> Unit,
+    onCardClick: () -> Unit = {}
 ) {
     val statusColor = when (post.status) {
         com.example.movilexplora.domain.model.PostStatus.VERIFICADO -> Color(0xFF4CAF50)
@@ -793,118 +910,135 @@ fun MyPostCard(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(bottom = 12.dp),
+            .shadow(4.dp, RoundedCornerShape(20.dp))
+            .clickable { onCardClick() },
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        shape = RoundedCornerShape(16.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        shape = RoundedCornerShape(20.dp),
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                // Post Image or Category placeholder
-                if (post.imageUrl.isNotEmpty()) {
-                    AsyncImage(
-                        model = post.imageUrl,
-                        contentDescription = post.title,
-                        modifier = Modifier
-                            .size(64.dp)
-                            .clip(RoundedCornerShape(8.dp)),
-                        contentScale = ContentScale.Crop
-                    )
-                } else {
-                    Box(
-                        modifier = Modifier
-                            .size(64.dp)
-                            .background(
-                                getCategoryColor(post.category).copy(alpha = 0.15f),
-                                RoundedCornerShape(8.dp)
-                            ),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = getCategoryIcon(post.category),
-                            contentDescription = null,
-                            tint = getCategoryColor(post.category)
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.width(16.dp))
-
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = post.title,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 16.sp,
-                        color = MaterialTheme.colorScheme.onBackground
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Surface(
-                            shape = RoundedCornerShape(6.dp),
-                            color = statusColor.copy(alpha = 0.15f)
-                        ) {
-                            Text(
-                                text = statusText,
-                                color = statusColor,
-                                fontSize = 11.sp,
-                                fontWeight = FontWeight.Bold,
-                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
-                            )
-                        }
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = getTranslatedCategoryName(post.category),
-                            fontSize = 12.sp,
-                            color = GrayText
-                        )
-                    }
-                }
-
-                if (isEditable) {
-                    IconButton(onClick = onEditClick) {
-                        Icon(
-                            imageVector = Icons.Default.Edit,
-                            contentDescription = "Editar",
-                            tint = Turquoise
-                        )
-                    }
-                }
-                
-                IconButton(onClick = onDeleteClick) {
+        Column {
+            // Post Image or Category placeholder (Bigger)
+            if (post.imageUrl.isNotEmpty()) {
+                AsyncImage(
+                    model = post.imageUrl,
+                    contentDescription = post.title,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(180.dp)
+                        .clip(RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)),
+                    contentScale = ContentScale.Crop
+                )
+            } else {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(180.dp)
+                        .background(
+                            getCategoryColor(post.category).copy(alpha = 0.15f),
+                            RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
                     Icon(
-                        imageVector = Icons.Default.Delete,
-                        contentDescription = "Eliminar",
-                        tint = Color.Red.copy(alpha = 0.7f)
+                        imageVector = getCategoryIcon(post.category),
+                        contentDescription = null,
+                        tint = getCategoryColor(post.category),
+                        modifier = Modifier.size(48.dp)
                     )
                 }
             }
 
-            // Si está rechazada y tiene motivo, mostrarlo
-            if (post.status == com.example.movilexplora.domain.model.PostStatus.RECHAZADO && !post.rejectionReason.isNullOrEmpty()) {
-                Spacer(modifier = Modifier.height(12.dp))
-                Surface(
-                    shape = RoundedCornerShape(8.dp),
-                    color = Color.Red.copy(alpha = 0.05f),
-                    border = BorderStroke(1.dp, Color.Red.copy(alpha = 0.15f)),
-                    modifier = Modifier.fillMaxWidth()
+            Column(modifier = Modifier.padding(16.dp)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.Top
                 ) {
-                    Row(
-                        modifier = Modifier.padding(8.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Warning,
-                            contentDescription = null,
-                            tint = Color.Red,
-                            modifier = Modifier.size(16.dp)
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
+                    Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text = "Motivo de rechazo: ${post.rejectionReason}",
-                            fontSize = 12.sp,
-                            color = Color.Red,
-                            fontWeight = FontWeight.Medium
+                            text = post.title,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 20.sp,
+                            color = MaterialTheme.colorScheme.onBackground
                         )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = getTranslatedCategoryName(post.category),
+                            fontSize = 14.sp,
+                            color = GrayText
+                        )
+                    }
+                    
+                    Surface(
+                        shape = RoundedCornerShape(8.dp),
+                        color = statusColor.copy(alpha = 0.15f)
+                    ) {
+                        Text(
+                            text = statusText,
+                            color = statusColor,
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    if (isEditable) {
+                        TextButton(
+                            onClick = onEditClick,
+                            colors = ButtonDefaults.textButtonColors(contentColor = Turquoise)
+                        ) {
+                            Icon(Icons.Default.Edit, contentDescription = null, modifier = Modifier.size(18.dp))
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text("Editar")
+                        }
+                    }
+                    
+                    Spacer(modifier = Modifier.width(8.dp))
+                    
+                    TextButton(
+                        onClick = onDeleteClick,
+                        colors = ButtonDefaults.textButtonColors(contentColor = Color.Red.copy(alpha = 0.7f))
+                    ) {
+                        Icon(Icons.Default.Delete, contentDescription = null, modifier = Modifier.size(18.dp))
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text("Eliminar")
+                    }
+                }
+
+                // Si está rechazada y tiene motivo, mostrarlo
+                if (post.status == com.example.movilexplora.domain.model.PostStatus.RECHAZADO && !post.rejectionReason.isNullOrEmpty()) {
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Surface(
+                        shape = RoundedCornerShape(12.dp),
+                        color = Color.Red.copy(alpha = 0.05f),
+                        border = BorderStroke(1.dp, Color.Red.copy(alpha = 0.15f)),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(12.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Warning,
+                                contentDescription = null,
+                                tint = Color.Red,
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Spacer(modifier = Modifier.width(10.dp))
+                            Text(
+                                text = "Motivo de rechazo: ${post.rejectionReason}",
+                                fontSize = 13.sp,
+                                color = Color.Red,
+                                fontWeight = FontWeight.Medium
+                            )
+                        }
                     }
                 }
             }

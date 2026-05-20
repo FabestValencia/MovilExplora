@@ -127,18 +127,14 @@ class FeedViewModel @Inject constructor(
             val matchesDistance = calcDistance <= filters.distance
             val matchesSearch = query.isBlank() || post.title.contains(query, ignoreCase = true)
 
-            // REGLA DE VISIBILIDAD: Verificados O creados por el usuario actual
-            val matchesVisibility = post.status == PostStatus.VERIFICADO || post.creatorId == userId
+            // REGLA DE VISIBILIDAD: Solo los verificados aparecen en el Feed
+            val matchesVisibility = post.status == PostStatus.VERIFICADO
 
             matchesCategory && matchesPrice && matchesDistance && matchesSearch && matchesVisibility
         }
 
-        // Ordenar y limitar para el scroll
-        filteredList.sortedWith(
-            compareByDescending<Post> { it.creatorId == userId }
-            .thenByDescending { it.status == PostStatus.VERIFICADO }
-            .thenByDescending { it.likedBy.size }
-        ).take(loadedCount)
+        // Ordenar por popularidad (likes)
+        filteredList.sortedByDescending { it.likedBy.size }.take(loadedCount)
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.Eagerly,

@@ -1,4 +1,4 @@
-package com.example.movilexplora.core.service
+package com.example.movilexplora.notifications
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -21,7 +21,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class FcmService : FirebaseMessagingService() {
+class MyFirebaseMessagingService : FirebaseMessagingService() {
 
     @Inject
     lateinit var sessionDataStore: SessionDataStore
@@ -72,6 +72,5 @@ class FcmService : FirebaseMessagingService() {
 
     override fun onNewToken(token: String) {
         super.onNewToken(token)
-        // Aquí podrías enviar el token a tu backend si fuera necesario
     }
 }

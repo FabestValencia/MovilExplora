@@ -33,6 +33,9 @@ object ModeratorFeed
 object ModeratorHistory
 
 @Serializable
+object MainDashboard
+
+@Serializable
 object Feed
 
 @Serializable
@@ -40,6 +43,9 @@ object Events
 
 @Serializable
 object MapRoute
+
+@Serializable
+object MapSelector
 
 @Serializable
 data class CreatePost(val postId: String? = null)

@@ -88,7 +88,7 @@ class PostRepositoryImpl @Inject constructor(
                 pageSize = 20,
                 enablePlaceholders = false
             ),
-            pagingSourceFactory = { postDao.getFilteredPostsPagingSource(category, priceLimit) }
+            pagingSourceFactory = { postDao.getFilteredPostsPagingSource(category, priceLimit, PostStatus.VERIFICADO.name) }
         ).flow.map { pagingData ->
             pagingData.map { it.toDomainModel() }
         }

@@ -421,7 +421,7 @@
     <string name="price_expensive">Expensive</string>
     <string name="price_moderate">Moderate</string>
     <string name="price_free">Free</string>
-    <string name="reputation_default_user_name">Jean Botsito</string>
+    <string name="reputation_default_user_name">User</string>
     <string name="points_format">+%1$d pts</string>
     <string name="description_label">Description:</string>
     <string name="price_label">Price:</string>

@@ -21,7 +21,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.example.movilexplora.core.component.BottomNavigationBar
 import com.example.movilexplora.domain.model.Event
 import com.example.movilexplora.ui.theme.GrayText
 import com.example.movilexplora.ui.theme.Turquoise
@@ -34,12 +33,8 @@ import androidx.compose.ui.layout.ContentScale
 @Composable
 fun EventsScreen(
     onNavigateToEventDetail: (String) -> Unit,
-    onNavigateToCreatePost: () -> Unit,
     onNavigateToCreateEvent: () -> Unit,
-    onNavigateToHome: () -> Unit,
     onNavigateToMap: () -> Unit,
-    onNavigateToNotifications: () -> Unit,
-    onNavigateToProfile: () -> Unit,
     viewModel: EventsViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
@@ -51,20 +46,10 @@ fun EventsScreen(
                 onClick = onNavigateToCreateEvent,
                 containerColor = Turquoise,
                 contentColor = Color.White,
-                modifier = Modifier.padding(bottom = 36.dp)
+                modifier = Modifier.padding(bottom = 16.dp)
             ) {
                 Icon(Icons.Default.Add, contentDescription = stringResource(R.string.eventsscreen_crear_evento_4))
             }
-        },
-        bottomBar = {
-            BottomNavigationBar(
-                onCreateClick = onNavigateToCreatePost,
-                onHomeClick = onNavigateToHome,
-                onEventsClick = { /* Already here */ },
-                onAlertsClick = onNavigateToNotifications,
-                onProfileClick = onNavigateToProfile,
-                selectedItem = "Eventos"
-            )
         }
     ) { paddingValues ->
         Column(

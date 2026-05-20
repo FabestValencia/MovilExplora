@@ -38,7 +38,7 @@ import com.example.movilexplora.ui.theme.getCategoryColor
 @Composable
 fun PostDetailScreen(
     postId: String,
-    isModerator: Boolean = false,
+    isAdmin: Boolean = false,
     onNavigateBack: () -> Unit,
     viewModel: PostDetailViewModel = hiltViewModel()
 ) {
@@ -73,8 +73,8 @@ fun PostDetailScreen(
             )
         },
         bottomBar = {
-            if (isModerator) {
-                ModeratorActionButtons()
+            if (isAdmin) {
+                AdminActionButtons()
             } else {
                 BottomActionButtons(
                     isFavorite = viewModel.isFavorite(state.post),
@@ -192,7 +192,7 @@ fun PostDetailScreen(
                     }
                     Spacer(modifier = Modifier.height(12.dp))
 
-                    if (!isModerator) {
+                    if (!isAdmin) {
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -241,7 +241,7 @@ fun PostDetailScreen(
                     )
                 )
                 
-                Spacer(modifier = Modifier.height(if (isModerator) 200.dp else 100.dp)) // Space for bottom buttons
+                Spacer(modifier = Modifier.height(if (isAdmin) 200.dp else 100.dp)) // Space for bottom buttons
             }
         }
     }
@@ -367,7 +367,7 @@ fun BottomActionButtons(
 }
 
 @Composable
-fun ModeratorActionButtons() {
+fun AdminActionButtons() {
     var showRejectDialog by remember { mutableStateOf(false) }
     var rejectReason by remember { mutableStateOf("") }
 

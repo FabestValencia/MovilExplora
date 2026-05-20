@@ -11,7 +11,7 @@ data class UserProfile(
     val finishedPosts: Int,
     val pendingPosts: Int,
     val rejectedPosts: Int,
-    val currentXp: Int,
+    val currentXp: Long,
     val maxXp: Int,
     val reputationLevel: ReputationLevel,
     val achievements: List<Achievement>

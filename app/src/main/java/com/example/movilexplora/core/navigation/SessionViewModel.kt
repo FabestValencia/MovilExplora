@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.movilexplora.data.model.UserSession
 import com.example.movilexplora.data.datastore.SessionDataStore
-import com.example.movilexplora.domain.model.UserRole
+import com.example.movilexplora.domain.model.enum.UserRole
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow

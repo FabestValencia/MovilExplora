@@ -3,7 +3,6 @@ package com.example.movilexplora.data.local.entity
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import com.example.movilexplora.domain.model.User
-import com.example.movilexplora.domain.model.UserRole
 
 @Entity(tableName = "users")
 data class UserEntity(
@@ -16,7 +15,7 @@ data class UserEntity(
     val password: String,
     val profilePictureUrl: String,
     val role: String,
-    val points: Int = 0
+    val points: Long = 0
 )
 
 fun UserEntity.toDomainModel(): User {
@@ -28,7 +27,7 @@ fun UserEntity.toDomainModel(): User {
         email = email,
         password = password,
         profilePictureUrl = profilePictureUrl,
-        role = UserRole.valueOf(role),
+        role = role,
         points = points
     )
 }
@@ -42,7 +41,7 @@ fun User.toEntity(): UserEntity {
         email = email,
         password = password ?: "",
         profilePictureUrl = profilePictureUrl,
-        role = role.name,
+        role = role,
         points = points
     )
 }

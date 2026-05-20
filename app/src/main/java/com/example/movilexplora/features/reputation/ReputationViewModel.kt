@@ -22,7 +22,7 @@ data class RecentPoint(
     val id: String,
     val title: String,
     val time: String,
-    val points: String,
+    val points: Long,
     val type: PointType
 )
 
@@ -35,12 +35,13 @@ data class ReputationState(
     val profilePictureUrl: String = "",
     val currentLevel: ReputationLevel = ReputationLevel.EMBAJADOR,
     val nextLevelName: String = "",
-    val currentPoints: Int = 1250,
-    val targetPoints: Int = 2000,
+    val currentPoints: Long = 1250,
+    val targetPoints: Long = 2000,
     val percentageMessage: String = "",
     val recentPoints: List<RecentPoint> = emptyList()
 )
 
+@Suppress("REDUNDANT_CALL_OF_CONVERSION_METHOD")
 @HiltViewModel
 class ReputationViewModel @Inject constructor(
     private val sessionDataStore: SessionDataStore,
@@ -81,9 +82,9 @@ class ReputationViewModel @Inject constructor(
                 }
 
                 val pointsValue = when (post.status) {
-                    com.example.movilexplora.domain.model.PostStatus.VERIFICADO -> 100
-                    com.example.movilexplora.domain.model.PostStatus.RECHAZADO -> 0
-                    else -> 50
+                    com.example.movilexplora.domain.model.PostStatus.VERIFICADO -> 100L
+                    com.example.movilexplora.domain.model.PostStatus.RECHAZADO -> 0L
+                    else -> 50L
                 }
 
                 recentPoints.add(
@@ -91,7 +92,7 @@ class ReputationViewModel @Inject constructor(
                         id = post.id,
                         title = titleText,
                         time = resourceProvider.getString(R.string.stat_time_recent),
-                        points = resourceProvider.getString(R.string.points_format, pointsValue),
+                        points = pointsValue,
                         type = PointType.POST
                     )
                 )
@@ -100,20 +101,19 @@ class ReputationViewModel @Inject constructor(
             // Limitamos a los más recientes
             val sortedRecentPoints = recentPoints.asReversed().take(10)
 
-            val actualPoints = user.points
-            
+            val actualPoints: Long = user.points
             val (calculatedLevel, calcNextLevel, calcTarget) = when {
-                actualPoints < 100 -> Triple(ReputationLevel.TURISTA, resourceProvider.getString(ReputationLevel.EXPLORADOR.displayNameRes), 100)
-                actualPoints < 500 -> Triple(ReputationLevel.EXPLORADOR, resourceProvider.getString(ReputationLevel.AVENTURERO.displayNameRes), 500)
-                actualPoints < 1000 -> Triple(ReputationLevel.AVENTURERO, resourceProvider.getString(ReputationLevel.EMBAJADOR.displayNameRes), 1000)
-                else -> Triple(ReputationLevel.EMBAJADOR, resourceProvider.getString(R.string.reputation_max_level), 2000)
+                actualPoints < 100L -> Triple(ReputationLevel.TURISTA, resourceProvider.getString(ReputationLevel.EXPLORADOR.displayNameRes), 100L)
+                actualPoints < 500L -> Triple(ReputationLevel.EXPLORADOR, resourceProvider.getString(ReputationLevel.AVENTURERO.displayNameRes), 500L)
+                actualPoints < 1000L -> Triple(ReputationLevel.AVENTURERO, resourceProvider.getString(ReputationLevel.EMBAJADOR.displayNameRes), 1000L)
+                else -> Triple(ReputationLevel.EMBAJADOR, resourceProvider.getString(R.string.reputation_max_level), 2000L)
             }
 
             _state.update {
                 it.copy(
                     userName = user.name,
                     profilePictureUrl = user.profilePictureUrl,
-                    currentPoints = actualPoints, // usamos los puntos REALES basados en la BD
+                    currentPoints = actualPoints, // usamos los puntos  basados en la BD
                     targetPoints = calcTarget,
                     currentLevel = calculatedLevel,
                     nextLevelName = calcNextLevel,

@@ -106,7 +106,7 @@ fun LoginScreen(
                     viewModel.loginWithGoogle(credential.idToken)
                 }
             } catch (_: Exception) {
-                // Manejar error o cancelación
+                // TODO Manejar error o cancelación
             }
         }
     }
@@ -123,7 +123,7 @@ fun LoginScreen(
                     viewModel.resetLoginResult()
                 }
                 is RequestResult.Loading -> {
-                    // Quizás mostrar un indicador de carga en la UI en lugar de snackbar
+                    // TODO mas adelante mostrar un indicador de carga en la UI en lugar de snackbar
                 }
             }
         }
@@ -184,7 +184,7 @@ fun LoginScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Botón de Google
+            // primer Botón de Google
             OutlinedButton(
                 onClick = { onGoogleSignInClick() },
                 modifier = Modifier

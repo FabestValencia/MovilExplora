@@ -22,7 +22,8 @@ import kotlinx.coroutines.launch
 
 data class NotificationsState(
     val recentNotifications: List<Notification> = emptyList(),
-    val olderNotifications: List<Notification> = emptyList()
+    val olderNotifications: List<Notification> = emptyList(),
+    val isPushEnabled: Boolean = true
 )
 
 @HiltViewModel
@@ -36,6 +37,22 @@ class NotificationsViewModel @Inject constructor(
 
     init {
         loadNotifications()
+        observeSettings()
+    }
+
+    private fun observeSettings() {
+        viewModelScope.launch {
+            sessionDataStore.pushNotificationsEnabled.collect { enabled ->
+                _state.update { it.copy(isPushEnabled = enabled) }
+            }
+        }
+    }
+
+    fun togglePushNotifications(enabled: Boolean) {
+        viewModelScope.launch {
+            sessionDataStore.setPushNotificationsEnabled(enabled)
+            // Aquí se podría suscribir/desuscribir de un tópico de FCM si fuera necesario
+        }
     }
 
     private fun loadNotifications() {

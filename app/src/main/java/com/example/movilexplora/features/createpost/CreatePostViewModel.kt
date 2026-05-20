@@ -177,42 +177,59 @@ class CreatePostViewModel @Inject constructor(
         if (title.isValid && description.isValid && (_state.value.selectedCategory != null)) {
             viewModelScope.launch {
                 _publishResult.value = RequestResult.Loading
-                
+
                 try {
-                    val userId = sessionDataStore.sessionFlow.firstOrNull()?.userId ?: "1" // Defaulting if null
+                    val userId = sessionDataStore.sessionFlow.firstOrNull()?.userId ?: "1"
                     var imageUrl = ""
                     val currentUri = _state.value.imageUri
+
                     if (currentUri != null) {
+                        // 1. OBTENER URL (Subir si es necesario)
                         if (currentUri.toString().startsWith("http://") || currentUri.toString().startsWith("https://")) {
                             imageUrl = currentUri.toString()
                         } else {
+                            // Aquí el código SE ESPERA hasta que Cloudinary responda
                             imageUrl = imageRepository.uploadImage(currentUri) ?: ""
                         }
-                    }
-                    val newPost = Post(
-                        id = postId ?: System.currentTimeMillis().toString(),
-                        title = title.value,
-                        location = _state.value.address.ifEmpty { resources.getString(R.string.location_not_specified) },
-                        rating = 0.0,
-                        category = _state.value.selectedCategory!!,
-                        price = "$".repeat(_state.value.selectedPriceRange),
-                        status = PostStatus.PENDIENTE,
-                        imageUrl = imageUrl,
-                        description = description.value,
-                        latitude = _state.value.selectedLatitude ?: 0.0,
-                        longitude = _state.value.selectedLongitude ?: 0.0,
-                        likedBy = emptyList(),
-                        distance = 5f,
-                        creatorId = userId
-                    )
-                    postRepository.addPost(newPost)
-                    
-                    if (postId == null) {
-                        userRepository.addPoints(userId, 50) // Granting initial 50 points
-                        _publishResult.value = RequestResult.Success(resources.getString(R.string.post_created_success_points))
+
+                        // 2. VALIDACIÓN CRÍTICA: Si no hay URL, no seguimos
+                        if (imageUrl.isEmpty()) {
+                            _publishResult.value = RequestResult.Failure("Error al subir la imagen. Por favor, intenta de nuevo.")
+                            return@launch // Detenemos la ejecución aquí
+                        }
+
+                        // 3. CREAR POST (Solo si llegamos aquí es porque tenemos URL)
+                        val newPost = Post(
+                            id = postId ?: System.currentTimeMillis().toString(),
+                            title = title.value,
+                            location = _state.value.address.ifEmpty { resources.getString(R.string.location_not_specified) },
+                            rating = 0.0,
+                            category = _state.value.selectedCategory!!,
+                            price = "$".repeat(_state.value.selectedPriceRange),
+                            status = PostStatus.PENDIENTE,
+                            imageUrl = imageUrl,
+                            description = description.value,
+                            latitude = _state.value.selectedLatitude ?: 0.0,
+                            longitude = _state.value.selectedLongitude ?: 0.0,
+                            likedBy = emptyList(),
+                            distance = 5f,
+                            creatorId = userId
+                        )
+
+                        // 4. SUBIR A FIRESTORE
+                        postRepository.addPost(newPost)
+
+                        if (postId == null) {
+                            userRepository.addPoints(userId, 50)
+                            _publishResult.value = RequestResult.Success(resources.getString(R.string.post_created_success_points))
+                        } else {
+                            _publishResult.value = RequestResult.Success("")
+                        }
+
                     } else {
-                        _publishResult.value = RequestResult.Success("")
+                        _publishResult.value = RequestResult.Failure("Es necesario asignar una imagen a la publicación")
                     }
+
                 } catch (e: Exception) {
                     _publishResult.value = RequestResult.Failure(e.message ?: "Error al publicar")
                     e.printStackTrace()
@@ -220,7 +237,6 @@ class CreatePostViewModel @Inject constructor(
             }
         }
     }
-
     fun resetResult() {
         _publishResult.value = null
     }

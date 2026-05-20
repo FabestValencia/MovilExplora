@@ -1,19 +1,27 @@
 package com.example.movilexplora.domain.model
 
-enum class UserRole {
-    EXPLORER,
-    MODERATOR,
-    ADMIN
-}
+import com.example.movilexplora.domain.model.enum.UserRole
+import com.google.firebase.firestore.IgnoreExtraProperties
 
+@IgnoreExtraProperties
 data class User(
     var id: String = "",
-    val name: String = "",
-    val email: String = "",
-    val password: String? = null,
-    val city: String = "",
-    val address: String = "",
-    val profilePictureUrl: String = "",
-    val role: UserRole = UserRole.EXPLORER,
-    val points: Int = 0
-)
+    var name: String = "",
+    var email: String = "",
+    var password: String? = null,
+    var city: String = "",
+    var address: String = "",
+    var profilePictureUrl: String = "",
+    var role: String = "EXPLORER",
+    var points: Long = 0
+) {
+    // Constructor sin argumentos para Firestore
+    constructor() : this("", "", "", null, "", "", "", "EXPLORER", 0)
+
+    val userRole: UserRole
+        get() = try {
+            UserRole.valueOf(role.trim().uppercase())
+        } catch (e: Exception) {
+            UserRole.EXPLORER
+        }
+}

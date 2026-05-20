@@ -3,11 +3,12 @@ package com.example.movilexplora.data.datastore
 import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.example.movilexplora.data.model.UserSession
-import com.example.movilexplora.domain.model.UserRole
+import com.example.movilexplora.domain.model.enum.UserRole
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -25,6 +26,7 @@ class SessionDataStore @Inject constructor(
     private object Keys {
         val USER_ID = stringPreferencesKey("user_id")
         val ROLE = stringPreferencesKey("role")
+        val PUSH_NOTIFICATIONS_ENABLED = booleanPreferencesKey("push_notifications_enabled")
     }
 
     // Flujo para observar los datos de la sesión
@@ -46,6 +48,16 @@ class SessionDataStore @Inject constructor(
             } catch (e: Exception) {
                 null
             }
+        }
+    }
+
+    val pushNotificationsEnabled: Flow<Boolean> = context.dataStore.data.map { prefs ->
+        prefs[Keys.PUSH_NOTIFICATIONS_ENABLED] ?: true
+    }
+
+    suspend fun setPushNotificationsEnabled(enabled: Boolean) {
+        context.dataStore.edit { prefs ->
+            prefs[Keys.PUSH_NOTIFICATIONS_ENABLED] = enabled
         }
     }
 

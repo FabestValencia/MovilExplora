@@ -1,9 +1,14 @@
 package com.example.movilexplora
 
 import android.os.Bundle
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Build
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
 import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -46,21 +51,53 @@ import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
 import com.example.movilexplora.data.model.UserSession
-import com.example.movilexplora.domain.model.UserRole
+import com.example.movilexplora.domain.model.enum.UserRole
 
 import com.example.movilexplora.features.moderator.ModeratorHistoryScreen
 
+import com.example.movilexplora.features.onboarding.OnboardingScreen
+import com.example.movilexplora.features.onboarding.OnboardingViewModel
+
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+
+    private val requestPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted: Boolean ->
+        // No es obligatorio manejarlo aquí, el usuario puede activarlo después
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
+        askNotificationPermission()
+
         setContent {
             val themeViewModel: ThemeViewModel = hiltViewModel()
+            val onboardingViewModel: OnboardingViewModel = hiltViewModel()
             val isDarkMode by themeViewModel.isDarkMode.collectAsState()
+            val isFirstLaunch by onboardingViewModel.state.collectAsState()
 
             MovilExploraTheme(darkTheme = isDarkMode) {
-                AppNavigation()
+                if (isFirstLaunch.isFirstLaunch) {
+                    OnboardingScreen(
+                        onFinished = { /* State will update and show AppNavigation */ },
+                        viewModel = onboardingViewModel
+                    )
+                } else {
+                    AppNavigation()
+                }
+            }
+        }
+    }
+
+    private fun askNotificationPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) !=
+                PackageManager.PERMISSION_GRANTED
+            ) {
+                requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
             }
         }
     }
@@ -158,9 +195,9 @@ private fun MainNavigation(
 ) {
     val navController = rememberNavController()
     
-    NavHost(navController = navController, startDestination = if (session.role == UserRole.MODERATOR || session.role == UserRole.ADMIN) ModeratorFeed else Feed) {
-        if (session.role == UserRole.MODERATOR || session.role == UserRole.ADMIN) {
-            // Admin / Moderator Routes
+    NavHost(navController = navController, startDestination = if (session.role == UserRole.ADMIN) ModeratorFeed else Feed) {
+        if (session.role == UserRole.ADMIN) {
+            // Admin Routes
             composable<ModeratorFeed> {
                 ModeratorFeedScreen(
                     onLogout = { onLogout() },

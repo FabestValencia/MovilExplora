@@ -282,7 +282,7 @@ fun MapScreen(
                 mapViewportState = mapViewportState,
                 onMapClickListener = { point ->
                     viewModel.onDismissDetail()
-                    val threshold = 0.001 
+                    val threshold = 0.005 
                     val nearest = state.filteredFeatures.minByOrNull {
                         val dx = it.longitude - point.longitude()
                         val dy = it.latitude - point.latitude()
@@ -295,6 +295,27 @@ fun MapScreen(
                     
                     if (nearest != null) {
                         viewModel.onFeatureClick(nearest)
+                    }
+                    true
+                },
+                onMapLongClickListener = { point ->
+                    val threshold = 0.005
+                    val nearest = state.filteredFeatures.minByOrNull {
+                        val dx = it.longitude - point.longitude()
+                        val dy = it.latitude - point.latitude()
+                        dx * dx + dy * dy
+                    }?.takeIf {
+                        val dx = it.longitude - point.longitude()
+                        val dy = it.latitude - point.latitude()
+                        (dx * dx + dy * dy) < threshold * threshold
+                    }
+                    
+                    if (nearest != null) {
+                        if (nearest is MapFeature.PostFeature) {
+                            onNavigateToDetail(nearest.id)
+                        } else if (nearest is MapFeature.EventFeature) {
+                            onNavigateToEventDetail(nearest.id)
+                        }
                     }
                     true
                 }

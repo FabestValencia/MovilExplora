@@ -22,6 +22,10 @@ import com.example.movilexplora.features.filters.FilterState
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.flatMapLatest
+import androidx.paging.cachedIn
+import androidx.paging.PagingData
+import kotlinx.coroutines.flow.Flow
 
 data class Category(val name: String)
 
@@ -94,6 +98,15 @@ class FeedViewModel @Inject constructor(
     // Lista real del repo
     private val _allPosts: StateFlow<List<Post>> = postRepository.getPosts()
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+
+    // Variable para controlar la carga paginada real
+    @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
+    val pagedPosts: Flow<PagingData<Post>> = _state.flatMapLatest { currentState ->
+        postRepository.getPagedPosts(
+            category = currentState.filterState.selectedCategory,
+            priceLimit = currentState.filterState.selectedPriceRange
+        ).cachedIn(viewModelScope)
+    }
 
     // Combine logs
     val posts: StateFlow<List<Post>> = combine(

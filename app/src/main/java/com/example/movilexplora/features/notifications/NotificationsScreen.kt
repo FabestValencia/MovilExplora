@@ -42,6 +42,7 @@ fun NotificationsScreen(
     viewModel: NotificationsViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
+    var showMenu by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -53,8 +54,29 @@ fun NotificationsScreen(
                     }
                 },
                 actions = {
-                    IconButton(onClick = { /* Menu */ }) {
+                    IconButton(onClick = { showMenu = true }) {
                         Icon(imageVector = Icons.Default.MoreVert, contentDescription = stringResource(R.string.notificationsscreen_more_2), tint = MaterialTheme.colorScheme.onBackground)
+                    }
+                    DropdownMenu(
+                        expanded = showMenu,
+                        onDismissRequest = { showMenu = false }
+                    ) {
+                        DropdownMenuItem(
+                            text = {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Text(stringResource(R.string.notifications_push_toggle))
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Switch(
+                                        checked = state.isPushEnabled,
+                                        onCheckedChange = { 
+                                            viewModel.togglePushNotifications(it)
+                                            showMenu = false
+                                        }
+                                    )
+                                }
+                            },
+                            onClick = { /* El switch maneja el click */ }
+                        )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface)

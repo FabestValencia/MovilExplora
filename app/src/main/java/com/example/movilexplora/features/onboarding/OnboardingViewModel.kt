@@ -14,7 +14,7 @@ import javax.inject.Inject
 import kotlinx.coroutines.flow.combine
 
 enum class PermissionType {
-    LOCATION, CAMERA, GALLERY
+    LOCATION, CAMERA, GALLERY, NOTIFICATIONS
 }
 
 data class OnboardingState(
@@ -57,6 +57,7 @@ class OnboardingViewModel @Inject constructor(
             PermissionType.LOCATION -> state.value.locationAlways
             PermissionType.CAMERA -> state.value.cameraAlways
             PermissionType.GALLERY -> state.value.galleryAlways
+            PermissionType.NOTIFICATIONS -> false // Por ahora no guardamos 'always' para notifications aquí
         }
 
         if (isAlways) {

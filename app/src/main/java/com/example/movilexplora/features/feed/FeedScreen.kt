@@ -25,6 +25,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.paging.compose.collectAsLazyPagingItems
 import com.example.movilexplora.core.component.BottomNavigationBar
 import com.example.movilexplora.domain.model.Post
 import com.example.movilexplora.features.filters.FilterBottomSheet
@@ -58,7 +59,7 @@ fun FeedScreen(
     viewModel: FeedViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
-    val posts by viewModel.posts.collectAsState()
+    val pagedPosts = viewModel.pagedPosts.collectAsLazyPagingItems()
     val currentUserId by viewModel.currentUserId.collectAsState()
     var showFilterSheet by remember { mutableStateOf(false) }
 
@@ -113,18 +114,19 @@ fun FeedScreen(
                 verticalArrangement = Arrangement.spacedBy(16.dp),
                 modifier = Modifier.weight(1f)
             ) {
-                items(posts) { post ->
-                    if (post.id == posts.lastOrNull()?.id) {
-                        SideEffect {
-                            viewModel.loadMore()
-                        }
+                items(
+                    count = pagedPosts.itemCount,
+                    key = { index -> pagedPosts[index]?.id ?: index }
+                ) { index ->
+                    val post = pagedPosts[index]
+                    if (post != null) {
+                        PostCard(
+                            post = post,
+                            currentUserId = currentUserId,
+                            onFavoriteClick = { viewModel.toggleFavorite(post.id) },
+                            onDetailClick = { onNavigateToDetail(post.id) }
+                        )
                     }
-                    PostCard(
-                        post = post, 
-                        currentUserId = currentUserId,
-                        onFavoriteClick = { viewModel.toggleFavorite(post.id) },
-                        onDetailClick = { onNavigateToDetail(post.id) }
-                    )
                 }
             }
         }

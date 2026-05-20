@@ -57,7 +57,7 @@ class LoginViewModel @Inject constructor(
                 }.onSuccess { user ->
                     if (user != null) {
                         // Save session in DataStore
-                        sessionDataStore.saveSession(userId = user.id, role = user.role)
+                        sessionDataStore.saveSession(userId = user.id, role = user.userRole)
                         _loginResult.value = RequestResult.Success(resources.getString(R.string.login_success))
                     } else {
                         _loginResult.value = RequestResult.Failure(resources.getString(R.string.login_failure))
@@ -76,7 +76,7 @@ class LoginViewModel @Inject constructor(
                 userRepository.loginWithGoogle(idToken)
             }.onSuccess { user ->
                 if (user != null) {
-                    sessionDataStore.saveSession(userId = user.id, role = user.role)
+                    sessionDataStore.saveSession(userId = user.id, role = user.userRole)
                     _loginResult.value = RequestResult.Success(resources.getString(R.string.login_success))
                 } else {
                     _loginResult.value = RequestResult.Failure("Error al autenticar con Google")

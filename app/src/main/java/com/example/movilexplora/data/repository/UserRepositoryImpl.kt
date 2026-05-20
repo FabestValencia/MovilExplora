@@ -31,7 +31,7 @@ class UserRepositoryImpl @Inject constructor(
     private val _users = MutableStateFlow<List<User>>(emptyList())
     override val users: StateFlow<List<User>> = _users.asStateFlow()
 
-    init {
+    /*init {
         // Escuchar cambios en tiempo real
         collection.addSnapshotListener { snapshot, _ ->
             snapshot?.let {
@@ -45,7 +45,7 @@ class UserRepositoryImpl @Inject constructor(
         scope.launch {
             migrateLocalDataToFirebase()
         }
-    }
+    }*/
 
     private suspend fun migrateLocalDataToFirebase() {
         try {
@@ -71,7 +71,7 @@ class UserRepositoryImpl @Inject constructor(
     override suspend fun save(user: User) {
         // Intentar registrar en Auth si tiene password
         val uid = if (user.password != null) {
-            val result = auth.createUserWithEmailAndPassword(user.email, user.password).await()
+            val result = auth.createUserWithEmailAndPassword(user.email, user.password!!).await()
             result.user?.uid ?: throw Exception("Error al crear usuario")
         } else {
             user.id.ifEmpty { collection.document().id }
@@ -82,14 +82,38 @@ class UserRepositoryImpl @Inject constructor(
     }
 
     override suspend fun findById(id: String): User? {
-        val snapshot = collection.document(id).get().await()
-        return snapshot.toObject(User::class.java)?.apply { this.id = snapshot.id }
+        return try {
+            val snapshot = collection.document(id).get().await()
+            if (snapshot.exists()) {
+                val user = snapshot.toObject(User::class.java)?.apply { this.id = snapshot.id }
+                android.util.Log.d("FIREBASE_DEBUG", "findById: Usuario encontrado: ${user?.name}, Rol: ${user?.role}")
+                user
+            } else {
+                android.util.Log.e("FIREBASE_DEBUG", "findById: El documento con ID $id no existe en Firestore")
+                null
+            }
+        } catch (e: Exception) {
+            android.util.Log.e("FIREBASE_DEBUG", "findById: Error mapeando usuario: ${e.message}")
+            null
+        }
     }
 
     override suspend fun login(email: String, password: String): User? {
-        val result = auth.signInWithEmailAndPassword(email, password).await()
-        val uid = result.user?.uid ?: return null
-        return findById(uid)
+        return try {
+            android.util.Log.d("FIREBASE_DEBUG", "Intentando login para: $email")
+            val result = auth.signInWithEmailAndPassword(email, password).await()
+            val uid = result.user?.uid
+            if (uid != null) {
+                android.util.Log.d("FIREBASE_DEBUG", "Login Auth exitoso, UID: $uid")
+                findById(uid)
+            } else {
+                android.util.Log.e("FIREBASE_DEBUG", "UID es nulo después de Auth")
+                null
+            }
+        } catch (e: Exception) {
+            android.util.Log.e("FIREBASE_DEBUG", "Error en login Auth: ${e.message}")
+            null
+        }
     }
 
     override suspend fun loginWithGoogle(idToken: String): User? {

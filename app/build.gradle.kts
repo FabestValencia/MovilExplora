@@ -100,6 +100,9 @@ dependencies {
     implementation(libs.room.ktx)
     ksp(libs.room.compiler)
 
+    implementation(libs.paging.runtime)
+    implementation(libs.paging.compose)
+
     implementation(libs.data.store)
 
     implementation(libs.coil.compose)
@@ -115,11 +118,13 @@ dependencies {
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.auth)
     implementation(libs.firebase.firestore)
+    implementation(libs.firebase.messaging)
     implementation(libs.play.services.auth)
     implementation(libs.androidx.credentials)
     implementation(libs.androidx.credentials.play.services.auth)
     implementation(libs.googleid)
-    
+    implementation(libs.room.paging)
+
     // Mapbox
     implementation(libs.mapbox.maps)
     implementation(libs.mapbox.compose)

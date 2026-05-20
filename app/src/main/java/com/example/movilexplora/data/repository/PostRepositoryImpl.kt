@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
+import androidx.paging.map
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -79,6 +80,18 @@ class PostRepositoryImpl @Inject constructor(
 
     override fun getPost(id: String): Flow<Post?> = getPosts().map { posts ->
         posts.find { it.id == id }
+    }
+
+    override fun getPagedPosts(category: String?, priceLimit: Int): Flow<androidx.paging.PagingData<Post>> {
+        return androidx.paging.Pager(
+            config = androidx.paging.PagingConfig(
+                pageSize = 20,
+                enablePlaceholders = false
+            ),
+            pagingSourceFactory = { postDao.getFilteredPostsPagingSource(category, priceLimit) }
+        ).flow.map { pagingData ->
+            pagingData.map { it.toDomainModel() }
+        }
     }
 
     override fun getComments(postId: String): Flow<List<Comment>> =

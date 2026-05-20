@@ -156,6 +156,7 @@
     <string name="notifications_recent">RECIENTES</string>
     <string name="notifications_mark_all_read">Marcar todo como leído</string>
     <string name="notifications_older">ANTERIORES</string>
+    <string name="notifications_push_toggle">Notificaciones Push</string>
 
     <string name="badges_title">Mis Insignias</string>
     <string name="badges_unlocked_count">%1$d Desbloqueadas</string>
@@ -438,6 +439,8 @@
     <string name="permission_camera_desc">Necesitamos acceso a tu cámara para que puedas tomar fotos y publicarlas.</string>
     <string name="permission_gallery_title">Permiso de Galería</string>
     <string name="permission_gallery_desc">Necesitamos acceso a tu galería para que puedas seleccionar fotos existentes.</string>
+    <string name="permission_notifications_title">Permiso de Notificaciones</string>
+    <string name="permission_notifications_desc">Necesitamos permiso para enviarte notificaciones sobre el estado de tus publicaciones y eventos cercanos.</string>
     <string name="permission_always">Permitir siempre</string>
     <string name="permission_only_once">Solo esta vez</string>
     <string name="permission_not_now">Ahora no</string>

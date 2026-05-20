@@ -290,7 +290,7 @@ fun RecentPointItem(point: RecentPoint) {
                 Text(text = getTranslatedPointText(point.title), fontSize = 14.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
                 Text(text = getTranslatedPointText(point.time), fontSize = 12.sp, color = GrayText)
             }
-            Text(text = point.points, fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Turquoise)
+            Text(text = point.points.toString(), fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Turquoise)
         }
     }
 }

@@ -9,7 +9,7 @@ import com.example.movilexplora.R
 import com.example.movilexplora.core.utils.ResourceProvider
 import com.example.movilexplora.core.utils.RequestResult
 import com.example.movilexplora.core.utils.ValidatedField
-import com.example.movilexplora.domain.model.UserRole
+import com.example.movilexplora.domain.model.enum.UserRole
 import com.example.movilexplora.domain.repository.UserRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -50,19 +50,25 @@ class ModeratorViewModel @Inject constructor(
             viewModelScope.launch {
                 _accessResult.value = RequestResult.Loading
                 
-                runCatching {
-                    userRepository.login(email.value, password.value)
-                }.onSuccess { user ->
-                    android.util.Log.d("DEBUG_ROLE", "Usuario: ${user?.name}, Rol: ${user?.role}")
-
-                    if (user != null && (user.role == UserRole.ADMIN || user.role == UserRole.MODERATOR)) {
-                        sessionDataStore.saveSession(user.id, user.role)
-                        _accessResult.value = RequestResult.Success(resources.getString(R.string.moderator_access_granted))
+                try {
+                    val user = userRepository.login(email.value, password.value)
+                    
+                    if (user != null) {
+                        android.util.Log.d("DEBUG_ROLE", "Usuario: ${user.name}, Rol String: ${user.role}, Rol Enum: ${user.userRole}")
+                        if (user.userRole == UserRole.ADMIN) {
+                            sessionDataStore.saveSession(user.id, UserRole.ADMIN)
+                            _accessResult.value = RequestResult.Success(resources.getString(R.string.moderator_access_granted))
+                        } else {
+                            android.util.Log.e("DEBUG_ROLE", "Acceso denegado: El usuario no es ADMIN. Rol detectado: ${user.userRole}")
+                            _accessResult.value = RequestResult.Failure(resources.getString(R.string.moderator_invalid_credentials))
+                        }
                     } else {
-                        _accessResult.value = RequestResult.Failure(resources.getString(R.string.moderator_invalid_credentials))
+                        // El login devolvió null (ej. credenciales incorrectas capturadas por el repo)
+                        _accessResult.value = RequestResult.Failure(resources.getString(R.string.login_failure))
                     }
-                }.onFailure { exception ->
-                    _accessResult.value = RequestResult.Failure(exception.message ?: "Error de autenticación")
+                } catch (e: Exception) {
+                    android.util.Log.e("MODERATOR_LOGIN", "Error inesperado", e)
+                    _accessResult.value = RequestResult.Failure(e.message ?: "Error desconocido")
                 }
             }
         }

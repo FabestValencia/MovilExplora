@@ -19,7 +19,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.update
 
 @HiltViewModel
@@ -82,9 +81,8 @@ class ProfileViewModel @Inject constructor(
         allPosts: List<com.example.movilexplora.domain.model.Post>,
         allEvents: List<Event>
     ) {
-        val roleMapping = when (user.role.name) {
+        val roleMapping = when (user.role) {
             "ADMIN" -> resourceProvider.getString(R.string.role_admin)
-            "MODERATOR" -> resourceProvider.getString(R.string.role_moderator)
             else -> resourceProvider.getString(R.string.role_local_ambassador)
         }
 
@@ -98,8 +96,7 @@ class ProfileViewModel @Inject constructor(
 
         userPostsList.forEach { post ->
             when (post.status.name) {
-                "ACTIVO", "VERIFICADO" -> activeCount++
-                "FINALIZADO" -> finishedCount++
+                "VERIFICADO" -> activeCount++
                 "PENDIENTE" -> pendingCount++
                 "RECHAZADO" -> rejectedCount++
             }

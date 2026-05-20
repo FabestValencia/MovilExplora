@@ -156,6 +156,7 @@
     <string name="notifications_recent">RECENT</string>
     <string name="notifications_mark_all_read">Mark all as read</string>
     <string name="notifications_older">OLDER</string>
+    <string name="notifications_push_toggle">Push Notifications</string>
 
     <string name="badges_title">My Badges</string>
     <string name="badges_unlocked_count">%1$d Unlocked</string>
@@ -436,6 +437,8 @@
     <string name="permission_camera_desc">We need access to your camera so you can take photos and post them.</string>
     <string name="permission_gallery_title">Gallery Permission</string>
     <string name="permission_gallery_desc">We need access to your gallery so you can select existing photos.</string>
+    <string name="permission_notifications_title">Notifications Permission</string>
+    <string name="permission_notifications_desc">We need permission to send you notifications about your post status and nearby events.</string>
     <string name="permission_always">Allow always</string>
     <string name="permission_only_once">Only this time</string>
     <string name="permission_not_now">Not now</string>

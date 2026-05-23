@@ -1,35 +1,72 @@
 package com.example.movilexplora.features.postdetail
 
-import androidx.compose.ui.res.stringResource
-import com.example.movilexplora.R
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Send
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
+import androidx.compose.material.icons.filled.AttachMoney
+import androidx.compose.material.icons.filled.Block
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.CheckCircleOutline
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.runtime.*
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
+import com.example.movilexplora.R
 import com.example.movilexplora.core.component.ProfileImage
 import com.example.movilexplora.domain.model.Comment
-import com.example.movilexplora.ui.theme.GrayText
+import com.example.movilexplora.domain.model.PostStatus
 import com.example.movilexplora.ui.theme.Turquoise
 import com.example.movilexplora.ui.theme.VerifiedBlue
 import com.example.movilexplora.ui.theme.getCategoryColor
@@ -83,7 +120,11 @@ fun PostDetailScreen(
         },
         bottomBar = {
             if (isAdmin) {
-                AdminActionButtons()
+                AdminActionButtons(
+                    onVerify = { viewModel.updatePostStatus(postId, PostStatus.VERIFICADO) },
+                    onReject = { reason -> viewModel.updatePostStatus(postId, PostStatus.RECHAZADO, reason) },
+                    onResolve = { viewModel.updatePostStatus(postId, PostStatus.VERIFICADO) }
+                )
             } else {
                 BottomActionButtons(
                     isFavorite = viewModel.isFavorite(state.post),
@@ -437,13 +478,17 @@ fun BottomActionButtons(
 }
 
 @Composable
-fun AdminActionButtons() {
+fun AdminActionButtons(
+    onVerify: () -> Unit,
+    onReject: (String) -> Unit,
+    onResolve: () -> Unit
+) {
     var showRejectDialog by remember { mutableStateOf(false) }
     var rejectReason by remember { mutableStateOf("") }
 
     if (showRejectDialog) {
         AlertDialog(
-            onDismissRequest = { },
+            onDismissRequest = { showRejectDialog = false },
             title = {
                 Text(text = stringResource(R.string.reject_reason_title), fontWeight = FontWeight.Bold)
             },
@@ -459,14 +504,15 @@ fun AdminActionButtons() {
             confirmButton = {
                 TextButton(
                     onClick = {
-                        // TODO: Implement the reject action here
+                        onReject(rejectReason)
+                        showRejectDialog = false
                     }
                 ) {
                     Text(text = stringResource(R.string.common_ok), color = Color.Red)
                 }
             },
             dismissButton = {
-                TextButton(onClick = { }) {
+                TextButton(onClick = { showRejectDialog = false }) {
                     Text(stringResource(R.string.cancel_button))
                 }
             }
@@ -480,7 +526,7 @@ fun AdminActionButtons() {
             .background(MaterialTheme.colorScheme.background)
     ) {
         Button(
-            onClick = { },
+            onClick = { showRejectDialog = true },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(56.dp),
@@ -495,7 +541,7 @@ fun AdminActionButtons() {
         Spacer(modifier = Modifier.height(12.dp))
         
         Button(
-            onClick = { /* Verificar */ },
+            onClick = onVerify,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(56.dp),
@@ -510,7 +556,7 @@ fun AdminActionButtons() {
         Spacer(modifier = Modifier.height(12.dp))
 
         Button(
-            onClick = { /* Resolver */ },
+            onClick = onResolve,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(56.dp),

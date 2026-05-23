@@ -21,6 +21,8 @@
     <string name="error_password_short">La contraseña debe tener al menos 6 caracteres</string>
     <string name="login_success">Inicio de sesión exitoso</string>
     <string name="login_failure">Credenciales inválidas</string>
+    <string name="login_cancelled">Inicio de sesión cancelado</string>
+    <string name="login_error_unverified">Tu cuenta no está verificada. Por favor, revisa tu correo electrónico para activarla.</string>
 
     <!-- Moderator Screen -->
     <string name="moderator_title">Moderador</string>
@@ -78,6 +80,7 @@
     <string name="error_name_empty">El nombre es obligatorio</string>
     <string name="error_location_empty">La ubicación es obligatoria</string>
     <string name="register_success">Registro exitoso</string>
+    <string name="register_success_verify">Registro exitoso. Se ha enviado un correo de verificación. Por favor, actívalo antes de iniciar sesión.</string>
     <string name="register_failure">Error de registro</string>
     <string name="badgesscreen_sigue_explorando_para_complet_0">¡Sigue explorando para completar tu colección!</string>
     <string name="badgesscreen_logros_recientes_1">Logros Recientes</string>
@@ -390,6 +393,8 @@
     <string name="reject_reason_title">Motivo de rechazo</string>
     <string name="reject_reason_hint">Escribe la razón aquí…</string>
     <string name="confirm_button">Confirmar</string>
+    <string name="confirm_action">Confirmar</string>
+    <string name="reject_action_confirm">Rechazar Elemento</string>
     <string name="cancel_button">Cancelar</string>
 
     <!-- Reputation Levels -->

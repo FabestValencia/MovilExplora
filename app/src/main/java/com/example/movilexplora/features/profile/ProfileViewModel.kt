@@ -19,6 +19,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.update
 
 @HiltViewModel
@@ -130,8 +131,13 @@ class ProfileViewModel @Inject constructor(
     }
 
     fun deleteAccount() {
-        // TODO Logic to delete account, la idea es que sea una eliminacion logica, no real, pues necesitamos
-        //toda la informacion para
+        viewModelScope.launch {
+            val session = sessionDataStore.sessionFlow.firstOrNull()
+            if (session != null) {
+                userRepository.softDeleteUser(session.userId)
+                sessionDataStore.clearSession()
+            }
+        }
     }
 
     fun deleteEvent(eventId: String) {

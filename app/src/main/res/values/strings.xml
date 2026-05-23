@@ -21,6 +21,8 @@
     <string name="error_password_short">Password must be at least 6 characters</string>
     <string name="login_success">Login successful</string>
     <string name="login_failure">Invalid credentials</string>
+    <string name="login_cancelled">Login cancelled</string>
+    <string name="login_error_unverified">Your account is not verified. Please check your email to activate it.</string>
 
     <!-- Moderator Screen -->
     <string name="moderator_title">Moderator Area</string>
@@ -77,6 +79,7 @@
     <string name="error_name_empty">Name is required</string>
     <string name="error_location_empty">Location is required</string>
     <string name="register_success">Registration successful</string>
+    <string name="register_success_verify">Registration successful. A verification email has been sent. Please activate it before logging in.</string>
     <string name="register_failure">Registration error</string>
 
     <string name="badgesscreen_sigue_explorando_para_complet_0">Keep exploring to complete your collection!</string>
@@ -390,6 +393,8 @@
     <string name="reject_reason_title">Rejection reason</string>
     <string name="reject_reason_hint">Write the reason here…</string>
     <string name="confirm_button">Confirm</string>
+    <string name="confirm_action">Confirm</string>
+    <string name="reject_action_confirm">Reject Item</string>
     <string name="cancel_button">Cancel</string>
     <string name="reputation_level_turista">Tourist</string>
     <string name="reputation_level_explorador">Explorer</string>

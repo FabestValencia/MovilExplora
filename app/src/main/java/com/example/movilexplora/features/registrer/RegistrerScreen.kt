@@ -1,5 +1,6 @@
 package com.example.movilexplora.features.registrer
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -7,6 +8,9 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import com.example.movilexplora.core.component.DropdownMenu
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
@@ -132,6 +136,27 @@ fun RegisterScreen(
 
             RegisterField(label = stringResource(R.string.register_name_label), placeholder = stringResource(R.string.register_name_placeholder), field = viewModel.nombre)
             
+            // Location Selection Button
+            Text(
+                text = stringResource(R.string.createpostscreen_ubicaci_n_8),
+                fontSize = 14.sp,
+                color = GrayText.copy(alpha = 0.8f),
+                modifier = Modifier.padding(start = 4.dp, bottom = 4.dp, top = 8.dp)
+            )
+            OutlinedButton(
+                onClick = { /* TODO: Open Map Selector and call viewModel.updateLocation */ },
+                modifier = Modifier.fillMaxWidth().height(56.dp),
+                shape = RoundedCornerShape(24.dp),
+                border = BorderStroke(1.dp, Color.LightGray.copy(alpha = 0.5f)),
+                colors = ButtonDefaults.outlinedButtonColors(containerColor = Color(0xFFF7F8F9))
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(imageVector = Icons.Default.LocationOn, contentDescription = null, tint = Turquoise)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(text = stringResource(R.string.map_selector_title), color = GrayText)
+                }
+            }
+
             DropdownMenu(
                 value = viewModel.city.value,
                 onValueChange = { viewModel.city.onChange(it) },

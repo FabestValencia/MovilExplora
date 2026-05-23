@@ -105,8 +105,12 @@ fun LoginScreen(
                 if (credential is GoogleIdTokenCredential) {
                     viewModel.loginWithGoogle(credential.idToken)
                 }
-            } catch (_: Exception) {
-                // TODO Manejar error o cancelación
+            } catch (e: Exception) {
+                if (e !is androidx.credentials.exceptions.GetCredentialCancellationException) {
+                    snackbarHostState.showSnackbar(e.message ?: context.getString(R.string.login_failure))
+                } else {
+                    snackbarHostState.showSnackbar(context.getString(R.string.login_cancelled))
+                }
             }
         }
     }

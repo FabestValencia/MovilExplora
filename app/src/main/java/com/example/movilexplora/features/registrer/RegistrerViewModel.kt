@@ -58,6 +58,14 @@ class RegisterViewModel @Inject constructor(
         if (value.isEmpty()) "Selecciona una ciudad" else null
     }
 
+    private val _latitude = MutableStateFlow<Double?>(null)
+    private val _longitude = MutableStateFlow<Double?>(null)
+
+    fun updateLocation(lat: Double, lon: Double) {
+        _latitude.value = lat
+        _longitude.value = lon
+    }
+
     private val _registerResult = MutableStateFlow<RequestResult?>(null)
     val registerResult: StateFlow<RequestResult?> = _registerResult.asStateFlow()
 
@@ -72,10 +80,6 @@ class RegisterViewModel @Inject constructor(
             viewModelScope.launch {
                 _registerResult.value = RequestResult.Loading
                 
-                // TODO: Eliminar direcciones (lat/lon quemadas mediante String) cuando se agregue mapa al registro de usuario.
-                val randomLat = (Math.random() * 0.8) - 0.4
-                val randomLon = (Math.random() * 0.8) - 0.4
-
                 val newUser = User(
                     id = "", // Se generará en Firebase
                     name = nombre.value,
@@ -83,13 +87,15 @@ class RegisterViewModel @Inject constructor(
                     password = password.value,
                     city = city.value,
                     address = "",
-                    profilePictureUrl = ""
+                    profilePictureUrl = "",
+                    latitude = _latitude.value ?: 0.0,
+                    longitude = _longitude.value ?: 0.0
                 )
 
                 _registerResult.value = runCatching {
                     userRepository.save(newUser)
                 }.fold(
-                    onSuccess = { RequestResult.Success(resources.getString(R.string.register_success_spanish)) },
+                    onSuccess = { RequestResult.Success(resources.getString(R.string.register_success_verify)) },
                     onFailure = { RequestResult.Failure(it.message ?: "Error al registrar") }
                 )
             }

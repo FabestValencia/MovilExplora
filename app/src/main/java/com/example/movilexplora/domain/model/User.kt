@@ -13,10 +13,12 @@ data class User(
     var address: String = "",
     var profilePictureUrl: String = "",
     var role: String = "EXPLORER",
-    var points: Long = 0
+    var points: Long = 0,
+    var latitude: Double = 0.0,
+    var longitude: Double = 0.0
 ) {
     // Constructor sin argumentos para Firestore
-    constructor() : this("", "", "", null, "", "", "", "EXPLORER", 0)
+    constructor() : this("", "", "", null, "", "", "", "EXPLORER", 0, 0.0, 0.0)
 
     val userRole: UserRole
         get() = try {

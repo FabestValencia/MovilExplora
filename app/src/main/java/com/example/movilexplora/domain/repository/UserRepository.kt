@@ -11,4 +11,5 @@ interface UserRepository {
     suspend fun addPoints(userId: String, points: Int)
     suspend fun sendPasswordResetEmail(email: String)
     suspend fun updateFcmToken(userId: String, token: String)
+    suspend fun softDeleteUser(userId: String)
 }

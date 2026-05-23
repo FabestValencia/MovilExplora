@@ -105,4 +105,10 @@ class PostDetailViewModel @Inject constructor(
     fun isFavorite(post: Post?): Boolean {
         return post?.likedBy?.contains(currentUserId) == true
     }
+
+    fun updatePostStatus(postId: String, status: PostStatus, reason: String? = null) {
+        viewModelScope.launch {
+            postRepository.updatePostStatus(postId, status, reason)
+        }
+    }
 }

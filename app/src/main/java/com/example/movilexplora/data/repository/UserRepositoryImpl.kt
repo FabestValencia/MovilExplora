@@ -76,7 +76,12 @@ class UserRepositoryImpl @Inject constructor(
         // Intentar registrar en Auth si tiene password
         val uid = if (user.password != null) {
             val result = auth.createUserWithEmailAndPassword(user.email, user.password!!).await()
-            result.user?.uid ?: throw Exception("Error al crear usuario")
+            val firebaseUser = result.user ?: throw Exception("Error al crear usuario")
+            
+            // Enviar correo de verificación
+            firebaseUser.sendEmailVerification().await()
+            
+            firebaseUser.uid
         } else {
             user.id.ifEmpty { collection.document().id }
         }
@@ -106,17 +111,26 @@ class UserRepositoryImpl @Inject constructor(
         return try {
             android.util.Log.d("FIREBASE_DEBUG", "Intentando login para: $email")
             val result = auth.signInWithEmailAndPassword(email, password).await()
-            val uid = result.user?.uid
-            if (uid != null) {
-                android.util.Log.d("FIREBASE_DEBUG", "Login Auth exitoso, UID: $uid")
-                findById(uid)
+            val firebaseUser = result.user
+            
+            if (firebaseUser != null) {
+                // Forzar recarga para obtener el estado de verificación más reciente
+                firebaseUser.reload().await()
+                
+                if (!firebaseUser.isEmailVerified) {
+                    auth.signOut()
+                    throw Exception("Tu cuenta no está verificada. Por favor, revisa tu correo electrónico para activarla.")
+                }
+                
+                android.util.Log.d("FIREBASE_DEBUG", "Login Auth exitoso, UID: ${firebaseUser.uid}")
+                findById(firebaseUser.uid)
             } else {
-                android.util.Log.e("FIREBASE_DEBUG", "UID es nulo después de Auth")
+                android.util.Log.e("FIREBASE_DEBUG", "Usuario es nulo después de Auth")
                 null
             }
         } catch (e: Exception) {
             android.util.Log.e("FIREBASE_DEBUG", "Error en login Auth: ${e.message}")
-            null
+            throw e // Re-lanzar para que el ViewModel lo capture
         }
     }
 
@@ -154,5 +168,9 @@ class UserRepositoryImpl @Inject constructor(
 
     override suspend fun updateFcmToken(userId: String, token: String) {
         collection.document(userId).update("fcmToken", token).await()
+    }
+
+    override suspend fun softDeleteUser(userId: String) {
+        collection.document(userId).update("isDeleted", true).await()
     }
 }

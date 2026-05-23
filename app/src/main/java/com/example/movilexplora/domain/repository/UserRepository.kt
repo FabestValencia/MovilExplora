@@ -1,14 +1,13 @@
 package com.example.movilexplora.domain.repository
 
-import com.example.movilexplora.domain.model.User
-import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.Flow
 
 interface UserRepository {
-    val users: StateFlow<List<User>>
-    suspend fun save(user: User)
-    suspend fun findById(id: String): User?
-    suspend fun login(email: String, password: String): User?
-    suspend fun loginWithGoogle(idToken: String): User?
+    fun observeUser(id: String): Flow<com.example.movilexplora.domain.model.User?>
+    suspend fun save(user: com.example.movilexplora.domain.model.User)
+    suspend fun findById(id: String): com.example.movilexplora.domain.model.User?
+    suspend fun login(email: String, password: String): com.example.movilexplora.domain.model.User?
+    suspend fun loginWithGoogle(idToken: String): com.example.movilexplora.domain.model.User?
     suspend fun addPoints(userId: String, points: Int)
     suspend fun sendPasswordResetEmail(email: String)
     suspend fun updateFcmToken(userId: String, token: String)

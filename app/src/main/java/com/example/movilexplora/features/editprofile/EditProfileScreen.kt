@@ -113,6 +113,8 @@ fun EditProfileScreen(
     val notificationsEnabled by viewModel.notificationsEnabled.collectAsState()
     val photoUri by viewModel.photoUri.collectAsState()
     val photoUrl by viewModel.photoUrl.collectAsState()
+    val onboardingViewModel: com.example.movilexplora.features.onboarding.OnboardingViewModel = hiltViewModel()
+    val onboardingState by onboardingViewModel.state.collectAsState()
 
     val (showDeleteDialog, setShowDeleteDialog) = remember { mutableStateOf(false) }
     var showBottomSheet by remember { mutableStateOf(false) }
@@ -141,6 +143,34 @@ fun EditProfileScreen(
             tempCameraUri = createTempImageUri(context)
             tempCameraUri?.let { cameraLauncher.launch(it) }
         }
+    }
+
+    val triggerCamera = {
+        if (androidx.core.content.ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == android.content.pm.PackageManager.PERMISSION_GRANTED) {
+            tempCameraUri = createTempImageUri(context)
+            tempCameraUri?.let { cameraLauncher.launch(it) }
+        } else {
+            cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+        }
+    }
+
+    val triggerGallery = {
+        galleryLauncher.launch("image/*")
+    }
+
+    // Permission Dialog
+    onboardingState.showPermissionDialog?.let { permissionType ->
+        com.example.movilexplora.core.component.OnboardingPermissionDialog(
+            permissionType = permissionType,
+            onChoiceMade = { always ->
+                onboardingViewModel.onPermissionChoice(permissionType, always)
+                if (permissionType == com.example.movilexplora.features.onboarding.PermissionType.CAMERA) triggerCamera()
+                else if (permissionType == com.example.movilexplora.features.onboarding.PermissionType.GALLERY) triggerGallery()
+            },
+            onDismiss = {
+                onboardingViewModel.dismissPermissionDialog()
+            }
+        )
     }
 
     LaunchedEffect(updateResult) {
@@ -494,7 +524,9 @@ fun EditProfileScreen(
                             .fillMaxWidth()
                             .clickable {
                                 showBottomSheet = false
-                                cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+                                onboardingViewModel.checkAndShowPermissionOnboarding(com.example.movilexplora.features.onboarding.PermissionType.CAMERA) {
+                                    triggerCamera()
+                                }
                             }
                             .padding(horizontal = 24.dp, vertical = 16.dp),
                         verticalAlignment = Alignment.CenterVertically,
@@ -509,7 +541,9 @@ fun EditProfileScreen(
                             .fillMaxWidth()
                             .clickable {
                                 showBottomSheet = false
-                                galleryLauncher.launch("image/*")
+                                onboardingViewModel.checkAndShowPermissionOnboarding(com.example.movilexplora.features.onboarding.PermissionType.GALLERY) {
+                                    triggerGallery()
+                                }
                             }
                             .padding(horizontal = 24.dp, vertical = 16.dp),
                         verticalAlignment = Alignment.CenterVertically,

@@ -94,7 +94,7 @@ fun FilterBottomSheet(
             Slider(
                 value = state.distance,
                 onValueChange = { state = updateCount(state.copy(distance = it)) },
-                valueRange = 1f..50f,
+                valueRange = 1f..60f,
                 colors = SliderDefaults.colors(
                     thumbColor = Color.White,
                     activeTrackColor = Turquoise,
@@ -108,7 +108,7 @@ fun FilterBottomSheet(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(text = stringResource(R.string.filter_distance_min), fontSize = 12.sp, color = GrayText.copy(alpha = 0.5f))
-                Text(text = stringResource(R.string.filter_distance_max), fontSize = 12.sp, color = GrayText.copy(alpha = 0.5f))
+                Text(text = "60 km", fontSize = 12.sp, color = GrayText.copy(alpha = 0.5f))
             }
 
             Spacer(modifier = Modifier.height(24.dp))

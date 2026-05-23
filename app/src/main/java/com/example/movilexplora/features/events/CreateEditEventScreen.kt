@@ -102,7 +102,7 @@ fun CreateEditEventScreen(
     val context = LocalContext.current
     val onboardingState by onboardingViewModel.state.collectAsState()
 
-    remember { LocationServices.getFusedLocationProviderClient(context) }
+    val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
     val mapViewportState = rememberMapViewportState {
         setCameraOptions {
             center(Point.fromLngLat(2.1734, 41.3851))
@@ -149,7 +149,45 @@ fun CreateEditEventScreen(
         selectedPinSourceState.data = GeoJSONData(selectedPinGeoJson)
     }
 
-    // (Permissions logic for map follows)...
+    val requestPermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
+        if (permissions.values.any { it }) {
+            fusedLocationClient.lastLocation.addOnSuccessListener { location ->
+                if (location != null) {
+                    lat = location.latitude
+                    lon = location.longitude
+                    mapViewportState.setCameraOptions {
+                        center(Point.fromLngLat(location.longitude, location.latitude))
+                        zoom(14.0)
+                    }
+                }
+            }
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        val permissions = arrayOf(
+            Manifest.permission.ACCESS_FINE_LOCATION,
+            Manifest.permission.ACCESS_COARSE_LOCATION
+        )
+        if (permissions.all { ContextCompat.checkSelfPermission(context, it) == PackageManager.PERMISSION_GRANTED }) {
+            fusedLocationClient.lastLocation.addOnSuccessListener { location ->
+                if (location != null) {
+                    lat = location.latitude
+                    lon = location.longitude
+                    mapViewportState.setCameraOptions {
+                        center(Point.fromLngLat(location.longitude, location.latitude))
+                        zoom(14.0)
+                    }
+                }
+            }
+        } else {
+            onboardingViewModel.checkAndShowPermissionOnboarding(PermissionType.LOCATION) {
+                requestPermissionLauncher.launch(permissions)
+            }
+        }
+    }
     
     var showBottomSheet by remember { mutableStateOf(false) }
     val bottomSheetState = rememberModalBottomSheetState()

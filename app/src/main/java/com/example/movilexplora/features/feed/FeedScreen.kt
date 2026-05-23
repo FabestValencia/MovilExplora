@@ -1,5 +1,9 @@
 package com.example.movilexplora.features.feed
 
+import android.Manifest
+import android.content.pm.PackageManager
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -44,6 +48,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -53,21 +58,27 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.example.movilexplora.R
+import com.example.movilexplora.core.component.OnboardingPermissionDialog
 import com.example.movilexplora.core.component.ProfileImage
 import com.example.movilexplora.domain.model.Post
 import com.example.movilexplora.features.filters.FilterBottomSheet
+import com.example.movilexplora.features.onboarding.OnboardingViewModel
+import com.example.movilexplora.features.onboarding.PermissionType
 import com.example.movilexplora.ui.theme.GrayText
 import com.example.movilexplora.ui.theme.Turquoise
 import com.example.movilexplora.ui.theme.VerifiedBlue
 import com.example.movilexplora.ui.theme.getCategoryColor
 import com.example.movilexplora.ui.theme.getCategoryIcon
+import com.google.android.gms.location.LocationServices
 
 @Composable
 fun getTranslatedCategoryName(categoryKey: String): String {
@@ -86,12 +97,59 @@ fun getTranslatedCategoryName(categoryKey: String): String {
 fun FeedScreen(
     onNavigateToDetail: (String) -> Unit,
     onNavigateToMap: () -> Unit,
-    viewModel: FeedViewModel = hiltViewModel()
+    viewModel: FeedViewModel = hiltViewModel(),
+    onboardingViewModel: OnboardingViewModel = hiltViewModel()
 ) {
+    val context = LocalContext.current
     val state by viewModel.state.collectAsState()
     val pagedPosts = viewModel.pagedPosts.collectAsLazyPagingItems()
     val currentUserId by viewModel.currentUserId.collectAsState()
     var showFilterSheet by remember { mutableStateOf(false) }
+
+    val onboardingState by onboardingViewModel.state.collectAsState()
+    val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
+
+    val requestPermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
+        if (permissions.values.any { it }) {
+            fusedLocationClient.lastLocation.addOnSuccessListener { location ->
+                location?.let { viewModel.updateUserLocation(it.latitude, it.longitude) }
+            }
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        val permissions = arrayOf(
+            Manifest.permission.ACCESS_FINE_LOCATION,
+            Manifest.permission.ACCESS_COARSE_LOCATION
+        )
+        if (permissions.all { ContextCompat.checkSelfPermission(context, it) == PackageManager.PERMISSION_GRANTED }) {
+            fusedLocationClient.lastLocation.addOnSuccessListener { location ->
+                location?.let { viewModel.updateUserLocation(it.latitude, it.longitude) }
+            }
+        } else {
+            onboardingViewModel.checkAndShowPermissionOnboarding(PermissionType.LOCATION) {
+                requestPermissionLauncher.launch(permissions)
+            }
+        }
+    }
+
+    // Permission Dialog
+    onboardingState.showPermissionDialog?.let { permissionType ->
+        if (permissionType == PermissionType.LOCATION) {
+            OnboardingPermissionDialog(
+                permissionType = permissionType,
+                onChoiceMade = { always ->
+                    onboardingViewModel.onPermissionChoice(permissionType, always)
+                    requestPermissionLauncher.launch(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION))
+                },
+                onDismiss = {
+                    onboardingViewModel.dismissPermissionDialog()
+                }
+            )
+        }
+    }
 
     if (showFilterSheet) {
         FilterBottomSheet(

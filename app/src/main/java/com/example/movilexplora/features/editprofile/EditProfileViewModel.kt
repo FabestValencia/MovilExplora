@@ -20,6 +20,7 @@ import com.example.movilexplora.data.datastore.SessionDataStore
 import com.example.movilexplora.domain.repository.UserRepository
 import com.example.movilexplora.domain.repository.ImageRepository
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.launch
 import android.net.Uri
 
@@ -57,12 +58,14 @@ class EditProfileViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            kotlinx.coroutines.flow.combine(
-                sessionDataStore.sessionFlow,
-                userRepository.users
-            ) { session, users ->
+            @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
+            sessionDataStore.sessionFlow.flatMapLatest { session ->
                 val userId = session?.userId
-                users.find { it.id == userId }
+                if (userId != null && userId != "guest") {
+                    userRepository.observeUser(userId)
+                } else {
+                    kotlinx.coroutines.flow.flowOf(null)
+                }
             }.collect { user ->
                 if (user != null) {
                     if (name.value.isEmpty()) name.onChange(user.name)

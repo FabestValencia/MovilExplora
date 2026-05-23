@@ -111,15 +111,8 @@ class MapViewModel @Inject constructor(
         val filtered = features.filter { feature ->
             val matchesFilter = when {
                 filter == nearbyLabel || filter.isEmpty() -> {
-                    if (filter == nearbyLabel && userLoc != null) {
-                        val distance = calculateDistanceInKm(
-                            userLoc.first, userLoc.second,
-                            feature.latitude, feature.longitude
-                        )
-                        distance <= 50.0 // 50 km radius limit
-                    } else {
-                        true
-                    }
+                    // El mapa ahora muestra TODO, pero podemos ordenarlos si es "Cercanos"
+                    true
                 }
                 filter == inCityLabel -> {
                     true // Show all posts and events in the database on the map

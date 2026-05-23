@@ -27,16 +27,22 @@ class EventRepositoryImpl @Inject constructor(
     private val scope = CoroutineScope(Dispatchers.IO)
 
     init {
-        // Sincronizar eventos desde Firestore
-        collection.addSnapshotListener { snapshot, _ ->
-            snapshot?.let {
+        // Sincronizar eventos desde Firestore de forma eficiente
+        collection.addSnapshotListener { snapshot, error ->
+            if (error != null) return@addSnapshotListener
+            
+            snapshot?.documentChanges?.forEach { change ->
+                val event = change.document.toObject(Event::class.java).apply { id = change.document.id }
                 scope.launch {
-                    val events = it.documents.mapNotNull { doc ->
-                        doc.toObject(Event::class.java)?.apply { id = doc.id }
+                    when (change.type) {
+                        com.google.firebase.firestore.DocumentChange.Type.ADDED,
+                        com.google.firebase.firestore.DocumentChange.Type.MODIFIED -> {
+                            eventDao.insertEvent(event.toEntity())
+                        }
+                        com.google.firebase.firestore.DocumentChange.Type.REMOVED -> {
+                            eventDao.deleteEvent(event.id)
+                        }
                     }
-                    // Actualizar caché local: limpiar y reinsertar
-                    eventDao.clearAll()
-                    eventDao.insertEvents(events.map { it.toEntity() })
                 }
             }
         }

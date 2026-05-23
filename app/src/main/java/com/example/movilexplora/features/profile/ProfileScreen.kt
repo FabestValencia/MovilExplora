@@ -63,7 +63,7 @@ fun ProfileScreen(
     var eventForRejectionReason by remember { mutableStateOf<com.example.movilexplora.domain.model.Event?>(null) }
     
     // 0 -> Estadísticas, 1 -> Mis Lugares, 2 -> Mis Eventos
-    var selectedTabIndex by remember { mutableStateOf(0) }
+    var selectedTabIndex by remember { mutableIntStateOf(0) }
 
     if (showDeleteDialog) {
         DeleteAccountDialog(

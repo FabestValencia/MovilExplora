@@ -39,16 +39,22 @@ class PostRepositoryImpl @Inject constructor(
     private val scope = CoroutineScope(Dispatchers.IO)
 
     init {
-        // Sincronizar posts desde Firestore en tiempo real
-        collection.addSnapshotListener { snapshot, _ ->
-            snapshot?.let {
+        // Sincronizar posts desde Firestore de forma eficiente
+        collection.addSnapshotListener { snapshot, error ->
+            if (error != null) return@addSnapshotListener
+            
+            snapshot?.documentChanges?.forEach { change ->
+                val post = change.document.toObject(Post::class.java).apply { id = change.document.id }
                 scope.launch {
-                    val posts = it.documents.mapNotNull { doc ->
-                        doc.toObject(Post::class.java)?.apply { id = doc.id }
+                    when (change.type) {
+                        com.google.firebase.firestore.DocumentChange.Type.ADDED,
+                        com.google.firebase.firestore.DocumentChange.Type.MODIFIED -> {
+                            postDao.insertPost(post.toEntity())
+                        }
+                        com.google.firebase.firestore.DocumentChange.Type.REMOVED -> {
+                            postDao.deletePost(post.id)
+                        }
                     }
-                    // Actualizar caché local: limpiar y reinsertar para mantener sincronización exacta
-                    postDao.clearAll()
-                    postDao.insertPosts(posts.map { it.toEntity() })
                 }
             }
         }
@@ -82,13 +88,26 @@ class PostRepositoryImpl @Inject constructor(
         posts.find { it.id == id }
     }
 
-    override fun getPagedPosts(category: String?, priceLimit: Int, searchQuery: String?): Flow<androidx.paging.PagingData<Post>> {
+    override fun getPagedPosts(
+        category: String?, 
+        priceLimit: Int, 
+        searchQuery: String?,
+        minLat: Double?,
+        maxLat: Double?,
+        minLon: Double?,
+        maxLon: Double?
+    ): Flow<androidx.paging.PagingData<Post>> {
         return androidx.paging.Pager(
             config = androidx.paging.PagingConfig(
                 pageSize = 20,
                 enablePlaceholders = false
             ),
-            pagingSourceFactory = { postDao.getFilteredPostsPagingSource(category, priceLimit, PostStatus.VERIFICADO.name, searchQuery) }
+            pagingSourceFactory = { 
+                postDao.getFilteredPostsPagingSource(
+                    category, priceLimit, PostStatus.VERIFICADO.name, searchQuery,
+                    minLat, maxLat, minLon, maxLon
+                ) 
+            }
         ).flow.map { pagingData ->
             pagingData.map { it.toDomainModel() }
         }

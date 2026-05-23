@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.launch
 import com.example.movilexplora.R
 import com.example.movilexplora.core.utils.ResourceProvider
@@ -62,21 +63,19 @@ class ReputationViewModel @Inject constructor(
         }
         
         viewModelScope.launch {
-            kotlinx.coroutines.flow.combine(
-                sessionDataStore.sessionFlow,
-                userRepository.users,
-                postRepository.getPosts()
-            ) { session, users, allPosts ->
+            @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
+            sessionDataStore.sessionFlow.flatMapLatest { session ->
                 val userId = session?.userId
-                val user = users.find { it.id == userId }
-                val userPosts = if (userId != null) allPosts.filter { it.creatorId == userId } else emptyList()
-                
-                // Si no está en users flow, intentar findById (para el primer login o carga)
-                if (user == null && userId != null && userId != "guest") {
-                    val directUser = userRepository.findById(userId)
-                    DataState(directUser, userPosts)
+                if (userId != null && userId != "guest") {
+                    kotlinx.coroutines.flow.combine(
+                        userRepository.observeUser(userId),
+                        postRepository.getPosts()
+                    ) { user, allPosts ->
+                        val userPosts = allPosts.filter { it.creatorId == userId }
+                        DataState(user, userPosts)
+                    }
                 } else {
-                    DataState(user, userPosts)
+                    kotlinx.coroutines.flow.flowOf(DataState(null, emptyList()))
                 }
             }.collect { (user, userPosts) ->
                 if (user != null) {

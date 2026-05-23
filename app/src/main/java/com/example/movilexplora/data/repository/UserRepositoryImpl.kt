@@ -18,6 +18,10 @@ import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import javax.inject.Singleton
 
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.callbackFlow
+
 @Singleton
 class UserRepositoryImpl @Inject constructor(
     private val auth: FirebaseAuth,
@@ -28,19 +32,19 @@ class UserRepositoryImpl @Inject constructor(
     private val collection = firestore.collection("users")
     private val scope = CoroutineScope(Dispatchers.IO)
 
-    private val _users = MutableStateFlow<List<User>>(emptyList())
-    override val users: StateFlow<List<User>> = _users.asStateFlow()
+    override fun observeUser(id: String): Flow<User?> = callbackFlow {
+        val listener = collection.document(id).addSnapshotListener { snapshot, error ->
+            if (error != null) {
+                close(error)
+                return@addSnapshotListener
+            }
+            val user = snapshot?.toObject(User::class.java)?.apply { this.id = snapshot.id }
+            trySend(user)
+        }
+        awaitClose { listener.remove() }
+    }
 
     init {
-        // Escuchar cambios en tiempo real
-        collection.addSnapshotListener { snapshot, _ ->
-            snapshot?.let {
-                _users.value = it.documents.mapNotNull { snap ->
-                    snap.toObject(User::class.java)?.apply { id = snap.id }
-                }
-            }
-        }
-
         // Migración automática de datos locales a Firebase (solo perfiles)
         scope.launch {
             migrateLocalDataToFirebase()

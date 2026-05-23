@@ -26,6 +26,10 @@ import kotlinx.coroutines.flow.flatMapLatest
 import androidx.paging.cachedIn
 import androidx.paging.PagingData
 import kotlinx.coroutines.flow.Flow
+import kotlin.math.atan2
+import kotlin.math.cos
+import kotlin.math.sin
+import kotlin.math.sqrt
 
 data class Category(val name: String)
 
@@ -57,42 +61,17 @@ class FeedViewModel @Inject constructor(
     private val _loadedCount = MutableStateFlow(_pageSize)
 
     companion object {
-        // TODO: Eliminar este mapa de ubicaciones quemadas y la lógica de cálculo de
-        // distancia apenas se apliquen los mapas correctamente.
-        // Se deben borrar los mapas `mockUserLocations` y `mockPostLocations`,
-        // y las funciones `calculateDistanceKm`, `getMockLocationForUser` y `getMockLocationForPost`.
-        // También se debe reemplazar el uso de `calcDistance` en `matchesDistance`
-        // por la lógica final de ubicación del dispositivo real, sin dañar los filtros existentes.
-        private val mockUserLocations = mutableMapOf<String, Pair<Double, Double>>()
-        private val mockPostLocations = mutableMapOf<String, Pair<Double, Double>>()
-    }
-
-    private fun getMockLocationForUser(userId: String): Pair<Double, Double> {
-        return mockUserLocations.getOrPut(userId) {
-            // Genera lat/lon aleatorias (entre -0.1 y 0.1) para simular ubicaciones cerca de la distancia predeterminada.
-            val lat = (Math.random() * 0.2) - 0.1
-            val lon = (Math.random() * 0.2) - 0.1
-            Pair(lat, lon)
-        }
-    }
-
-    private fun getMockLocationForPost(postId: String, lat: Double, lon: Double): Pair<Double, Double> {
-        if (lat != 0.0 || lon != 0.0) return Pair(lat, lon) // Si ya tiene una real, la usa
-        return mockPostLocations.getOrPut(postId) {
-            val randomLat = (Math.random() * 0.2) - 0.1
-            val randomLon = (Math.random() * 0.2) - 0.1
-            Pair(randomLat, randomLon)
-        }
+        // Mock locations removed
     }
 
     private fun calculateDistanceKm(lat1: Double, lon1: Double, lat2: Double, lon2: Double): Float {
         val r = 6371.0 // Radio de la tierra en km
         val dLat = Math.toRadians(lat2 - lat1)
         val dLon = Math.toRadians(lon2 - lon1)
-        val a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-                Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2)) *
-                Math.sin(dLon / 2) * Math.sin(dLon / 2)
-        val c = 2 * Math.atan2(java.lang.Math.sqrt(a), java.lang.Math.sqrt(1 - a))
+        val a = sin(dLat / 2) * sin(dLat / 2) +
+                cos(Math.toRadians(lat1)) * cos(Math.toRadians(lat2)) *
+                sin(dLon / 2) * sin(dLon / 2)
+        val c = 2 * atan2(sqrt(a), sqrt(1 - a))
         return (r * c).toFloat()
     }
 
@@ -100,13 +79,39 @@ class FeedViewModel @Inject constructor(
     private val _allPosts: StateFlow<List<Post>> = postRepository.getPosts()
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
+    private val _userLocation = MutableStateFlow<Pair<Double, Double>?>(null)
+
     // Variable para controlar la carga paginada real
     @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
-    val pagedPosts: Flow<PagingData<Post>> = _state.flatMapLatest { currentState ->
+    val pagedPosts: Flow<PagingData<Post>> = combine(_state, _userLocation) { currentState, userLoc ->
+        Pair(currentState, userLoc)
+    }.flatMapLatest { (currentState, userLoc) ->
+        val filters = currentState.filterState
+        
+        // Calcular Bounding Box si hay ubicación y filtro de distancia
+        var minLat: Double? = null
+        var maxLat: Double? = null
+        var minLon: Double? = null
+        var maxLon: Double? = null
+        
+        if (userLoc != null && filters.distance < 60f) {
+            val latRange = filters.distance / 111.0 // 1 degree lat is ~111km
+            val lonRange = filters.distance / (111.0 * cos(Math.toRadians(userLoc.first)))
+            
+            minLat = userLoc.first - latRange
+            maxLat = userLoc.first + latRange
+            minLon = userLoc.second - lonRange
+            maxLon = userLoc.second + lonRange
+        }
+
         postRepository.getPagedPosts(
-            category = currentState.filterState.selectedCategory,
-            priceLimit = currentState.filterState.selectedPriceRange,
-            searchQuery = currentState.searchQuery
+            category = filters.selectedCategory,
+            priceLimit = filters.selectedPriceRange,
+            searchQuery = currentState.searchQuery,
+            minLat = minLat,
+            maxLat = maxLat,
+            minLon = minLon,
+            maxLon = maxLon
         ).cachedIn(viewModelScope)
     }
 
@@ -115,18 +120,25 @@ class FeedViewModel @Inject constructor(
         _allPosts,
         _state,
         currentUserId,
+        _userLocation,
         _loadedCount
-    ) { allPosts, currentState, userId, loadedCount ->
+    ) { allPosts, currentState, _, userLoc, loadedCount ->
         val filters = currentState.filterState
         val query = currentState.searchQuery
-        val userLocation = getMockLocationForUser(userId)
 
         val filteredList = allPosts.filter { post ->
             val matchesCategory = filters.selectedCategory == null || post.category == filters.selectedCategory
             val matchesPrice = filters.selectedPriceRange == 4 || (post.price.count { it == '$' } <= filters.selectedPriceRange)
-            val postLocation = getMockLocationForPost(post.id, post.latitude, post.longitude)
-            val calcDistance = calculateDistanceKm(userLocation.first, userLocation.second, postLocation.first, postLocation.second)
-            val matchesDistance = calcDistance <= filters.distance
+            
+            // Si el usuario no dio permiso de ubicación (userLoc == null), ignoramos el filtro de distancia
+            val matchesDistance = if (userLoc != null) {
+                val postLocation = Pair(post.latitude, post.longitude)
+                val calcDistance = calculateDistanceKm(userLoc.first, userLoc.second, postLocation.first, postLocation.second)
+                calcDistance <= filters.distance
+            } else {
+                true // No hay ubicación -> no filtramos por distancia, mostramos todo lo verificado
+            }
+            
             val matchesSearch = query.isBlank() || post.title.contains(query, ignoreCase = true)
 
             // REGLA DE VISIBILIDAD: Solo los verificados aparecen en el Feed
@@ -135,13 +147,43 @@ class FeedViewModel @Inject constructor(
             matchesCategory && matchesPrice && matchesDistance && matchesSearch && matchesVisibility
         }
 
-        // Ordenar por popularidad (likes)
-        filteredList.sortedByDescending { it.likedBy.size }.take(loadedCount)
+        // Ordenar por popularidad (likes) o por ID (recientes) si no hay ubicación
+        if (userLoc != null) {
+            filteredList.sortedByDescending { it.likedBy.size }.take(loadedCount)
+        } else {
+            filteredList.sortedByDescending { it.id }.take(loadedCount)
+        }
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.Eagerly,
         initialValue = emptyList()
     )
+
+    fun updateUserLocation(lat: Double, lon: Double) {
+        _userLocation.value = Pair(lat, lon)
+    }
+
+    @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
+    private fun observeCurrentUser() {
+        viewModelScope.launch {
+            sessionDataStore.sessionFlow.flatMapLatest { session ->
+                val userId = session?.userId
+                if (userId != null && userId != "guest") {
+                    userRepository.observeUser(userId)
+                } else {
+                    kotlinx.coroutines.flow.flowOf(null)
+                }
+            }.collect { user ->
+                if (user != null) {
+                    val firstName = user.name.split(" ").firstOrNull() ?: ""
+                    _state.update { it.copy(
+                        userName = firstName,
+                        userProfilePictureUrl = user.profilePictureUrl
+                    ) }
+                }
+            }
+        }
+    }
 
     init {
         _state.update { 
@@ -156,25 +198,7 @@ class FeedViewModel @Inject constructor(
             )
         }
 
-        viewModelScope.launch {
-            combine(
-                sessionDataStore.sessionFlow,
-                userRepository.users
-            ) { session, users ->
-                val userId = session?.userId ?: "guest"
-                if (userId.isNotBlank() && userId != "guest") {
-                    users.find { it.id == userId }
-                } else null
-            }.collect { user ->
-                if (user != null) {
-                    val firstName = user.name.split(" ").firstOrNull() ?: ""
-                    _state.update { it.copy(
-                        userName = firstName,
-                        userProfilePictureUrl = user.profilePictureUrl
-                    ) }
-                }
-            }
-        }
+        observeCurrentUser()
     }
 
     fun toggleFavorite(postId: String) {
@@ -217,11 +241,4 @@ class FeedViewModel @Inject constructor(
         _state.update { it.copy(searchQuery = query) }
     }
 
-    fun loadMore() {
-        _loadedCount.update { it + _pageSize }
-    }
-
-    suspend fun getCurrentUserId(): String {
-        return sessionDataStore.sessionFlow.firstOrNull()?.userId ?: "guest"
-    }
 }

@@ -54,23 +54,18 @@ class ProfileViewModel @Inject constructor(
         }
     }
 
+    @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
     private fun loadDataForUser(userId: String): kotlinx.coroutines.Job {
         return viewModelScope.launch {
             kotlinx.coroutines.flow.combine(
-                userRepository.users,
+                userRepository.observeUser(userId),
                 postRepository.getPosts(),
                 eventRepository.getEvents()
-            ) { users, posts, events ->
-                val user = users.find { it.id == userId }
+            ) { user, posts, events ->
                 Triple(user, posts, events)
             }.collect { (user, posts, events) ->
                 if (user != null) {
                     updateProfileStateWithData(user, posts, events)
-                } else {
-                    // Intento de carga directa si no está en la lista general
-                    userRepository.findById(userId)?.let { directUser ->
-                        updateProfileStateWithData(directUser, posts, events)
-                    }
                 }
             }
         }

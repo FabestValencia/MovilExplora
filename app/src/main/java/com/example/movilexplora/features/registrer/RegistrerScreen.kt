@@ -45,12 +45,12 @@ fun ConfirmAlertDialog(
         text = { Text(text = text) },
         confirmButton = {
             TextButton(onClick = onConfirm) {
-                Text("Confirmar")
+                Text(stringResource(R.string.confirm_button))
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancelar")
+                Text(stringResource(R.string.common_cancel))
             }
         }
     )
@@ -86,8 +86,8 @@ fun RegisterScreen(
                 showConfirmDialog = false
                 viewModel.register()
             },
-            title = "¿Confirmar Registro?",
-            text = "¿Está seguro de que desea crear esta cuenta con los datos proporcionados?"
+            title = stringResource(R.string.register_confirm_title),
+            text = stringResource(R.string.register_confirm_msg)
         )
     }
 

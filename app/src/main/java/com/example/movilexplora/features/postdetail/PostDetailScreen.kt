@@ -2,7 +2,7 @@ package com.example.movilexplora.features.postdetail
 
 import androidx.compose.ui.res.stringResource
 import com.example.movilexplora.R
-import androidx.compose.foundation.Image
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -13,8 +13,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.*
-import androidx.compose.material.icons.outlined.BookmarkBorder
-import androidx.compose.material.icons.outlined.Map
 import androidx.compose.material3.*
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
@@ -29,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
+import com.example.movilexplora.core.component.ProfileImage
 import com.example.movilexplora.domain.model.Comment
 import com.example.movilexplora.ui.theme.GrayText
 import com.example.movilexplora.ui.theme.Turquoise
@@ -269,43 +268,43 @@ fun PostDetailScreen(
                             }
                         }
                     }
-                }
 
-                Spacer(modifier = Modifier.height(32.dp))
+                    Spacer(modifier = Modifier.height(32.dp))
 
-                // Comments Section
-                Text(text = stringResource(R.string.postdetailscreen_comentarios_4), fontSize = 18.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
-                Spacer(modifier = Modifier.height(12.dp))
+                    // Comments Section
+                    Text(text = stringResource(R.string.postdetailscreen_comentarios_4), fontSize = 18.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
+                    Spacer(modifier = Modifier.height(12.dp))
 
-                state.comments.forEach { comment ->
-                    CommentItem(comment)
-                    Spacer(modifier = Modifier.height(16.dp))
-                }
+                    state.comments.forEach { comment ->
+                        CommentItem(comment)
+                        Spacer(modifier = Modifier.height(16.dp))
+                    }
 
-                var commentText by remember { mutableStateOf("") }
+                    var commentText by remember { mutableStateOf("") }
 
-                OutlinedTextField(
-                    value = commentText,
-                    onValueChange = { commentText = it },
-                    modifier = Modifier.fillMaxWidth(),
-                    placeholder = { Text(stringResource(R.string.post_detail_add_comment), fontSize = 14.sp) },
-                    trailingIcon = {
-                        IconButton(onClick = {
-                            if (commentText.isNotBlank()) {
-                                viewModel.addComment(postId, commentText)
-                                commentText = ""
+                    OutlinedTextField(
+                        value = commentText,
+                        onValueChange = { commentText = it },
+                        modifier = Modifier.fillMaxWidth(),
+                        placeholder = { Text(stringResource(R.string.post_detail_add_comment), fontSize = 14.sp) },
+                        trailingIcon = {
+                            IconButton(onClick = {
+                                if (commentText.isNotBlank()) {
+                                    viewModel.addComment(postId, commentText)
+                                    commentText = ""
+                                }
+                            }) {
+                                Icon(imageVector = Icons.AutoMirrored.Filled.Send, contentDescription = stringResource(R.string.common_send), tint = Turquoise)
                             }
-                        }) {
-                            Icon(imageVector = Icons.AutoMirrored.Filled.Send, contentDescription = "Send", tint = Turquoise)
-                        }
-                    },
-                    shape = RoundedCornerShape(24.dp),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
-                        unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
-                        unfocusedBorderColor = Color.Transparent
+                        },
+                        shape = RoundedCornerShape(24.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                            unfocusedBorderColor = Color.Transparent
+                        )
                     )
-                )
+                }
                 
                 Spacer(modifier = Modifier.height(if (isAdmin) 200.dp else 100.dp)) // Space for bottom buttons
             }
@@ -342,11 +341,9 @@ fun DetailBadge(
 @Composable
 fun CommentItem(comment: Comment) {
     Row(modifier = Modifier.fillMaxWidth()) {
-        Box(
-            modifier = Modifier
-                .size(40.dp)
-                .clip(CircleShape)
-                .background(MaterialTheme.colorScheme.surfaceVariant)
+        ProfileImage(
+            imageUrl = comment.userAvatar,
+            modifier = Modifier.size(40.dp)
         )
         Spacer(modifier = Modifier.width(12.dp))
         Column(modifier = Modifier.weight(1f)) {
@@ -388,19 +385,22 @@ fun BottomActionButtons(
                 .weight(1f)
                 .height(56.dp),
             shape = RoundedCornerShape(28.dp),
+            contentPadding = PaddingValues(horizontal = 8.dp),
             colors = ButtonDefaults.buttonColors(
-                containerColor = if (isFavorite) Turquoise else MaterialTheme.colorScheme.surfaceVariant,
-                contentColor = if (isFavorite) Color.White else Turquoise
-            )
+                containerColor = if (isFavorite) Turquoise else Turquoise.copy(alpha = 0.7f),
+                contentColor = Color.White
+            ),
+            elevation = ButtonDefaults.buttonElevation(defaultElevation = 2.dp)
         ) {
             Icon(
                 imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
-                contentDescription = null
+                contentDescription = null,
+                modifier = Modifier.size(20.dp)
             )
-            Spacer(modifier = Modifier.width(8.dp))
+            Spacer(modifier = Modifier.width(4.dp))
             Text(
                 text = stringResource(R.string.postdetailscreen_me_interesa),
-                fontSize = 14.sp,
+                fontSize = 12.sp,
                 fontWeight = FontWeight.Bold,
                 maxLines = 1
             )
@@ -412,19 +412,23 @@ fun BottomActionButtons(
                 .weight(1f)
                 .height(56.dp),
             shape = RoundedCornerShape(28.dp),
+            contentPadding = PaddingValues(horizontal = 8.dp),
             colors = ButtonDefaults.buttonColors(
-                containerColor = if (isVisited) Turquoise else MaterialTheme.colorScheme.surfaceVariant,
+                containerColor = if (isVisited) Turquoise else MaterialTheme.colorScheme.surface,
                 contentColor = if (isVisited) Color.White else Turquoise
-            )
+            ),
+            border = if (!isVisited) BorderStroke(1.dp, Turquoise.copy(alpha = 0.5f)) else null,
+            elevation = ButtonDefaults.buttonElevation(defaultElevation = 2.dp)
         ) {
             Icon(
                 imageVector = if (isVisited) Icons.Default.CheckCircle else Icons.Default.CheckCircleOutline,
-                contentDescription = null
+                contentDescription = null,
+                modifier = Modifier.size(20.dp)
             )
-            Spacer(modifier = Modifier.width(8.dp))
+            Spacer(modifier = Modifier.width(4.dp))
             Text(
                 text = stringResource(R.string.postdetailscreen_visitado),
-                fontSize = 14.sp,
+                fontSize = 12.sp,
                 fontWeight = FontWeight.Bold,
                 maxLines = 1
             )
@@ -439,7 +443,7 @@ fun AdminActionButtons() {
 
     if (showRejectDialog) {
         AlertDialog(
-            onDismissRequest = { showRejectDialog = false },
+            onDismissRequest = { },
             title = {
                 Text(text = stringResource(R.string.reject_reason_title), fontWeight = FontWeight.Bold)
             },
@@ -456,14 +460,13 @@ fun AdminActionButtons() {
                 TextButton(
                     onClick = {
                         // TODO: Implement the reject action here
-                        showRejectDialog = false
                     }
                 ) {
-                    Text(text = stringResource(R.string.confirm_button), color = Color.Red)
+                    Text(text = stringResource(R.string.common_ok), color = Color.Red)
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showRejectDialog = false }) {
+                TextButton(onClick = { }) {
                     Text(stringResource(R.string.cancel_button))
                 }
             }
@@ -477,7 +480,7 @@ fun AdminActionButtons() {
             .background(MaterialTheme.colorScheme.background)
     ) {
         Button(
-            onClick = { showRejectDialog = true },
+            onClick = { },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(56.dp),

@@ -60,66 +60,87 @@ class ReputationViewModel @Inject constructor(
                 percentageMessage = resourceProvider.getString(R.string.reputation_percentage_msg)
             )
         }
-        loadUserData()
+        
+        viewModelScope.launch {
+            kotlinx.coroutines.flow.combine(
+                sessionDataStore.sessionFlow,
+                userRepository.users,
+                postRepository.getPosts()
+            ) { session, users, allPosts ->
+                val userId = session?.userId
+                val user = users.find { it.id == userId }
+                val userPosts = if (userId != null) allPosts.filter { it.creatorId == userId } else emptyList()
+                
+                // Si no está en users flow, intentar findById (para el primer login o carga)
+                if (user == null && userId != null && userId != "guest") {
+                    val directUser = userRepository.findById(userId)
+                    DataState(directUser, userPosts)
+                } else {
+                    DataState(user, userPosts)
+                }
+            }.collect { (user, userPosts) ->
+                if (user != null) {
+                    updateReputationState(user, userPosts)
+                }
+            }
+        }
     }
 
-    private fun loadUserData() {
-        viewModelScope.launch {
-            val userId = sessionDataStore.sessionFlow.firstOrNull()?.userId ?: return@launch
-            val user = userRepository.findById(userId) ?: return@launch
+    private data class DataState(
+        val user: com.example.movilexplora.domain.model.User?,
+        val userPosts: List<com.example.movilexplora.domain.model.Post>
+    )
 
-            // Cargamos dinámicamente basados en los posts creados por el usuario
-            val allPosts = postRepository.getPosts().firstOrNull() ?: emptyList()
-            val posts = allPosts.filter { it.creatorId == userId }
+    private fun updateReputationState(
+        user: com.example.movilexplora.domain.model.User,
+        posts: List<com.example.movilexplora.domain.model.Post>
+    ) {
+        val recentPoints = mutableListOf<RecentPoint>()
 
-            val recentPoints = mutableListOf<RecentPoint>()
+        posts.forEach { post ->
+            val titleText = when (post.status) {
+                com.example.movilexplora.domain.model.PostStatus.VERIFICADO -> resourceProvider.getString(R.string.stat_recent_approved, post.title)
+                com.example.movilexplora.domain.model.PostStatus.RECHAZADO -> resourceProvider.getString(R.string.stat_recent_rejected, post.title)
+                else -> resourceProvider.getString(R.string.stat_recent_created, post.title)
+            }
 
-            posts.forEach { post ->
-                val titleText = when (post.status) {
-                    com.example.movilexplora.domain.model.PostStatus.VERIFICADO -> resourceProvider.getString(R.string.stat_recent_approved, post.title)
-                    com.example.movilexplora.domain.model.PostStatus.RECHAZADO -> resourceProvider.getString(R.string.stat_recent_rejected, post.title)
-                    else -> resourceProvider.getString(R.string.stat_recent_created, post.title)
-                }
+            val pointsValue = when (post.status) {
+                com.example.movilexplora.domain.model.PostStatus.VERIFICADO -> 100L
+                com.example.movilexplora.domain.model.PostStatus.RECHAZADO -> 0L
+                else -> 50L
+            }
 
-                val pointsValue = when (post.status) {
-                    com.example.movilexplora.domain.model.PostStatus.VERIFICADO -> 100L
-                    com.example.movilexplora.domain.model.PostStatus.RECHAZADO -> 0L
-                    else -> 50L
-                }
-
-                recentPoints.add(
-                    RecentPoint(
-                        id = post.id,
-                        title = titleText,
-                        time = resourceProvider.getString(R.string.stat_time_recent),
-                        points = pointsValue,
-                        type = PointType.POST
-                    )
+            recentPoints.add(
+                RecentPoint(
+                    id = post.id,
+                    title = titleText,
+                    time = resourceProvider.getString(R.string.stat_time_recent),
+                    points = pointsValue,
+                    type = PointType.POST
                 )
-            }
-            
-            // Limitamos a los más recientes
-            val sortedRecentPoints = recentPoints.asReversed().take(10)
+            )
+        }
+        
+        val sortedRecentPoints = recentPoints.asReversed().take(10)
 
-            val actualPoints: Long = user.points
-            val (calculatedLevel, calcNextLevel, calcTarget) = when {
-                actualPoints < 100L -> Triple(ReputationLevel.TURISTA, resourceProvider.getString(ReputationLevel.EXPLORADOR.displayNameRes), 100L)
-                actualPoints < 500L -> Triple(ReputationLevel.EXPLORADOR, resourceProvider.getString(ReputationLevel.AVENTURERO.displayNameRes), 500L)
-                actualPoints < 1000L -> Triple(ReputationLevel.AVENTURERO, resourceProvider.getString(ReputationLevel.EMBAJADOR.displayNameRes), 1000L)
-                else -> Triple(ReputationLevel.EMBAJADOR, resourceProvider.getString(R.string.reputation_max_level), 2000L)
-            }
+        val actualPoints: Long = user.points
+        val (calculatedLevel, calcNextLevel, calcTarget) = when {
+            actualPoints < 100L -> Triple(ReputationLevel.TURISTA, resourceProvider.getString(ReputationLevel.EXPLORADOR.displayNameRes), 100L)
+            actualPoints < 500L -> Triple(ReputationLevel.EXPLORADOR, resourceProvider.getString(ReputationLevel.AVENTURERO.displayNameRes), 500L)
+            actualPoints < 1000L -> Triple(ReputationLevel.AVENTURERO, resourceProvider.getString(ReputationLevel.EMBAJADOR.displayNameRes), 1000L)
+            else -> Triple(ReputationLevel.EMBAJADOR, resourceProvider.getString(R.string.reputation_max_level), 2000L)
+        }
 
-            _state.update {
-                it.copy(
-                    userName = user.name,
-                    profilePictureUrl = user.profilePictureUrl,
-                    currentPoints = actualPoints, // usamos los puntos  basados en la BD
-                    targetPoints = calcTarget,
-                    currentLevel = calculatedLevel,
-                    nextLevelName = calcNextLevel,
-                    recentPoints = sortedRecentPoints
-                )
-            }
+        _state.update {
+            it.copy(
+                userName = user.name,
+                profilePictureUrl = user.profilePictureUrl,
+                currentPoints = actualPoints,
+                targetPoints = calcTarget,
+                currentLevel = calculatedLevel,
+                nextLevelName = calcNextLevel,
+                recentPoints = sortedRecentPoints
+            )
         }
     }
 }

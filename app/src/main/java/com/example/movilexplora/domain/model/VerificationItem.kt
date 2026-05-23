@@ -4,6 +4,7 @@ data class VerificationItem(
     val id: String,
     val title: String,
     val author: String,
+    val authorAvatarUrl: String? = null,
     val timeAgo: String,
     val description: String,
     val imageUrl: String,

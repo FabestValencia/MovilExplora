@@ -40,51 +40,52 @@ fun NotificationsScreen(
     val state by viewModel.state.collectAsState()
     var showMenu by remember { mutableStateOf(false) }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.notifications_title), fontSize = 18.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground) },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.notificationsscreen_back_1), tint = MaterialTheme.colorScheme.onBackground)
-                    }
-                },
-                actions = {
-                    IconButton(onClick = { showMenu = true }) {
-                        Icon(imageVector = Icons.Default.MoreVert, contentDescription = stringResource(R.string.notificationsscreen_more_2), tint = MaterialTheme.colorScheme.onBackground)
-                    }
-                    DropdownMenu(
-                        expanded = showMenu,
-                        onDismissRequest = { showMenu = false }
-                    ) {
-                        DropdownMenuItem(
-                            text = {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Text(stringResource(R.string.notifications_push_toggle))
-                                    Spacer(modifier = Modifier.width(8.dp))
-                                    Switch(
-                                        checked = state.isPushEnabled,
-                                        onCheckedChange = { 
-                                            viewModel.togglePushNotifications(it)
-                                            showMenu = false
-                                        }
-                                    )
-                                }
-                            },
-                            onClick = { /* El switch maneja el click */ }
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface)
-            )
-        },
-        containerColor = MaterialTheme.colorScheme.background
-    ) { paddingValues ->
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .statusBarsPadding()
+    ) {
+        TopAppBar(
+            title = { Text(stringResource(R.string.notifications_title), fontSize = 18.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground) },
+            navigationIcon = {
+                IconButton(onClick = onNavigateBack) {
+                    Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.notificationsscreen_back_1), tint = MaterialTheme.colorScheme.onBackground)
+                }
+            },
+            actions = {
+                IconButton(onClick = { showMenu = true }) {
+                    Icon(imageVector = Icons.Default.MoreVert, contentDescription = stringResource(R.string.notificationsscreen_more_2), tint = MaterialTheme.colorScheme.onBackground)
+                }
+                DropdownMenu(
+                    expanded = showMenu,
+                    onDismissRequest = { showMenu = false }
+                ) {
+                    DropdownMenuItem(
+                        text = {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text(stringResource(R.string.notifications_push_toggle))
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Switch(
+                                    checked = state.isPushEnabled,
+                                    onCheckedChange = { 
+                                        viewModel.togglePushNotifications(it)
+                                        showMenu = false
+                                    }
+                                )
+                            }
+                        },
+                        onClick = { /* El switch maneja el click */ }
+                    )
+                }
+            },
+            colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface)
+        )
+
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
-                .background(MaterialTheme.colorScheme.background)
+                .background(MaterialTheme.colorScheme.background),
+            contentPadding = PaddingValues(bottom = 100.dp)
         ) {
             if (state.recentNotifications.isNotEmpty()) {
                 item {

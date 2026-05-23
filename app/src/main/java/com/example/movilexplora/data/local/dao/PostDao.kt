@@ -39,6 +39,6 @@ interface PostDao {
     @Query("SELECT * FROM posts ORDER BY id DESC")
     fun getPostsPagingSource(): androidx.paging.PagingSource<Int, PostEntity>
 
-    @Query("SELECT * FROM posts WHERE (:category IS NULL OR category = :category) AND (:priceLimit = 4 OR length(replace(price, '$', '')) <= :priceLimit) AND (status = :status) ORDER BY id DESC")
-    fun getFilteredPostsPagingSource(category: String?, priceLimit: Int, status: String): androidx.paging.PagingSource<Int, PostEntity>
+    @Query("SELECT * FROM posts WHERE (:category IS NULL OR category = :category) AND (:priceLimit = 4 OR length(replace(price, '$', '')) <= :priceLimit) AND (status = :status) AND (:searchQuery IS NULL OR :searchQuery = '' OR title LIKE '%' || :searchQuery || '%') ORDER BY id DESC")
+    fun getFilteredPostsPagingSource(category: String?, priceLimit: Int, status: String, searchQuery: String?): androidx.paging.PagingSource<Int, PostEntity>
 }

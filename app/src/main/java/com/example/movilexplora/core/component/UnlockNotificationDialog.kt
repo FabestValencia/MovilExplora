@@ -20,6 +20,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.res.stringResource
+import com.example.movilexplora.R
 import com.example.movilexplora.domain.model.UnlockNotification
 import com.example.movilexplora.ui.theme.DarkBlue
 import com.example.movilexplora.ui.theme.GrayText
@@ -57,7 +59,7 @@ fun UnlockNotificationDialog(
                         onClick = onDismiss,
                         modifier = Modifier.align(Alignment.CenterEnd).size(24.dp)
                     ) {
-                        Icon(imageVector = Icons.Default.Close, contentDescription = "Close", tint = DarkBlue)
+                        Icon(imageVector = Icons.Default.Close, contentDescription = stringResource(R.string.common_close), tint = DarkBlue)
                     }
                 }
 
@@ -132,12 +134,12 @@ fun UnlockNotificationDialog(
                             }
                             Spacer(modifier = Modifier.width(12.dp))
                             Column {
-                                Text(text = "Fecha de obtención", fontSize = 11.sp, color = GrayText)
+                                Text(text = stringResource(R.string.badge_obtained_date_label), fontSize = 11.sp, color = GrayText)
                                 Text(text = notification.date, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = DarkBlue)
                             }
                         }
                         Column(horizontalAlignment = Alignment.End) {
-                            Text(text = "XP Ganada", fontSize = 11.sp, color = GrayText)
+                            Text(text = stringResource(R.string.badge_xp_earned_label), fontSize = 11.sp, color = GrayText)
                             Text(text = notification.xpEarned, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = Turquoise)
                         }
                     }
@@ -171,7 +173,7 @@ fun UnlockNotificationDialog(
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(
-                        text = "Cerrar",
+                        text = stringResource(R.string.common_close),
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
                         color = GrayText

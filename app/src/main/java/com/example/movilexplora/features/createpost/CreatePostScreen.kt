@@ -167,7 +167,8 @@ fun CreatePostScreen(
         }
     }
 
-    val selectedPinGeoJson = remember(state.selectedLatitude, state.selectedLongitude) {
+    val selectedPinTitle = stringResource(R.string.create_post_selected_location)
+    val selectedPinGeoJson = remember(state.selectedLatitude, state.selectedLongitude, selectedPinTitle) {
         val lat = state.selectedLatitude
         val lon = state.selectedLongitude
         if (lat != null && lon != null) {
@@ -182,7 +183,7 @@ fun CreatePostScreen(
                     "coordinates": [$lon, $lat]
                   },
                   "properties": {
-                    "title": "Ubicación Seleccionada",
+                    "title": "$selectedPinTitle",
                     "category": "Selected"
                   }
                 }
@@ -290,17 +291,17 @@ fun CreatePostScreen(
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = Turquoise)
                 ) {
-                    Text("Entendido")
+                    Text(stringResource(R.string.common_ok))
                 }
             },
             title = {
-                Text(text = if (postId == null) "¡Publicación Creada!" else "¡Cambios Guardados!", fontWeight = FontWeight.Bold)
+                Text(text = if (postId == null) stringResource(R.string.create_post_success_title) else stringResource(R.string.common_save_changes_success), fontWeight = FontWeight.Bold)
             },
             text = {
                 Text(text = if (postId == null) {
-                    "Tu publicación \"$publishedTitle\" ha sido creada exitosamente y pronto estará disponible para la comunidad."
+                    stringResource(R.string.create_post_success_msg, publishedTitle)
                 } else {
-                    "Tus modificaciones han sido guardadas. La publicación pasará por el proceso de verificación administrativa."
+                    stringResource(R.string.create_post_save_changes_msg)
                 })
             },
             shape = RoundedCornerShape(16.dp),
@@ -321,14 +322,14 @@ fun CreatePostScreen(
                         onClick = { viewModel.acceptRecommendation() },
                         colors = ButtonDefaults.buttonColors(containerColor = categoryColor)
                     ) {
-                        Text("Aceptar", color = Color.White, fontWeight = FontWeight.Bold)
+                        Text(stringResource(R.string.common_ok), color = Color.White, fontWeight = FontWeight.Bold)
                     }
                 },
                 dismissButton = {
                     TextButton(
                         onClick = { viewModel.dismissRecommendation() }
                     ) {
-                        Text("Descartar", color = GrayText, fontWeight = FontWeight.Medium)
+                        Text(stringResource(R.string.common_dismiss), color = GrayText, fontWeight = FontWeight.Medium)
                     }
                 },
                 title = {
@@ -345,7 +346,7 @@ fun CreatePostScreen(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = "Recomendación de IA",
+                            text = stringResource(R.string.create_post_ai_recommendation_title),
                             fontWeight = FontWeight.Bold,
                             fontSize = 18.sp,
                             color = MaterialTheme.colorScheme.onBackground
@@ -392,7 +393,7 @@ fun CreatePostScreen(
                         ) {
                             Column(modifier = Modifier.padding(16.dp)) {
                                 Text(
-                                    text = "¿Por qué?",
+                                    text = stringResource(R.string.create_post_ai_why),
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 12.sp,
                                     color = categoryColor,
@@ -419,7 +420,7 @@ fun CreatePostScreen(
             TopAppBar(
                 title = {
                     Text(
-                        text = if (postId == null) stringResource(R.string.createpostscreen_nueva_publicaci_n_0) else "Editar Publicación",
+                        text = if (postId == null) stringResource(R.string.createpostscreen_nueva_publicaci_n_0) else stringResource(R.string.create_post_edit_title),
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onBackground,
@@ -463,7 +464,7 @@ fun CreatePostScreen(
                 if (state.imageUri != null) {
                     AsyncImage(
                         model = state.imageUri,
-                        contentDescription = "Imagen seleccionada",
+                        contentDescription = stringResource(R.string.create_post_selected_image_desc),
                         modifier = Modifier.fillMaxSize(),
                         contentScale = ContentScale.Crop
                     )
@@ -475,7 +476,7 @@ fun CreatePostScreen(
                     ) {
                         Icon(
                             imageVector = Icons.Default.Edit,
-                            contentDescription = "Editar",
+                            contentDescription = stringResource(R.string.common_edit),
                             tint = Color.White,
                             modifier = Modifier.padding(6.dp).size(16.dp)
                         )
@@ -595,7 +596,7 @@ fun CreatePostScreen(
                     } else {
                         Icon(imageVector = Icons.Default.AutoAwesome, contentDescription = null, modifier = Modifier.size(16.dp), tint = Turquoise)
                         Spacer(modifier = Modifier.width(4.dp))
-                        Text("Sugerir con IA", fontSize = 12.sp, color = Turquoise, fontWeight = FontWeight.Bold)
+                        Text(stringResource(R.string.create_post_suggest_ai), fontSize = 12.sp, color = Turquoise, fontWeight = FontWeight.Bold)
                     }
                 }
             }
@@ -684,7 +685,7 @@ fun CreatePostScreen(
                 } else {
                     Icon(imageVector = Icons.Default.FileUpload, contentDescription = null)
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text(text = if (postId == null) stringResource(R.string.createpostscreen_publicar_11) else "Guardar Cambios", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                    Text(text = if (postId == null) stringResource(R.string.createpostscreen_publicar_11) else stringResource(R.string.common_save_changes), fontSize = 18.sp, fontWeight = FontWeight.Bold)
                 }
             }
             

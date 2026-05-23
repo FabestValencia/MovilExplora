@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.movilexplora.R
+import com.example.movilexplora.core.component.ProfileImage
 import com.example.movilexplora.domain.model.VerificationType
 import com.example.movilexplora.ui.theme.Turquoise
 
@@ -33,40 +34,40 @@ fun ModeratorHistoryScreen(
 ) {
     val state by viewModel.state.collectAsState()
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        "Historial",
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .statusBarsPadding()
+            .background(MaterialTheme.colorScheme.background)
+    ) {
+        TopAppBar(
+            title = {
+                Text(
+                    stringResource(R.string.ver_historial),
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold
+                )
+            },
+            navigationIcon = {
+                IconButton(onClick = onNavigateBack) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = stringResource(R.string.back_desc),
+                        tint = MaterialTheme.colorScheme.onSurface
                     )
-                },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(R.string.back_desc),
-                            tint = MaterialTheme.colorScheme.onSurface
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface)
-            )
-        }
-    ) { paddingValues ->
+                }
+            },
+            colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface)
+        )
+
         LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .background(MaterialTheme.colorScheme.background),
-            contentPadding = PaddingValues(16.dp),
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 32.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             item {
                 Text(
-                    text = "Movimientos recientes",
+                    text = stringResource(R.string.history_recent_movements),
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onBackground
@@ -78,30 +79,34 @@ fun ModeratorHistoryScreen(
                     modifier = Modifier.horizontalScroll(rememberScrollState()),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
+                    val filterAll = stringResource(R.string.filter_all)
+                    val statusAccepted = stringResource(R.string.status_accepted_plural)
+                    val statusRejected = stringResource(R.string.status_rejected_plural)
+                    
                     FilterChip(
-                        selected = state.selectedFilter == "Todo",
-                        onClick = { viewModel.onFilterSelected("Todo") },
-                        label = { Text("Todo (${state.counts["Todo"]})") },
+                        selected = state.selectedFilter == filterAll,
+                        onClick = { viewModel.onFilterSelected(filterAll) },
+                        label = { Text("$filterAll (${state.counts[filterAll]})") },
                         colors = FilterChipDefaults.filterChipColors(
                             selectedContainerColor = Turquoise,
                             selectedLabelColor = Color.White
                         ),
                         shape = RoundedCornerShape(20.dp),
-                        border = if (state.selectedFilter == "Todo") null else FilterChipDefaults.filterChipBorder(borderColor = Color.LightGray, enabled = true, selected = false)
+                        border = if (state.selectedFilter == filterAll) null else FilterChipDefaults.filterChipBorder(borderColor = Color.LightGray, enabled = true, selected = false)
                     )
                     FilterChip(
-                        selected = state.selectedFilter == "Aceptados",
-                        onClick = { viewModel.onFilterSelected("Aceptados") },
-                        label = { Text("Aceptados (${state.counts["Aceptados"]})") },
+                        selected = state.selectedFilter == statusAccepted,
+                        onClick = { viewModel.onFilterSelected(statusAccepted) },
+                        label = { Text("$statusAccepted (${state.counts[statusAccepted]})") },
                         shape = RoundedCornerShape(20.dp),
-                        border = FilterChipDefaults.filterChipBorder(borderColor = Color.LightGray, enabled = true, selected = state.selectedFilter == "Aceptados")
+                        border = FilterChipDefaults.filterChipBorder(borderColor = Color.LightGray, enabled = true, selected = state.selectedFilter == statusAccepted)
                     )
                     FilterChip(
-                        selected = state.selectedFilter == "Rechazados",
-                        onClick = { viewModel.onFilterSelected("Rechazados") },
-                        label = { Text("Rechazados (${state.counts["Rechazados"]})") },
+                        selected = state.selectedFilter == statusRejected,
+                        onClick = { viewModel.onFilterSelected(statusRejected) },
+                        label = { Text("$statusRejected (${state.counts[statusRejected]})") },
                         shape = RoundedCornerShape(20.dp),
-                        border = FilterChipDefaults.filterChipBorder(borderColor = Color.LightGray, enabled = true, selected = state.selectedFilter == "Rechazados")
+                        border = FilterChipDefaults.filterChipBorder(borderColor = Color.LightGray, enabled = true, selected = state.selectedFilter == statusRejected)
                     )
                 }
             }
@@ -167,7 +172,11 @@ fun ModeratorHistoryItemCard(item: HistoryItem) {
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(imageVector = Icons.Default.Person, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f), modifier = Modifier.size(14.dp))
+                    ProfileImage(
+                        imageUrl = item.authorAvatarUrl,
+                        modifier = Modifier.size(14.dp),
+                        placeholderModifier = Modifier.padding(2.dp)
+                    )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
                         text = stringResource(R.string.submitted_by, item.author),
@@ -183,7 +192,7 @@ fun ModeratorHistoryItemCard(item: HistoryItem) {
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "Hace ${item.timeAgo}",
+                        text = stringResource(R.string.history_time_ago, item.timeAgo),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
                     )

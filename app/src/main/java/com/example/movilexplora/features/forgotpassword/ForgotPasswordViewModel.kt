@@ -5,16 +5,20 @@ import javax.inject.Inject
 
 import android.util.Patterns
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.example.movilexplora.R
 import com.example.movilexplora.core.utils.ResourceProvider
 import com.example.movilexplora.core.utils.RequestResult
 import com.example.movilexplora.core.utils.ValidatedField
+import com.example.movilexplora.domain.repository.UserRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 
 @HiltViewModel
 class ForgotPasswordViewModel @Inject constructor(
+    private val userRepository: UserRepository,
     private val resources: ResourceProvider
 ) : ViewModel() {
     val email = ValidatedField("") { value ->
@@ -33,8 +37,15 @@ class ForgotPasswordViewModel @Inject constructor(
 
     fun sendResetLink() {
         if (isFormValid) {
-            // Simulación de envío de correo
-            _requestResult.value = RequestResult.Success(resources.getString(R.string.forgot_password_link_sent))
+            viewModelScope.launch {
+                _requestResult.value = RequestResult.Loading
+                try {
+                    userRepository.sendPasswordResetEmail(email.value)
+                    _requestResult.value = RequestResult.Success(resources.getString(R.string.forgot_password_link_sent))
+                } catch (e: Exception) {
+                    _requestResult.value = RequestResult.Failure(e.message ?: "Error al enviar correo")
+                }
+            }
         }
     }
 

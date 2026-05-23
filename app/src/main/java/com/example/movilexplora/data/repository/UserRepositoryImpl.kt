@@ -31,7 +31,7 @@ class UserRepositoryImpl @Inject constructor(
     private val _users = MutableStateFlow<List<User>>(emptyList())
     override val users: StateFlow<List<User>> = _users.asStateFlow()
 
-    /*init {
+    init {
         // Escuchar cambios en tiempo real
         collection.addSnapshotListener { snapshot, _ ->
             snapshot?.let {
@@ -45,7 +45,7 @@ class UserRepositoryImpl @Inject constructor(
         scope.launch {
             migrateLocalDataToFirebase()
         }
-    }*/
+    }
 
     private suspend fun migrateLocalDataToFirebase() {
         try {
@@ -142,5 +142,13 @@ class UserRepositoryImpl @Inject constructor(
             val updatedUser = it.copy(points = it.points + points)
             collection.document(userId).set(updatedUser).await()
         }
+    }
+
+    override suspend fun sendPasswordResetEmail(email: String) {
+        auth.sendPasswordResetEmail(email).await()
+    }
+
+    override suspend fun updateFcmToken(userId: String, token: String) {
+        collection.document(userId).update("fcmToken", token).await()
     }
 }

@@ -30,6 +30,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.example.movilexplora.R
+import com.example.movilexplora.core.component.ProfileImage
 import com.example.movilexplora.domain.model.Achievement
 import com.example.movilexplora.domain.model.ReputationLevel
 import com.example.movilexplora.domain.model.UserProfile
@@ -110,7 +111,11 @@ fun ProfileScreen(
         )
     }
 
-    Column(modifier = Modifier.fillMaxSize()) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .statusBarsPadding()
+    ) {
         TopAppBar(
             title = { Text(stringResource(R.string.profile_screen_title), fontSize = 18.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground) },
             actions = {
@@ -130,34 +135,23 @@ fun ProfileScreen(
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(horizontal = 24.dp)
                         .verticalScroll(rememberScrollState()),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
+                    Spacer(modifier = Modifier.height(16.dp))
+                    
                     // Profile Image Section
-                    Box(contentAlignment = Alignment.BottomEnd) {
-                        Box(
-                            modifier = Modifier
-                                .size(120.dp)
-                                .clip(CircleShape)
-                                .background(Color.LightGray)
-                        ) {
-                            if (profile.profilePictureUrl != null) {
-                                AsyncImage(
-                                    model = profile.profilePictureUrl,
-                                    contentDescription = null,
-                                    modifier = Modifier.fillMaxSize(),
-                                    contentScale = ContentScale.Crop
-                                )
-                            } else {
-                                Icon(
-                                    imageVector = Icons.Default.Person,
-                                    contentDescription = null,
-                                    modifier = Modifier.fillMaxSize().padding(20.dp),
-                                    tint = Color.White
-                                )
-                            }
-                        }
+                    Box(
+                        contentAlignment = Alignment.BottomEnd,
+                        modifier = Modifier.clickable { onEditData() }
+                    ) {
+                        ProfileImage(
+                            imageUrl = profile.profilePictureUrl,
+                            modifier = Modifier.size(120.dp),
+                            backgroundColor = Color.LightGray,
+                            iconColor = Color.White,
+                            placeholderModifier = Modifier.padding(20.dp)
+                        )
                         Box(
                             modifier = Modifier
                                 .size(32.dp)
@@ -219,76 +213,78 @@ fun ProfileScreen(
                     Spacer(modifier = Modifier.height(16.dp))
                     
                     if (selectedTabIndex == 0) {
-                        // Post Stats Cards
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(stringResource(R.string.profile_statistics), fontSize = 18.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
-                            TextButton(onClick = onNavigateToStatistics) {
-                                Text(stringResource(R.string.profile_statistics_detail), color = Turquoise, fontWeight = FontWeight.Bold)
+                        Column(modifier = Modifier.padding(horizontal = 24.dp)) {
+                            // Post Stats Cards
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(stringResource(R.string.profile_statistics), fontSize = 18.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
+                                TextButton(onClick = onNavigateToStatistics) {
+                                    Text(stringResource(R.string.profile_statistics_detail), color = Turquoise, fontWeight = FontWeight.Bold)
+                                }
                             }
-                        }
-                        Spacer(modifier = Modifier.height(16.dp))
+                            Spacer(modifier = Modifier.height(16.dp))
 
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(12.dp)
-                        ) {
-                            StatCard(stringResource(R.string.profile_stat_active), profile.activePosts.toString(), Turquoise, Modifier.weight(1f))
-                            StatCard(stringResource(R.string.profile_stat_finished), profile.finishedPosts.toString(), Color(0xFF0F9D58), Modifier.weight(1f))
-                            StatCard(stringResource(R.string.profile_stat_pending), profile.pendingPosts.toString(), Color(0xFFF4B400), Modifier.weight(1f))
-                        }
-        
-                        Spacer(modifier = Modifier.height(24.dp))
-        
-                        // Points Card
-                        ParticipationPointsCard(profile)
-        
-                        Spacer(modifier = Modifier.height(32.dp))
-        
-                        // Reputation Levels
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = stringResource(R.string.profilescreen_niveles_de_reputaci_n_0),
-                                fontSize = 18.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onBackground
-                            )
-                            TextButton(onClick = onNavigateToReputation) {
-                                Text(text = stringResource(R.string.profilescreen_ver_detalles_1), color = Turquoise, fontWeight = FontWeight.Bold)
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                            ) {
+                                StatCard(stringResource(R.string.profile_stat_active), profile.activePosts.toString(), Turquoise, Modifier.weight(1f))
+                                StatCard(stringResource(R.string.profile_stat_finished), profile.finishedPosts.toString(), Color(0xFF0F9D58), Modifier.weight(1f))
+                                StatCard(stringResource(R.string.profile_stat_pending), profile.pendingPosts.toString(), Color(0xFFF4B400), Modifier.weight(1f))
                             }
-                        }
-                        Spacer(modifier = Modifier.height(24.dp))
-                        ReputationTimeline(profile.reputationLevel)
-        
-                        Spacer(modifier = Modifier.height(32.dp))
-        
-                        // Achievements
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(text = stringResource(R.string.profilescreen_logros_2), fontSize = 18.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
-                            TextButton(onClick = onNavigateToBadges) {
-                                Text(text = stringResource(R.string.profilescreen_ver_todos_3), color = Turquoise, fontWeight = FontWeight.Bold)
+            
+                            Spacer(modifier = Modifier.height(24.dp))
+            
+                            // Points Card
+                            ParticipationPointsCard(profile)
+            
+                            Spacer(modifier = Modifier.height(32.dp))
+            
+                            // Reputation Levels
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = stringResource(R.string.profilescreen_niveles_de_reputaci_n_0),
+                                    fontSize = 18.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onBackground
+                                )
+                                TextButton(onClick = onNavigateToReputation) {
+                                    Text(text = stringResource(R.string.profilescreen_ver_detalles_1), color = Turquoise, fontWeight = FontWeight.Bold)
+                                }
                             }
+                            Spacer(modifier = Modifier.height(24.dp))
+                            ReputationTimeline(profile.reputationLevel)
+            
+                            Spacer(modifier = Modifier.height(32.dp))
+            
+                            // Achievements
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(text = stringResource(R.string.profilescreen_logros_2), fontSize = 18.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
+                                TextButton(onClick = onNavigateToBadges) {
+                                    Text(text = stringResource(R.string.profilescreen_ver_todos_3), color = Turquoise, fontWeight = FontWeight.Bold)
+                                }
+                            }
+                            Spacer(modifier = Modifier.height(16.dp))
+                            AchievementsRow(profile.achievements)
                         }
-                        Spacer(modifier = Modifier.height(16.dp))
-                        AchievementsRow(profile.achievements)
                     } else if (selectedTabIndex == 1) {
                         if (userPosts.isEmpty()) {
-                            Text("No tienes publicaciones creadas aún", color = GrayText, modifier = Modifier.padding(32.dp))
+                            Text(stringResource(R.string.profile_no_places_yet), color = GrayText, modifier = Modifier.padding(32.dp))
                         } else {
                             Column(
                                 verticalArrangement = Arrangement.spacedBy(24.dp),
-                                modifier = Modifier.fillMaxWidth()
+                                modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp)
                             ) {
                                 userPosts.forEach { post ->
                                     MyPostCard(
@@ -310,7 +306,7 @@ fun ProfileScreen(
                         } else {
                             Column(
                                 verticalArrangement = Arrangement.spacedBy(24.dp),
-                                modifier = Modifier.fillMaxWidth()
+                                modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp)
                             ) {
                                 userEvents.forEach { event ->
                                     MyEventCard(
@@ -330,57 +326,59 @@ fun ProfileScreen(
 
                     Spacer(modifier = Modifier.height(48.dp))
 
-                    // Action Buttons at the bottom
-                    HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp), color = GrayText.copy(alpha = 0.1f))
-                    
-                    Text(
-                        text = stringResource(R.string.editprofilescreen_preferencias_0),
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = GrayText,
-                        modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)
-                    )
+                    Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp)) {
+                        // Action Buttons at the bottom
+                        HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp), color = GrayText.copy(alpha = 0.1f))
+                        
+                        Text(
+                            text = stringResource(R.string.editprofilescreen_preferencias_0),
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = GrayText,
+                            modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)
+                        )
 
-                    Button(
-                        onClick = onEditData,
-                        modifier = Modifier.fillMaxWidth().height(56.dp),
-                        shape = RoundedCornerShape(28.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Turquoise)
-                    ) {
-                        Icon(imageVector = Icons.Default.EditNote, contentDescription = null)
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(text = stringResource(R.string.profilescreen_editar_datos_4), fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                        Button(
+                            onClick = onEditData,
+                            modifier = Modifier.fillMaxWidth().height(56.dp),
+                            shape = RoundedCornerShape(28.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = Turquoise)
+                        ) {
+                            Icon(imageVector = Icons.Default.EditNote, contentDescription = null)
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(text = stringResource(R.string.profilescreen_editar_datos_4), fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                        }
+
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        OutlinedButton(
+                            onClick = { showDeleteDialog = true },
+                            modifier = Modifier.fillMaxWidth().height(56.dp),
+                            shape = RoundedCornerShape(28.dp),
+                            colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.Red),
+                            border = BorderStroke(1.dp, Color.Red.copy(alpha = 0.2f))
+                        ) {
+                            Icon(imageVector = Icons.Default.Delete, contentDescription = null)
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(text = stringResource(R.string.profilescreen_eliminar_cuenta_5), fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                        }
+
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        OutlinedButton(
+                            onClick = onLogout,
+                            modifier = Modifier.fillMaxWidth().height(56.dp),
+                            shape = RoundedCornerShape(28.dp),
+                            colors = ButtonDefaults.outlinedButtonColors(contentColor = Turquoise),
+                            border = BorderStroke(1.dp, Turquoise.copy(alpha = 0.5f))
+                        ) {
+                            Icon(imageVector = Icons.AutoMirrored.Filled.Logout, contentDescription = null)
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(text = stringResource(R.string.profilescreen_cerrar_sesion), fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                        }
                     }
 
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    OutlinedButton(
-                        onClick = { showDeleteDialog = true },
-                        modifier = Modifier.fillMaxWidth().height(56.dp),
-                        shape = RoundedCornerShape(28.dp),
-                        colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.Red),
-                        border = BorderStroke(1.dp, Color.Red.copy(alpha = 0.2f))
-                    ) {
-                        Icon(imageVector = Icons.Default.Delete, contentDescription = null)
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(text = stringResource(R.string.profilescreen_eliminar_cuenta_5), fontSize = 16.sp, fontWeight = FontWeight.Bold)
-                    }
-
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    OutlinedButton(
-                        onClick = onLogout,
-                        modifier = Modifier.fillMaxWidth().height(56.dp),
-                        shape = RoundedCornerShape(28.dp),
-                        colors = ButtonDefaults.outlinedButtonColors(contentColor = Turquoise),
-                        border = BorderStroke(1.dp, Turquoise.copy(alpha = 0.5f))
-                    ) {
-                        Icon(imageVector = Icons.AutoMirrored.Filled.Logout, contentDescription = null)
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(text = stringResource(R.string.profilescreen_cerrar_sesion), fontSize = 16.sp, fontWeight = FontWeight.Bold)
-                    }
-
-                    Spacer(modifier = Modifier.height(60.dp))
+                    Spacer(modifier = Modifier.height(100.dp))
                 }
             }
         }
@@ -392,18 +390,18 @@ fun RejectionReasonDialog(title: String, reason: String, onDismiss: () -> Unit) 
     AlertDialog(
         onDismissRequest = onDismiss,
         icon = { Icon(imageVector = Icons.Default.Cancel, contentDescription = null, tint = Color.Red) },
-        title = { Text(text = "Publicación Rechazada", fontWeight = FontWeight.Bold) },
+        title = { Text(text = stringResource(R.string.profile_post_rejected_title), fontWeight = FontWeight.Bold) },
         text = {
             Column {
                 Text(text = title, fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
                 Spacer(modifier = Modifier.height(8.dp))
-                Text(text = "Motivo del rechazo:", color = GrayText, fontSize = 12.sp)
+                Text(text = stringResource(R.string.reject_reason_title), color = GrayText, fontSize = 12.sp)
                 Text(text = reason, fontSize = 14.sp)
             }
         },
         confirmButton = {
             TextButton(onClick = onDismiss) {
-                Text("Entendido", color = Turquoise)
+                Text(stringResource(R.string.common_ok), color = Turquoise)
             }
         },
         shape = RoundedCornerShape(20.dp),
@@ -717,7 +715,7 @@ fun ParticipationPointsCard(profile: UserProfile) {
                 Text(text = profile.currentXp.toString(), fontSize = 32.sp, fontWeight = FontWeight.ExtraBold, color = MaterialTheme.colorScheme.onBackground)
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = "/ ${profile.maxXp} XP",
+                    text = stringResource(R.string.profile_xp_max_format, profile.maxXp),
                     fontSize = 14.sp,
                     color = GrayText,
                     modifier = Modifier.padding(bottom = 6.dp)
@@ -736,7 +734,7 @@ fun ParticipationPointsCard(profile: UserProfile) {
             Spacer(modifier = Modifier.height(8.dp))
 
             Text(
-                text = "${profile.maxXp - profile.currentXp} ${stringResource(R.string.profile_xp_next_level)}",
+                text = stringResource(R.string.profile_xp_next_level_format, profile.maxXp - profile.currentXp, stringResource(R.string.profile_xp_next_level)),
                 fontSize = 12.sp,
                 color = GrayText,
                 modifier = Modifier.fillMaxWidth(),
@@ -899,9 +897,9 @@ fun MyPostCard(
     }
 
     val statusText = when (post.status) {
-        com.example.movilexplora.domain.model.PostStatus.VERIFICADO -> "Verificada"
-        com.example.movilexplora.domain.model.PostStatus.PENDIENTE -> "Pendiente"
-        com.example.movilexplora.domain.model.PostStatus.RECHAZADO -> "Rechazada"
+        com.example.movilexplora.domain.model.PostStatus.VERIFICADO -> stringResource(R.string.eventsscreen_verificado_2)
+        com.example.movilexplora.domain.model.PostStatus.PENDIENTE -> stringResource(R.string.profile_stat_pending)
+        com.example.movilexplora.domain.model.PostStatus.RECHAZADO -> stringResource(R.string.profile_stat_rejected)
     }
 
     val isEditable = post.status == com.example.movilexplora.domain.model.PostStatus.PENDIENTE || 
@@ -996,7 +994,7 @@ fun MyPostCard(
                         ) {
                             Icon(Icons.Default.Edit, contentDescription = null, modifier = Modifier.size(18.dp))
                             Spacer(modifier = Modifier.width(4.dp))
-                            Text("Editar")
+                            Text(stringResource(R.string.profilescreen_edit_15))
                         }
                     }
                     
@@ -1008,7 +1006,7 @@ fun MyPostCard(
                     ) {
                         Icon(Icons.Default.Delete, contentDescription = null, modifier = Modifier.size(18.dp))
                         Spacer(modifier = Modifier.width(4.dp))
-                        Text("Eliminar")
+                        Text(stringResource(R.string.profilescreen_delete_18))
                     }
                 }
 
@@ -1033,7 +1031,7 @@ fun MyPostCard(
                             )
                             Spacer(modifier = Modifier.width(10.dp))
                             Text(
-                                text = "Motivo de rechazo: ${post.rejectionReason}",
+                                text = stringResource(R.string.profile_rejection_reason_format, post.rejectionReason),
                                 fontSize = 13.sp,
                                 color = Color.Red,
                                 fontWeight = FontWeight.Medium
@@ -1068,7 +1066,7 @@ fun DeletePostDialog(onDismiss: () -> Unit, onConfirm: () -> Unit) {
                 Spacer(modifier = Modifier.height(16.dp))
                 
                 Text(
-                    text = "Eliminar Publicación",
+                    text = stringResource(R.string.profilescreen_eliminar_post_title),
                     fontSize = 22.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.Black,
@@ -1078,7 +1076,7 @@ fun DeletePostDialog(onDismiss: () -> Unit, onConfirm: () -> Unit) {
                 Spacer(modifier = Modifier.height(16.dp))
                 
                 Text(
-                    text = "¿Estás seguro de que deseas eliminar esta publicación? Esta acción no se puede deshacer.",
+                    text = stringResource(R.string.profile_delete_post_confirmation),
                     fontSize = 14.sp,
                     color = GrayText,
                     textAlign = TextAlign.Center,

@@ -10,4 +10,6 @@ interface UserRepository {
     suspend fun login(email: String, password: String): User?
     suspend fun loginWithGoogle(idToken: String): User?
     suspend fun addPoints(userId: String, points: Int)
+    suspend fun sendPasswordResetEmail(email: String)
+    suspend fun updateFcmToken(userId: String, token: String)
 }

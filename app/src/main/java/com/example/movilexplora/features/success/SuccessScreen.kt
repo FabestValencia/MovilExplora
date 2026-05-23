@@ -30,6 +30,8 @@ fun SuccessScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .statusBarsPadding()
+            .background(MaterialTheme.colorScheme.background)
             .padding(horizontal = 24.dp)
             .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -53,7 +55,7 @@ fun SuccessScreen(
         Spacer(modifier = Modifier.height(40.dp))
 
         Text(
-            text = "¡Contraseña\nrestablecida!",
+            text = stringResource(R.string.reset_password_success_title),
             fontSize = 32.sp,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onBackground,

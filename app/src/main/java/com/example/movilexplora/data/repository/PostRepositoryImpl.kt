@@ -82,13 +82,13 @@ class PostRepositoryImpl @Inject constructor(
         posts.find { it.id == id }
     }
 
-    override fun getPagedPosts(category: String?, priceLimit: Int): Flow<androidx.paging.PagingData<Post>> {
+    override fun getPagedPosts(category: String?, priceLimit: Int, searchQuery: String?): Flow<androidx.paging.PagingData<Post>> {
         return androidx.paging.Pager(
             config = androidx.paging.PagingConfig(
                 pageSize = 20,
                 enablePlaceholders = false
             ),
-            pagingSourceFactory = { postDao.getFilteredPostsPagingSource(category, priceLimit, PostStatus.VERIFICADO.name) }
+            pagingSourceFactory = { postDao.getFilteredPostsPagingSource(category, priceLimit, PostStatus.VERIFICADO.name, searchQuery) }
         ).flow.map { pagingData ->
             pagingData.map { it.toDomainModel() }
         }

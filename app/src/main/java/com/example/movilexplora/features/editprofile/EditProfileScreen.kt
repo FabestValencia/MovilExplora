@@ -1,42 +1,87 @@
 package com.example.movilexplora.features.editprofile
 
-import androidx.compose.ui.res.stringResource
-import com.example.movilexplora.R
+import android.Manifest
+import android.content.Context
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.DarkMode
+import androidx.compose.material.icons.filled.DeleteOutline
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Image
+import androidx.compose.material.icons.filled.Language
+import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.MailOutline
+import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.PersonOutline
+import androidx.compose.material.icons.filled.PhotoCamera
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.runtime.*
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.FileProvider
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.movilexplora.R
+import com.example.movilexplora.core.component.ProfileImage
+import com.example.movilexplora.features.profile.DeleteAccountDialog
 import com.example.movilexplora.ui.theme.GrayText
 import com.example.movilexplora.ui.theme.Turquoise
-import com.example.movilexplora.features.profile.DeleteAccountDialog
-import android.Manifest
-import android.content.Context
-import android.net.Uri
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.ui.platform.LocalContext
-import androidx.core.content.FileProvider
 import java.io.File
-import androidx.compose.ui.layout.ContentScale
-import coil.compose.AsyncImage
 
 private fun createTempImageUri(context: Context): Uri {
     val tempFile = File.createTempFile(
@@ -154,42 +199,17 @@ fun EditProfileScreen(
             // Profile Image Edit
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Box(contentAlignment = Alignment.BottomEnd) {
-                    if (photoUri != null) {
-                        AsyncImage(
-                            model = photoUri,
-                            contentDescription = "Profile Picture",
-                            modifier = Modifier
-                                .size(100.dp)
-                                .border(2.dp, MaterialTheme.colorScheme.onBackground, CircleShape)
-                                .clip(CircleShape),
-                            contentScale = ContentScale.Crop
-                        )
-                    } else if (photoUrl.isNotEmpty()) {
-                        AsyncImage(
-                            model = photoUrl,
-                            contentDescription = "Profile Picture",
-                            modifier = Modifier
-                                .size(100.dp)
-                                .border(2.dp, MaterialTheme.colorScheme.onBackground, CircleShape)
-                                .clip(CircleShape),
-                            contentScale = ContentScale.Crop
-                        )
-                    } else {
-                        Box(
-                            modifier = Modifier
-                                .size(100.dp)
-                                .border(2.dp, MaterialTheme.colorScheme.onBackground, CircleShape)
-                                .clip(CircleShape)
-                                .background(Color(0xFFFFCCBC)) // Fondo naranja claro como en la imagen
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Person,
-                                contentDescription = null,
-                                modifier = Modifier.fillMaxSize().padding(12.dp),
-                                tint = Color.Gray
-                            )
-                        }
-                    }
+                    val currentImageUrl = photoUri?.toString() ?: photoUrl
+                    
+                    ProfileImage(
+                        imageUrl = currentImageUrl,
+                        modifier = Modifier
+                            .size(100.dp)
+                            .border(2.dp, MaterialTheme.colorScheme.onBackground, CircleShape),
+                        backgroundColor = Color(0xFFFFCCBC),
+                        iconColor = Color.Gray,
+                        placeholderModifier = Modifier.padding(12.dp)
+                    )
                     Box(
                         modifier = Modifier
                             .size(28.dp)
@@ -464,7 +484,7 @@ fun EditProfileScreen(
                         .padding(bottom = 32.dp)
                 ) {
                     Text(
-                        text = "Seleccionar Imagen",
+                        text = stringResource(R.string.common_select_image),
                         style = MaterialTheme.typography.titleMedium,
                         modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp)
                     )
@@ -481,7 +501,7 @@ fun EditProfileScreen(
                         horizontalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
                         Icon(imageVector = Icons.Default.PhotoCamera, contentDescription = null, tint = Turquoise)
-                        Text(text = "Tomar Foto", style = MaterialTheme.typography.bodyLarge)
+                        Text(text = stringResource(R.string.common_take_photo), style = MaterialTheme.typography.bodyLarge)
                     }
 
                     Row(
@@ -496,7 +516,7 @@ fun EditProfileScreen(
                         horizontalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
                         Icon(imageVector = Icons.Default.Image, contentDescription = null, tint = Turquoise)
-                        Text(text = "Elegir de Galería", style = MaterialTheme.typography.bodyLarge)
+                        Text(text = stringResource(R.string.common_choose_gallery), style = MaterialTheme.typography.bodyLarge)
                     }
 
                     TextButton(
@@ -505,7 +525,7 @@ fun EditProfileScreen(
                             .fillMaxWidth()
                             .padding(horizontal = 16.dp, vertical = 8.dp)
                     ) {
-                        Text("Cancelar", color = Turquoise)
+                        Text(stringResource(R.string.common_cancel), color = Turquoise)
                     }
                 }
             }

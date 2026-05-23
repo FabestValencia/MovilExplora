@@ -7,7 +7,7 @@ import kotlinx.coroutines.flow.Flow
 interface PostRepository {
     fun getPosts(): Flow<List<Post>>
     fun getPost(id: String): Flow<Post?>
-    fun getPagedPosts(category: String? = null, priceLimit: Int = 4): Flow<androidx.paging.PagingData<Post>>
+    fun getPagedPosts(category: String? = null, priceLimit: Int = 4, searchQuery: String? = null): Flow<androidx.paging.PagingData<Post>>
     fun getComments(postId: String): Flow<List<Comment>>
     suspend fun addComment(comment: Comment)
     suspend fun toggleFavorite(postId: String, userId: String)

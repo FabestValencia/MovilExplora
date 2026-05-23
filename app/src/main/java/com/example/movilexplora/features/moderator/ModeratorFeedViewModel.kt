@@ -50,13 +50,16 @@ class ModeratorFeedViewModel @Inject constructor(
 
         combine(
             postRepository.getPosts(),
-            eventRepository.getEvents()
-        ) { posts, events ->
+            eventRepository.getEvents(),
+            userRepository.users
+        ) { posts, events, users ->
             val pendingPosts = posts.filter { it.status == PostStatus.PENDIENTE }.map { post ->
+                val authorUser = users.find { it.id == post.creatorId }
                 VerificationItem(
                     id = "POST_${post.id}", // Add prefix to identify type later
                     title = post.title,
-                    author = post.creatorId,
+                    author = authorUser?.name ?: post.creatorId,
+                    authorAvatarUrl = authorUser?.profilePictureUrl,
                     timeAgo = resources.getString(R.string.notification_time_recent), 
                     description = "${post.location} - ${post.category}\n${resources.getString(R.string.price_label)} ${post.price}\n\n${resources.getString(R.string.description_label)}\n${post.description.ifEmpty { resources.getString(R.string.no_description) }}",
                     imageUrl = post.imageUrl,
@@ -66,6 +69,7 @@ class ModeratorFeedViewModel @Inject constructor(
             }
             
             val pendingEvents = events.filter { it.status == PostStatus.PENDIENTE }.map { event ->
+                val authorUser = users.find { it.id == event.creatorId }
                 val publishDate = try {
                     val timeInMillis = event.id.toLong()
                     val formatter = java.text.SimpleDateFormat("dd/MM/yyyy HH:mm", java.util.Locale.getDefault())
@@ -77,7 +81,8 @@ class ModeratorFeedViewModel @Inject constructor(
                 VerificationItem(
                     id = "EVENT_${event.id}",
                     title = event.title,
-                    author = resources.getString(R.string.organization_default_name),
+                    author = authorUser?.name ?: resources.getString(R.string.organization_default_name),
+                    authorAvatarUrl = authorUser?.profilePictureUrl,
                     timeAgo = resources.getString(R.string.notification_time_recent),
                     description = "${event.date} • ${event.endDate.ifBlank { resources.getString(R.string.tbd) }}\n${resources.getString(R.string.published_label)} $publishDate\n${event.location}\n\n${event.description}",
                     imageUrl = event.imageUrl,

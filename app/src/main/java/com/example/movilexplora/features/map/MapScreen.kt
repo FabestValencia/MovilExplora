@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyRow
@@ -23,6 +24,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.AddCircleOutline
@@ -40,7 +42,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -62,7 +63,6 @@ import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.movilexplora.R
-import com.example.movilexplora.core.component.BottomNavigationBar
 import com.example.movilexplora.core.component.OnboardingPermissionDialog
 import com.example.movilexplora.core.utils.toGeoJson
 import com.example.movilexplora.features.onboarding.OnboardingViewModel
@@ -85,6 +85,7 @@ import com.mapbox.maps.extension.style.expressions.generated.Expression
 
 @Composable
 fun MapScreen(
+    onNavigateBack: () -> Unit,
     onNavigateToCreatePost: () -> Unit,
     onNavigateToDetail: (String) -> Unit = {},
     onNavigateToEventDetail: (String) -> Unit = {},
@@ -349,26 +350,50 @@ fun MapScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .statusBarsPadding()
                 .padding(16.dp)
         ) {
-            // Search Bar
-            OutlinedTextField(
-                value = state.searchQuery,
-                onValueChange = { viewModel.onSearchQueryChange(it) },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 24.dp, vertical = 16.dp)
-                    .clip(RoundedCornerShape(30.dp))
-                    .background(Color.White),
-                placeholder = { Text(stringResource(R.string.map_search_placeholder), fontSize = 14.sp, color = GrayText.copy(alpha = 0.6f)) },
-                leadingIcon = { Icon(imageVector = Icons.Default.Search, contentDescription = "Search", tint = GrayText) },
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedContainerColor = Color.White,
-                    unfocusedContainerColor = Color.White,
-                    focusedBorderColor = Color.Transparent,
-                    unfocusedBorderColor = Color.Transparent
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // Botón de Volver
+                Surface(
+                    onClick = onNavigateBack,
+                    shape = CircleShape,
+                    color = Color.White,
+                    shadowElevation = 4.dp,
+                    modifier = Modifier.size(48.dp)
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = stringResource(R.string.back_desc),
+                            tint = GrayText
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.width(12.dp))
+
+                // Search Bar
+                OutlinedTextField(
+                    value = state.searchQuery,
+                    onValueChange = { viewModel.onSearchQueryChange(it) },
+                    modifier = Modifier
+                        .weight(1f)
+                        .clip(RoundedCornerShape(30.dp))
+                        .background(Color.White),
+                    placeholder = { Text(stringResource(R.string.map_search_placeholder), fontSize = 14.sp, color = GrayText.copy(alpha = 0.6f)) },
+                    leadingIcon = { Icon(imageVector = Icons.Default.Search, contentDescription = "Search", tint = GrayText) },
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedContainerColor = Color.White,
+                        unfocusedContainerColor = Color.White,
+                        focusedBorderColor = Color.Transparent,
+                        unfocusedBorderColor = Color.Transparent
+                    )
                 )
-            )
+            }
 
             Spacer(modifier = Modifier.height(12.dp))
 
@@ -588,9 +613,11 @@ fun getTranslatedCategoryName(categoryKey: String): String {
 
 @Composable
 fun FilterChipsRow(selectedFilter: String, onFilterSelected: (String) -> Unit) {
+    val nearbyLabel = stringResource(R.string.filter_nearby)
+    val inCityLabel = stringResource(R.string.map_filter_in_city)
     val filters = listOf(
-        Pair("Cercanos", Icons.Default.NearMe),
-        Pair("En la ciudad", Icons.Default.LocationCity),
+        Pair(nearbyLabel, Icons.Default.NearMe),
+        Pair(inCityLabel, Icons.Default.LocationCity),
         Pair("Gastronomía", getCategoryIcon("Gastronomía")),
         Pair("Cultura", getCategoryIcon("Cultura")),
         Pair("Naturaleza", getCategoryIcon("Naturaleza")),
@@ -602,8 +629,7 @@ fun FilterChipsRow(selectedFilter: String, onFilterSelected: (String) -> Unit) {
 
     LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         items(filters) { (name, icon) ->
-            val isSelected = selectedFilter == name || 
-                (name == "Cercanos" && (selectedFilter == "Cercanos" || selectedFilter == "Nearby" || selectedFilter == stringResource(R.string.filter_nearby)))
+            val isSelected = selectedFilter == name
             val baseColor = getCategoryColor(name)
             val displayColor = if (hasSelection && !isSelected) MaterialTheme.colorScheme.onSurfaceVariant else baseColor
 

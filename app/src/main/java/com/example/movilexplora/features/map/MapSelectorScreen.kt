@@ -10,6 +10,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
+import com.example.movilexplora.R
 import com.mapbox.geojson.Point
 import com.mapbox.maps.extension.compose.MapboxMap
 import com.mapbox.maps.extension.compose.animation.viewport.rememberMapViewportState
@@ -30,10 +32,10 @@ fun MapSelectorScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Seleccionar Ubicación") },
+                title = { Text(stringResource(R.string.map_selector_title)) },
                 navigationIcon = {
                     IconButton(onClick = { onNavigateBack(null) }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.regresar))
                     }
                 },
                 actions = {
@@ -42,7 +44,7 @@ fun MapSelectorScreen(
                             onNavigateBack("${it.latitude()},${it.longitude()}") 
                         } ?: onNavigateBack(null)
                     }) {
-                        Text("Confirmar")
+                        Text(stringResource(R.string.confirm_button))
                     }
                 }
             )
@@ -59,7 +61,7 @@ fun MapSelectorScreen(
             )
             selectedLocation?.let {
                 Text(
-                    text = "Seleccionado: ${"%.4f".format(it.latitude())}, ${"%.4f".format(it.longitude())}",
+                    text = stringResource(R.string.map_selector_selected_format, it.latitude(), it.longitude()),
                     modifier = Modifier.align(Alignment.BottomCenter).padding(16.dp),
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.primary

@@ -75,7 +75,7 @@ fun EventDetailScreen(
             ) {
                 // Header Image
                 Box(modifier = Modifier.height(240.dp).fillMaxWidth().background(MaterialTheme.colorScheme.surfaceVariant)) {
-                    Text("Imagen del Evento", color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.align(Alignment.Center))
+                    Text(stringResource(R.string.common_event_image), color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.align(Alignment.Center))
 
                     val categoryColor = getCategoryColor(event.category)
                     Surface(
@@ -125,10 +125,10 @@ fun EventDetailScreen(
                         Icon(imageVector = Icons.Default.CalendarToday, contentDescription = null, tint = Turquoise, modifier = Modifier.size(20.dp))
                         Spacer(modifier = Modifier.width(8.dp))
                         Column {
-                            Text(text = "Inicio: ${event.date} • ${event.time}", fontSize = 16.sp, color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.Medium)
+                            Text(text = "${stringResource(R.string.profile_event_start)} ${event.date} • ${event.time}", fontSize = 16.sp, color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.Medium)
                             if (event.endDate.isNotEmpty() && event.endTime.isNotEmpty()) {
                                 Spacer(modifier = Modifier.height(2.dp))
-                                Text(text = "Fin: ${event.endDate} • ${event.endTime}", fontSize = 16.sp, color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.Medium)
+                                Text(text = "${stringResource(R.string.profile_event_end)} ${event.endDate} • ${event.endTime}", fontSize = 16.sp, color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.Medium)
                             }
                         }
                     }

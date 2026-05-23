@@ -31,6 +31,7 @@ data class Category(val name: String)
 
 data class FeedState(
     val userName: String = "",
+    val userProfilePictureUrl: String? = null,
     val filterState: FilterState = FilterState(), // Añadimos state del filtro
     val searchQuery: String = "",
     val categories: List<Category> = emptyList()
@@ -104,7 +105,8 @@ class FeedViewModel @Inject constructor(
     val pagedPosts: Flow<PagingData<Post>> = _state.flatMapLatest { currentState ->
         postRepository.getPagedPosts(
             category = currentState.filterState.selectedCategory,
-            priceLimit = currentState.filterState.selectedPriceRange
+            priceLimit = currentState.filterState.selectedPriceRange,
+            searchQuery = currentState.searchQuery
         ).cachedIn(viewModelScope)
     }
 
@@ -155,14 +157,21 @@ class FeedViewModel @Inject constructor(
         }
 
         viewModelScope.launch {
-            sessionDataStore.sessionFlow.collect { session ->
+            combine(
+                sessionDataStore.sessionFlow,
+                userRepository.users
+            ) { session, users ->
                 val userId = session?.userId ?: "guest"
                 if (userId.isNotBlank() && userId != "guest") {
-                    val user = userRepository.findById(userId)
-                    if (user != null) {
-                        val firstName = user.name.split(" ").firstOrNull() ?: ""
-                        _state.value = _state.value.copy(userName = firstName)
-                    }
+                    users.find { it.id == userId }
+                } else null
+            }.collect { user ->
+                if (user != null) {
+                    val firstName = user.name.split(" ").firstOrNull() ?: ""
+                    _state.update { it.copy(
+                        userName = firstName,
+                        userProfilePictureUrl = user.profilePictureUrl
+                    ) }
                 }
             }
         }

@@ -38,6 +38,7 @@ fun StatisticsScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .statusBarsPadding()
             .background(MaterialTheme.colorScheme.background)
     ) {
         TopAppBar(
@@ -58,6 +59,8 @@ fun StatisticsScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Spacer(modifier = Modifier.height(16.dp))
+            // ... (rest of the Column content)
+            // (I will add a bottom spacer here in the next replacement or just ensure it's there)
 
             // Resumen General
             Text(
@@ -127,7 +130,7 @@ fun StatisticsScreen(
             Spacer(modifier = Modifier.height(12.dp))
             RecentActivityList(state.recentActivities)
             
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(100.dp))
         }
     }
 }

@@ -17,11 +17,13 @@ import com.mapbox.maps.extension.compose.style.sources.generated.rememberGeoJson
 import com.mapbox.maps.extension.style.expressions.generated.Expression
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -41,6 +43,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
@@ -98,8 +101,8 @@ fun CreateEditEventScreen(
 
     val context = LocalContext.current
     val onboardingState by onboardingViewModel.state.collectAsState()
-    
-    val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
+
+    remember { LocationServices.getFusedLocationProviderClient(context) }
     val mapViewportState = rememberMapViewportState {
         setCameraOptions {
             center(Point.fromLngLat(2.1734, 41.3851))
@@ -107,7 +110,8 @@ fun CreateEditEventScreen(
         }
     }
 
-    val selectedPinGeoJson = remember(lat, lon) {
+    val selectedPinTitle = stringResource(R.string.create_post_selected_location)
+    val selectedPinGeoJson = remember(lat, lon, selectedPinTitle) {
         if (lat != null && lon != null) {
             """
             {
@@ -120,7 +124,7 @@ fun CreateEditEventScreen(
                     "coordinates": [$lon, $lat]
                   },
                   "properties": {
-                    "title": "Ubicación Seleccionada",
+                    "title": "$selectedPinTitle",
                     "category": "Selected"
                   }
                 }
@@ -221,6 +225,9 @@ fun CreateEditEventScreen(
     val isEditing = (eventId != null) && (eventId != "{eventId}")
 
     val eventToEdit by viewModel.eventToEdit.collectAsState()
+    val showAiRecommendationDialog by viewModel.showAiRecommendationDialog.collectAsState()
+    val pendingRecommendation by viewModel.pendingRecommendation.collectAsState()
+    val aiRecommendationReason by viewModel.aiRecommendationReason.collectAsState()
 
     LaunchedEffect(isEditing, eventId) {
         if (isEditing) {
@@ -246,12 +253,121 @@ fun CreateEditEventScreen(
         }
     }
 
+    // Diálogo de Recomendación de IA
+    if (showAiRecommendationDialog) {
+        pendingRecommendation?.let { recommendation ->
+            val categoryColor = getCategoryColor(recommendation.category)
+            val categoryIcon = getCategoryIcon(recommendation.category)
+            
+            AlertDialog(
+                onDismissRequest = { viewModel.dismissRecommendation() },
+                confirmButton = {
+                    Button(
+                        onClick = { 
+                            category = recommendation.category
+                            viewModel.acceptRecommendation() 
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = categoryColor)
+                    ) {
+                        Text(stringResource(R.string.common_ok), color = Color.White, fontWeight = FontWeight.Bold)
+                    }
+                },
+                dismissButton = {
+                    TextButton(
+                        onClick = { viewModel.dismissRecommendation() }
+                    ) {
+                        Text(stringResource(R.string.common_dismiss), color = GrayText, fontWeight = FontWeight.Medium)
+                    }
+                },
+                title = {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.AutoAwesome,
+                            contentDescription = null,
+                            tint = categoryColor,
+                            modifier = Modifier.size(24.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = stringResource(R.string.create_post_ai_recommendation_title),
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 18.sp,
+                            color = MaterialTheme.colorScheme.onBackground
+                        )
+                    }
+                },
+                text = {
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Spacer(modifier = Modifier.height(12.dp))
+                        // Category Badge
+                        Surface(
+                            shape = CircleShape,
+                            color = categoryColor.copy(alpha = 0.15f),
+                            modifier = Modifier.size(72.dp),
+                            border = BorderStroke(2.dp, categoryColor)
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Icon(
+                                    imageVector = categoryIcon,
+                                    contentDescription = recommendation.category,
+                                    tint = categoryColor,
+                                    modifier = Modifier.size(36.dp)
+                                )
+                            }
+                        }
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text(
+                            text = recommendation.category.replaceFirstChar { it.uppercase() },
+                            color = categoryColor,
+                            fontWeight = FontWeight.ExtraBold,
+                            fontSize = 24.sp,
+                            textAlign = TextAlign.Center
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+                        // Reason Container
+                        Surface(
+                            shape = RoundedCornerShape(12.dp),
+                            color = MaterialTheme.colorScheme.surfaceVariant,
+                            modifier = Modifier.fillMaxWidth(),
+                            border = BorderStroke(1.dp, Color.LightGray.copy(alpha = 0.2f))
+                        ) {
+                            Column(modifier = Modifier.padding(16.dp)) {
+                                Text(
+                                    text = stringResource(R.string.create_post_ai_why),
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 12.sp,
+                                    color = categoryColor,
+                                    modifier = Modifier.padding(bottom = 4.dp)
+                                )
+                                Text(
+                                    text = recommendation.reason,
+                                    fontSize = 13.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    lineHeight = 18.sp
+                                )
+                            }
+                        }
+                    }
+                },
+                shape = RoundedCornerShape(24.dp),
+                containerColor = MaterialTheme.colorScheme.surface
+            )
+        }
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
                 title = {
                     Text(
-                        text = if (isEditing) "Editar evento" else "Crear evento",
+                        text = if (isEditing) stringResource(R.string.events_edit_event) else stringResource(R.string.eventsscreen_crear_evento_4),
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onBackground
@@ -377,28 +493,31 @@ fun CreateEditEventScreen(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(text = stringResource(R.string.createediteventscreen_categor_a_4), fontSize = 14.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(text = stringResource(R.string.createediteventscreen_categor_a_4), fontSize = 14.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
+                    if (aiRecommendationReason != null) {
+                        Text(
+                            text = "IA: $aiRecommendationReason",
+                            fontSize = 11.sp,
+                            color = Turquoise,
+                            lineHeight = 14.sp,
+                            fontWeight = FontWeight.Medium
+                        )
+                    }
+                }
                 
                 val isRecommending by viewModel.isRecommendingCategory.collectAsState()
-                val recommendedCat by viewModel.recommendedCategory.collectAsState()
 
-                androidx.compose.material3.TextButton(
+                TextButton(
                     onClick = { viewModel.recommendCategory(description) },
                     enabled = !isRecommending && description.isNotBlank()
                 ) {
                     if (isRecommending) {
-                        androidx.compose.material3.CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp, color = Turquoise)
+                        CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp, color = Turquoise)
                     } else {
                         Icon(imageVector = Icons.Default.AutoAwesome, contentDescription = null, modifier = Modifier.size(16.dp), tint = Turquoise)
                         Spacer(modifier = Modifier.width(4.dp))
-                        Text("Sugerir con IA", fontSize = 12.sp, color = Turquoise, fontWeight = FontWeight.Bold)
-                    }
-                }
-
-                LaunchedEffect(recommendedCat) {
-                    recommendedCat?.let {
-                        category = it
-                        viewModel.clearRecommendation()
+                        Text(stringResource(R.string.create_post_suggest_ai), fontSize = 12.sp, color = Turquoise, fontWeight = FontWeight.Bold)
                     }
                 }
             }
@@ -408,11 +527,11 @@ fun CreateEditEventScreen(
             data class CategoryData(val name: String, val desc: String)
             
             val categories = listOf(
-                CategoryData("Gastronomía", "Festivales, catas, rutas..."),
-                CategoryData("Cultura", "Exposiciones, ferias, talleres..."),
-                CategoryData("Naturaleza", "Campamentos, caminatas, excursiones..."),
-                CategoryData("Entretenimiento", "Conciertos, fiestas, shows..."),
-                CategoryData("Historia", "Recorridos guiados, charlas...")
+                CategoryData("Gastronomía", stringResource(R.string.cat_gastronomy_desc_event)),
+                CategoryData("Cultura", stringResource(R.string.cat_culture_desc_event)),
+                CategoryData("Naturaleza", stringResource(R.string.cat_nature_desc_event)),
+                CategoryData("Entretenimiento", stringResource(R.string.cat_entertainment_desc_event)),
+                CategoryData("Historia", stringResource(R.string.cat_history_desc_event))
             )
 
             categories.forEach { cat ->
@@ -482,7 +601,7 @@ fun CreateEditEventScreen(
                 Icon(imageVector = Icons.AutoMirrored.Outlined.Send, contentDescription = null, tint = if (title.isNotBlank() && startDate.isNotBlank() && endDate.isNotBlank()) Color.White else Color.White.copy(alpha = 0.5f))
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = if (isEditing) "Guardar cambios" else "Publicar evento",
+                    text = if (isEditing) stringResource(R.string.common_save_changes) else stringResource(R.string.events_publish_event),
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.White

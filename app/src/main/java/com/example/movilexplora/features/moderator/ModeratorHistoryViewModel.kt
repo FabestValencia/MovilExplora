@@ -9,6 +9,7 @@ import com.example.movilexplora.domain.model.VerificationItem
 import com.example.movilexplora.domain.model.VerificationType
 import com.example.movilexplora.domain.repository.PostRepository
 import com.example.movilexplora.domain.repository.EventRepository
+import com.example.movilexplora.domain.repository.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -31,6 +32,7 @@ data class HistoryItem(
     val badgeText: String,
     val title: String,
     val author: String,
+    val authorAvatarUrl: String? = null,
     val timeAgo: String,
     val description: String,
     val status: String // "Aceptado" or "Rechazado"
@@ -40,6 +42,7 @@ data class HistoryItem(
 class ModeratorHistoryViewModel @Inject constructor(
     private val postRepository: PostRepository,
     private val eventRepository: EventRepository,
+    private val userRepository: UserRepository,
     private val resources: ResourceProvider
 ) : ViewModel() {
     private val _state = MutableStateFlow(ModeratorHistoryState())
@@ -55,16 +58,19 @@ class ModeratorHistoryViewModel @Inject constructor(
     private fun loadHistory() {
         combine(
             postRepository.getPosts(),
-            eventRepository.getEvents()
-        ) { posts, events ->
+            eventRepository.getEvents(),
+            userRepository.users
+        ) { posts, events, users ->
             val processedPosts = posts.filter { it.status == PostStatus.VERIFICADO || it.status == PostStatus.RECHAZADO }
             val postHistoryItems = processedPosts.map { post ->
+                val authorUser = users.find { it.id == post.creatorId }
                 HistoryItem(
                     id = "POST_${post.id}",
                     type = VerificationType.LOCATION,
                     badgeText = post.category.uppercase(),
                     title = post.title,
-                    author = post.creatorId.ifEmpty { resources.getString(R.string.user_default_name) },
+                    author = authorUser?.name ?: post.creatorId.ifEmpty { resources.getString(R.string.user_default_name) },
+                    authorAvatarUrl = authorUser?.profilePictureUrl,
                     timeAgo = resources.getString(R.string.stat_time_recent),
                     description = post.description.ifEmpty { resources.getString(R.string.no_description) },
                     status = if (post.status == PostStatus.VERIFICADO) resources.getString(R.string.status_accepted_singular) else resources.getString(R.string.status_rejected_singular)
@@ -73,12 +79,14 @@ class ModeratorHistoryViewModel @Inject constructor(
 
             val processedEvents = events.filter { it.status == PostStatus.VERIFICADO || it.status == PostStatus.RECHAZADO }
             val eventHistoryItems = processedEvents.map { event ->
+                val authorUser = users.find { it.id == event.creatorId }
                 HistoryItem(
                     id = "EVENT_${event.id}",
                     type = VerificationType.EVENT,
                     badgeText = resources.getString(R.string.event_badge),
                     title = event.title,
-                    author = resources.getString(R.string.organization_default_name),
+                    author = authorUser?.name ?: resources.getString(R.string.organization_default_name),
+                    authorAvatarUrl = authorUser?.profilePictureUrl,
                     timeAgo = resources.getString(R.string.stat_time_recent),
                     description = event.description.ifEmpty { resources.getString(R.string.no_description) },
                     status = if (event.status == PostStatus.VERIFICADO) resources.getString(R.string.status_accepted_singular) else resources.getString(R.string.status_rejected_singular)

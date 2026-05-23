@@ -105,10 +105,13 @@ class MapViewModel @Inject constructor(
         query: String,
         userLoc: Pair<Double, Double>? = _userLocation.value
     ): List<MapFeature> {
+        val nearbyLabel = resources.getString(R.string.filter_nearby)
+        val inCityLabel = resources.getString(R.string.map_filter_in_city)
+        
         val filtered = features.filter { feature ->
             val matchesFilter = when {
-                filter == resources.getString(R.string.filter_nearby) || filter.isEmpty() || filter == "Cercanos" || filter == "Nearby" -> {
-                    if ((filter == resources.getString(R.string.filter_nearby) || filter == "Cercanos" || filter == "Nearby") && userLoc != null) {
+                filter == nearbyLabel || filter.isEmpty() -> {
+                    if (filter == nearbyLabel && userLoc != null) {
                         val distance = calculateDistanceInKm(
                             userLoc.first, userLoc.second,
                             feature.latitude, feature.longitude
@@ -118,7 +121,7 @@ class MapViewModel @Inject constructor(
                         true
                     }
                 }
-                filter == "En la ciudad" || filter == "In the city" -> {
+                filter == inCityLabel -> {
                     true // Show all posts and events in the database on the map
                 }
                 else -> {
@@ -133,7 +136,7 @@ class MapViewModel @Inject constructor(
             matchesFilter && matchesQuery
         }
 
-        return if ((filter == resources.getString(R.string.filter_nearby) || filter == "Cercanos" || filter == "Nearby") && userLoc != null) {
+        return if (filter == nearbyLabel && userLoc != null) {
             filtered.sortedBy { feature ->
                 calculateDistanceInKm(
                     userLoc.first, userLoc.second,

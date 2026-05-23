@@ -48,32 +48,33 @@ fun BadgesScreen(
     val state by viewModel.state.collectAsState()
     var selectedBadge by remember { mutableStateOf<UnlockNotification?>(null) }
 
-    Scaffold(
-        topBar = {
-            CenterAlignedTopAppBar(
-                title = { Text(stringResource(R.string.badges_title), fontSize = 20.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground) },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.badgesscreen_back_3), tint = MaterialTheme.colorScheme.onBackground)
-                    }
-                },
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = MaterialTheme.colorScheme.surface)
-            )
-        }
-    ) { paddingValues ->
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .statusBarsPadding()
+            .background(MaterialTheme.colorScheme.background)
+    ) {
+        CenterAlignedTopAppBar(
+            title = { Text(stringResource(R.string.badges_title), fontSize = 20.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground) },
+            navigationIcon = {
+                IconButton(onClick = onNavigateBack) {
+                    Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.badgesscreen_back_3), tint = MaterialTheme.colorScheme.onBackground)
+                }
+            },
+            colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = MaterialTheme.colorScheme.surface)
+        )
+
         LazyVerticalGrid(
             columns = GridCells.Fixed(2),
-            contentPadding = PaddingValues(16.dp),
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .background(MaterialTheme.colorScheme.background),
+            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 100.dp),
+            modifier = Modifier.fillMaxSize(),
             horizontalArrangement = Arrangement.spacedBy(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             item(span = { GridItemSpan(maxCurrentLineSpan) }) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Spacer(modifier = Modifier.height(8.dp))
+                    // ... (rest of the header content)
 
                     // Unlocked count badge
                     Surface(
@@ -115,13 +116,19 @@ fun BadgesScreen(
             }
 
             items(state.achievements) { achievement ->
+                val badgeUnlockedTitle = stringResource(R.string.badge_unlocked_dialog_title)
+                val badgeRecentDate = stringResource(R.string.stat_time_recent)
+                val badgeXpEarned = stringResource(R.string.points_format, 50)
+                val translatedName = getTranslatedBadgeName(achievement.name)
+                val translatedDesc = getTranslatedBadgeDescription(achievement.description)
+
                 BadgeCard(
                     achievement = achievement,
                     onClick = {
                         if (achievement.isUnlocked) {
                             selectedBadge = UnlockNotification(
-                                title = "¡INSIGNIA DESBLOQUEADA!",
-                                name = achievement.name,
+                                title = badgeUnlockedTitle,
+                                name = translatedName,
                                 icon = when (achievement.iconName) {
                                     "celebration" -> Icons.Default.Celebration
                                     "verified" -> Icons.Default.Verified
@@ -130,9 +137,9 @@ fun BadgesScreen(
                                     "contact_page" -> Icons.Default.ContactPage
                                     else -> Icons.Default.EmojiEvents
                                 },
-                                date = "Reciente",
-                                xpEarned = "+50 XP",
-                                footerText = achievement.description
+                                date = badgeRecentDate,
+                                xpEarned = badgeXpEarned,
+                                footerText = translatedDesc
                             )
                         }
                     }
@@ -142,13 +149,13 @@ fun BadgesScreen(
                 NextChallengeCard()
             }
         }
+    }
 
-        selectedBadge?.let { notification ->
-            UnlockNotificationDialog(
-                notification = notification,
-                onDismiss = { selectedBadge = null }
-            )
-        }
+    selectedBadge?.let { notification ->
+        UnlockNotificationDialog(
+            notification = notification,
+            onDismiss = { selectedBadge = null }
+        )
     }
 }
 

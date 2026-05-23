@@ -30,24 +30,51 @@ class CreateEventViewModel @Inject constructor(
     private val _isRecommendingCategory = MutableStateFlow(false)
     val isRecommendingCategory: StateFlow<Boolean> = _isRecommendingCategory.asStateFlow()
 
-    private val _recommendedCategory = MutableStateFlow<String?>(null)
-    val recommendedCategory: StateFlow<String?> = _recommendedCategory.asStateFlow()
+    private val _pendingRecommendation = MutableStateFlow<com.example.movilexplora.domain.ai.Recommendation?>(null)
+    val pendingRecommendation: StateFlow<com.example.movilexplora.domain.ai.Recommendation?> = _pendingRecommendation.asStateFlow()
+
+    private val _showAiRecommendationDialog = MutableStateFlow(false)
+    val showAiRecommendationDialog: StateFlow<Boolean> = _showAiRecommendationDialog.asStateFlow()
+
+    private val _aiRecommendationReason = MutableStateFlow<String?>(null)
+    val aiRecommendationReason: StateFlow<String?> = _aiRecommendationReason.asStateFlow()
 
     fun recommendCategory(description: String) {
         if (description.isBlank()) return
 
         viewModelScope.launch {
-            _isRecommendingCategory.value = true
-            val recommendation = categoryRecommender.recommendCategory(description)
-            recommendation?.let {
-                _recommendedCategory.value = it.category
+            try {
+                _isRecommendingCategory.value = true
+                val recommendation = categoryRecommender.recommendCategory(description)
+                if (recommendation != null) {
+                    _pendingRecommendation.value = recommendation
+                    _showAiRecommendationDialog.value = true
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            } finally {
+                _isRecommendingCategory.value = false
             }
-            _isRecommendingCategory.value = false
         }
     }
 
+    fun acceptRecommendation() {
+        _pendingRecommendation.value?.let { recommendation ->
+            _aiRecommendationReason.value = recommendation.reason
+            // We'll handle setting the actual category in the UI for now as it's a local state there,
+            // or we could emit a signal.
+            _showAiRecommendationDialog.value = false
+        }
+    }
+
+    fun dismissRecommendation() {
+        _pendingRecommendation.value = null
+        _showAiRecommendationDialog.value = false
+    }
+
     fun clearRecommendation() {
-        _recommendedCategory.value = null
+        _pendingRecommendation.value = null
+        _aiRecommendationReason.value = null
     }
 
     fun loadEvent(eventId: String) {

@@ -12,6 +12,7 @@
     <string name="login_forgot_password">¿Olvidaste la contraseña?</string>
     <string name="login_button">Iniciar sesión</string>
     <string name="login_moderator">Moderador</string>
+    <string name="login_continue_with_google">Continuar con Google</string>
 
     <!-- Login ViewModel -->
     <string name="error_email_empty">El email es obligatorio</string>
@@ -36,6 +37,11 @@
     <string name="filter_locations">Lugares</string>
     <string name="filter_reviews">Reseñas</string>
     <string name="filter_events">Eventos</string>
+    <string name="filter_clear">Limpiar</string>
+    <string name="filter_distance">Distancia</string>
+    <string name="filter_distance_min">1 km</string>
+    <string name="filter_distance_max">50 km</string>
+    <string name="filter_apply">Aplicar Filtros</string>
     <string name="verify_action">Verificar</string>
     <string name="approve_action">Aprobar</string>
     <string name="reject_action">Rechazar</string>
@@ -67,6 +73,8 @@
     <string name="register_confirm_password_placeholder">Confirme la contraseña</string>
     <string name="register_button">Crear cuenta</string>
     <string name="register_login_button">Iniciar sesión</string>
+    <string name="register_confirm_title">¿Confirmar Registro?</string>
+    <string name="register_confirm_msg">¿Está seguro de que desea crear esta cuenta con los datos proporcionados?</string>
     <string name="error_name_empty">El nombre es obligatorio</string>
     <string name="error_location_empty">La ubicación es obligatoria</string>
     <string name="register_success">Registro exitoso</string>
@@ -234,6 +242,8 @@
     <string name="profile_stat_pending">Pendientes</string>
     <string name="profile_stat_rejected">Rechazadas</string>
     <string name="profile_xp_next_level">XP para el próximo nivel</string>
+    <string name="profile_xp_max_format">/ %1$d XP</string>
+    <string name="profile_xp_next_level_format">%1$d %2$s</string>
     <string name="profile_no_events">No tienes eventos creados.</string>
     <string name="profile_event_start">Inicio:</string>
     <string name="profile_event_end">Fin:</string>
@@ -378,7 +388,7 @@
     <string name="achievement_4_desc">Sé el más activo este mes</string>
 
     <string name="reject_reason_title">Motivo de rechazo</string>
-    <string name="reject_reason_hint">Escribe la razón aquí...</string>
+    <string name="reject_reason_hint">Escribe la razón aquí…</string>
     <string name="confirm_button">Confirmar</string>
     <string name="cancel_button">Cancelar</string>
 
@@ -448,4 +458,63 @@
     <!-- Map Features -->
     <string name="map_feature_post">Publicación</string>
     <string name="map_feature_event">Evento</string>
+    <string name="map_filter_in_city">En la ciudad</string>
+    <string name="map_selector_title">Seleccionar Ubicación</string>
+    <string name="map_selector_selected_format">Seleccionado: %1$.4f, %2$.4f</string>
+
+    <string name="badge_unlocked_dialog_title">¡INSIGNIA DESBLOQUEADA!</string>
+    <string name="badge_obtained_date_label">Fecha de obtención</string>
+    <string name="badge_xp_earned_label">XP Ganada</string>
+    <string name="badge_footer_text">ESTE LOGRO ES PERMANENTE EN TU PERFIL</string>
+    <string name="common_close">Cerrar</string>
+    <string name="common_send">Enviar</string>
+    <string name="common_hide">Ocultar</string>
+    <string name="common_select_image">Seleccionar Imagen</string>
+    <string name="common_take_photo">Tomar Foto</string>
+    <string name="common_choose_gallery">Elegir de Galería</string>
+    <string name="common_cancel">Cancelar</string>
+    <string name="common_ok">Aceptar</string>
+
+    <string name="history_recent_movements">Movimientos recientes</string>
+    <string name="history_time_ago">Hace %1$s</string>
+
+    <string name="error_image_upload">Error al subir la imagen. Por favor, intenta de nuevo.</string>
+    <string name="error_image_required">Es necesario asignar una imagen a la publicación</string>
+    <string name="error_publish_failed">Error al publicar</string>
+
+    <string name="common_save_changes">Guardar Cambios</string>
+    <string name="common_save_changes_success">¡Cambios Guardados!</string>
+    <string name="common_dismiss">Descartar</string>
+    <string name="common_edit">Editar</string>
+    <string name="common_ia_suggest">Sugerir con IA</string>
+
+    <string name="create_post_selected_location">Ubicación Seleccionada</string>
+    <string name="create_post_success_title">¡Publicación Creada!</string>
+    <string name="create_post_success_msg">Tu publicación \"%1$s\" ha sido creada exitosamente y pronto estará disponible.</string>
+    <string name="create_post_save_changes_msg">Tus cambios han sido guardados y pasarán por verificación.</string>
+    <string name="create_post_ai_recommendation_title">Recomendación de IA</string>
+    <string name="create_post_ai_why">¿Por qué?</string>
+    <string name="create_post_edit_title">Editar Publicación</string>
+    <string name="create_post_selected_image_desc">Imagen seleccionada</string>
+    <string name="create_post_suggest_ai">Sugerir con IA</string>
+
+    <string name="events_edit_event">Editar Evento</string>
+    <string name="events_publish_event">Publicar Evento</string>
+
+    <string name="profile_post_rejected_title">Publicación Rechazada</string>
+    <string name="profile_rejection_reason_format">Motivo de rechazo: %1$s</string>
+    <string name="profile_delete_post_confirmation">¿Estás seguro de que deseas eliminar esta publicación? Esta acción no se puede deshacer.</string>
+
+    <string name="onboarding_welcome_title">¡Bienvenido a MovilExplora!</string>
+    <string name="onboarding_welcome_desc">Para brindarte la mejor experiencia, necesitamos algunos permisos:</string>
+    <string name="onboarding_button_continue">Entendido y Continuar</string>
+    <string name="cat_gastronomy_desc_event">Festivales, catas, rutas…</string>
+    <string name="cat_culture_desc_event">Exposiciones, ferias, talleres…</string>
+    <string name="cat_nature_desc_event">Campamentos, caminatas, excursiones…</string>
+    <string name="cat_entertainment_desc_event">Conciertos, fiestas, shows…</string>
+    <string name="cat_history_desc_event">Recorridos guiados, charlas…</string>
+
+    <string name="forgot_password_title">¿Olvidaste tu\ncontraseña?</string>
+    <string name="reset_password_title">Crear nueva\ncontraseña</string>
+    <string name="reset_password_success_title">¡Contraseña\nrestablecida!</string>
 </resources>

@@ -194,7 +194,7 @@ class CreatePostViewModel @Inject constructor(
 
                         // 2. VALIDACIÓN CRÍTICA: Si no hay URL, no seguimos
                         if (imageUrl.isEmpty()) {
-                            _publishResult.value = RequestResult.Failure("Error al subir la imagen. Por favor, intenta de nuevo.")
+                            _publishResult.value = RequestResult.Failure(resources.getString(R.string.error_image_upload))
                             return@launch // Detenemos la ejecución aquí
                         }
 
@@ -227,11 +227,11 @@ class CreatePostViewModel @Inject constructor(
                         }
 
                     } else {
-                        _publishResult.value = RequestResult.Failure("Es necesario asignar una imagen a la publicación")
+                        _publishResult.value = RequestResult.Failure(resources.getString(R.string.error_image_required))
                     }
 
                 } catch (e: Exception) {
-                    _publishResult.value = RequestResult.Failure(e.message ?: "Error al publicar")
+                    _publishResult.value = RequestResult.Failure(e.message ?: resources.getString(R.string.error_publish_failed))
                     e.printStackTrace()
                 }
             }

@@ -44,7 +44,7 @@ fun OnboardingScreen(
             verticalArrangement = Arrangement.Center
         ) {
             Text(
-                text = "¡Bienvenido a MovilExplora!",
+                text = stringResource(R.string.onboarding_welcome_title),
                 fontSize = 28.sp,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onBackground,
@@ -54,7 +54,7 @@ fun OnboardingScreen(
             Spacer(modifier = Modifier.height(16.dp))
             
             Text(
-                text = "Para brindarte la mejor experiencia, necesitamos algunos permisos:",
+                text = stringResource(R.string.onboarding_welcome_desc),
                 fontSize = 16.sp,
                 color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
                 textAlign = TextAlign.Center
@@ -106,7 +106,7 @@ fun OnboardingScreen(
                 colors = ButtonDefaults.buttonColors(containerColor = Turquoise)
             ) {
                 Text(
-                    text = "Entendido y Continuar",
+                    text = stringResource(R.string.onboarding_button_continue),
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.White

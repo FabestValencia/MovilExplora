@@ -10,11 +10,13 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -27,24 +29,21 @@ import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.Event
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.LightMode
-import androidx.compose.material.icons.filled.DarkMode
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.RateReview
 import androidx.compose.material.icons.filled.Storefront
 import androidx.compose.material.icons.filled.VerifiedUser
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
@@ -52,9 +51,11 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -66,17 +67,18 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import coil.compose.AsyncImage
 import com.example.movilexplora.R
+import com.example.movilexplora.core.component.ProfileImage
+import com.example.movilexplora.core.navigation.ThemeViewModel
 import com.example.movilexplora.domain.model.VerificationItem
 import com.example.movilexplora.ui.theme.Turquoise
-import com.example.movilexplora.core.navigation.ThemeViewModel
-import coil.compose.AsyncImage
-import androidx.compose.ui.layout.ContentScale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -101,17 +103,14 @@ fun ModeratorFeedScreen(
 
     if (showRejectDialog && itemToReject != null) {
         AlertDialog(
-            onDismissRequest = { 
-                showRejectDialog = false
-                itemToReject = null
-                rejectReason = ""
+            onDismissRequest = {
             },
-            title = { Text(text = "Motivo de rechazo", fontWeight = FontWeight.Bold) },
+            title = { Text(text = stringResource(R.string.reject_reason_title), fontWeight = FontWeight.Bold) },
             text = {
                 OutlinedTextField(
                     value = rejectReason,
                     onValueChange = { rejectReason = it },
-                    label = { Text("Ingresa el motivo (requerido)") },
+                    label = { Text(stringResource(R.string.reject_reason_hint)) },
                     modifier = Modifier.fillMaxWidth(),
                     minLines = 3
                 )
@@ -121,7 +120,6 @@ fun ModeratorFeedScreen(
                     onClick = {
                         if (rejectReason.isNotBlank()) {
                             viewModel.rejectItem(itemToReject!!, rejectReason)
-                            showRejectDialog = false
                             itemToReject = null
                             rejectReason = ""
                             selectedItem = null
@@ -130,18 +128,15 @@ fun ModeratorFeedScreen(
                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
                     enabled = rejectReason.isNotBlank()
                 ) {
-                    Text("Rechazar")
+                    Text(stringResource(R.string.reject_action))
                 }
             },
             dismissButton = {
                 TextButton(
-                    onClick = { 
-                        showRejectDialog = false
-                        itemToReject = null
-                        rejectReason = ""
+                    onClick = {
                     }
                 ) {
-                    Text("Cancelar")
+                    Text(stringResource(R.string.common_cancel))
                 }
             }
         )
@@ -150,24 +145,22 @@ fun ModeratorFeedScreen(
     if (selectedItem != null) {
         ModeratorItemDetailScreen(
             item = selectedItem!!,
-            onBack = { selectedItem = null },
+            onBack = { },
             onVerify = {
                 viewModel.verifyItem(it)
-                selectedItem = null
             },
             onApprove = {
                 viewModel.approveItem(it)
-                selectedItem = null
             },
             onReject = {
                 itemToReject = it
-                showRejectDialog = true
             }
         )
         return
     }
 
     Scaffold(
+        modifier = Modifier.fillMaxSize(),
         topBar = {
             TopAppBar(
                 title = { 
@@ -190,7 +183,7 @@ fun ModeratorFeedScreen(
                     IconButton(onClick = { themeViewModel.toggleTheme() }) {
                         Icon(
                             imageVector = if (isDarkMode) Icons.Default.LightMode else Icons.Default.DarkMode,
-                            contentDescription = if (isDarkMode) "Modo Claro" else "Modo Oscuro",
+                            contentDescription = if (isDarkMode) stringResource(R.string.modo_claro) else stringResource(R.string.modo_oscuro),
                             tint = MaterialTheme.colorScheme.onSurface
                         )
                     }
@@ -204,14 +197,18 @@ fun ModeratorFeedScreen(
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface)
             )
-        }
+        },
+        containerColor = MaterialTheme.colorScheme.background,
+        contentWindowInsets = WindowInsets(0, 0, 0, 0)
     ) { paddingValues ->
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
+                .statusBarsPadding()
+                .padding(top = 64.dp) // Space for TopAppBar
                 .background(MaterialTheme.colorScheme.background), // Use theme background
-            contentPadding = PaddingValues(16.dp),
+            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 32.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             item {
@@ -273,39 +270,43 @@ fun ModeratorFeedScreen(
                     modifier = Modifier.horizontalScroll(rememberScrollState()),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
+                    val filterAll = stringResource(R.string.filter_all)
+                    val filterLocations = stringResource(R.string.filter_locations)
+                    val filterReviews = stringResource(R.string.filter_reviews)
+                    val filterEvents = stringResource(R.string.filter_events)
+                    
                     FilterChip(
-                        selected = state.selectedFilter == "Todo",
-                        onClick = { viewModel.onFilterSelected("Todo") },
-                        label = { Text("${stringResource(R.string.filter_all)} (${state.counts["Todo"]})") },
+                        selected = state.selectedFilter == filterAll,
+                        onClick = { viewModel.onFilterSelected(filterAll) },
+                        label = { Text("$filterAll (${state.counts[filterAll]})") },
                         colors = FilterChipDefaults.filterChipColors(
                             selectedContainerColor = Turquoise,
                             selectedLabelColor = Color.White
                         ),
                         shape = RoundedCornerShape(20.dp),
-                        border = if (state.selectedFilter == "Todo") null else FilterChipDefaults.filterChipBorder(borderColor = Color.LightGray, enabled = true, selected = false)
+                        border = if (state.selectedFilter == filterAll) null else FilterChipDefaults.filterChipBorder(borderColor = Color.LightGray, enabled = true, selected = false)
                     )
                     FilterChip(
-                        selected = state.selectedFilter == "Lugares",
-                        onClick = { viewModel.onFilterSelected("Lugares") },
-                        label = { Text("${stringResource(R.string.filter_locations)} (${state.counts["Lugares"]})") },
+                        selected = state.selectedFilter == filterLocations,
+                        onClick = { viewModel.onFilterSelected(filterLocations) },
+                        label = { Text("$filterLocations (${state.counts[filterLocations]})") },
                         shape = RoundedCornerShape(20.dp),
-                        border = FilterChipDefaults.filterChipBorder(borderColor = Color.LightGray, enabled = true, selected = state.selectedFilter == "Lugares")
+                        border = FilterChipDefaults.filterChipBorder(borderColor = Color.LightGray, enabled = true, selected = state.selectedFilter == filterLocations)
                     )
                     FilterChip(
-                        selected = state.selectedFilter == "Reseñas",
-                        onClick = { viewModel.onFilterSelected("Reseñas") },
-                        label = { Text("${stringResource(R.string.filter_reviews)} (${state.counts["Reseñas"]})") },
+                        selected = state.selectedFilter == filterReviews,
+                        onClick = { viewModel.onFilterSelected(filterReviews) },
+                        label = { Text("$filterReviews (${state.counts[filterReviews]})") },
                         shape = RoundedCornerShape(20.dp),
-                        border = FilterChipDefaults.filterChipBorder(borderColor = Color.LightGray, enabled = true, selected = state.selectedFilter == "Reseñas")
+                        border = FilterChipDefaults.filterChipBorder(borderColor = Color.LightGray, enabled = true, selected = state.selectedFilter == filterReviews)
                     )
                     FilterChip(
-                        selected = state.selectedFilter == "Eventos",
-                        onClick = { viewModel.onFilterSelected("Eventos") },
-                        label = { Text("${stringResource(R.string.filter_events)} (${state.counts["Eventos"] ?: 0})") },
+                        selected = state.selectedFilter == filterEvents,
+                        onClick = { viewModel.onFilterSelected(filterEvents) },
+                        label = { Text("$filterEvents (${state.counts[filterEvents] ?: 0})") },
                         shape = RoundedCornerShape(20.dp),
-                        border = FilterChipDefaults.filterChipBorder(borderColor = Color.LightGray, enabled = true, selected = state.selectedFilter == "Eventos")
+                        border = FilterChipDefaults.filterChipBorder(borderColor = Color.LightGray, enabled = true, selected = state.selectedFilter == filterEvents)
                     )
-
                 }
             }
 
@@ -315,12 +316,11 @@ fun ModeratorFeedScreen(
             ) { item ->
                 ModeratorItemCard(
                     item = item,
-                    onClick = { selectedItem = item },
+                    onClick = { },
                     onVerify = { viewModel.verifyItem(item.id) },
                     onApprove = { viewModel.approveItem(item.id) },
                     onReject = { 
                         itemToReject = item.id
-                        showRejectDialog = true
                     }
                 )
             }
@@ -412,7 +412,11 @@ fun ModeratorItemDetailScreen(
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(imageVector = Icons.Default.Person, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f), modifier = Modifier.size(16.dp))
+                    ProfileImage(
+                        imageUrl = item.authorAvatarUrl,
+                        modifier = Modifier.size(16.dp),
+                        placeholderModifier = Modifier.padding(2.dp)
+                    )
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
                         text = stringResource(R.string.submitted_by, item.author),
@@ -565,7 +569,11 @@ fun ModeratorItemCard(
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(imageVector = Icons.Default.Person, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f), modifier = Modifier.size(14.dp))
+                    ProfileImage(
+                        imageUrl = item.authorAvatarUrl,
+                        modifier = Modifier.size(14.dp),
+                        placeholderModifier = Modifier.padding(2.dp)
+                    )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
                         text = stringResource(R.string.submitted_by, item.author), 

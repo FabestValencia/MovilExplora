@@ -27,6 +27,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.movilexplora.core.component.ProfileImage
 import com.example.movilexplora.ui.theme.GrayText
 import com.example.movilexplora.ui.theme.Turquoise
 import com.example.movilexplora.ui.theme.getReputationColor
@@ -41,53 +42,41 @@ fun ReputationScreen(
     val state by viewModel.state.collectAsState()
     var showFullHistory by remember { mutableStateOf(false) }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.reputation_title), fontSize = 18.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground) },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.reputationscreen_back_6), tint = MaterialTheme.colorScheme.onBackground)
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
-            )
-        }
-    ) { paddingValues ->
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .statusBarsPadding()
+            .background(MaterialTheme.colorScheme.background)
+    ) {
+        TopAppBar(
+            title = { Text(stringResource(R.string.reputation_title), fontSize = 18.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground) },
+            navigationIcon = {
+                IconButton(onClick = onNavigateBack) {
+                    Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.reputationscreen_back_6), tint = MaterialTheme.colorScheme.onBackground)
+                }
+            },
+            colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
+        )
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
-                .padding(horizontal = 24.dp)
-                .verticalScroll(rememberScrollState()),
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             // Profile Header
             Spacer(modifier = Modifier.height(16.dp))
             Box(contentAlignment = Alignment.BottomEnd) {
-                val boxModifier = Modifier
-                    .size(120.dp)
-                    .clip(CircleShape)
-                    .border(2.dp, Turquoise, CircleShape)
-                    .background(Color.LightGray)
-
-                if (state.profilePictureUrl.isNotEmpty()) {
-                    AsyncImage(
-                        model = state.profilePictureUrl,
-                        contentDescription = "Profile Picture",
-                        modifier = boxModifier,
-                        contentScale = ContentScale.Crop
-                    )
-                } else {
-                    Box(modifier = boxModifier) {
-                        Icon(
-                            imageVector = Icons.Default.Person,
-                            contentDescription = null,
-                            modifier = Modifier.fillMaxSize().padding(20.dp),
-                            tint = Color.White
-                        )
-                    }
-                }
+                ProfileImage(
+                    imageUrl = state.profilePictureUrl,
+                    modifier = Modifier
+                        .size(120.dp)
+                        .border(2.dp, Turquoise, CircleShape),
+                    backgroundColor = Color.LightGray,
+                    iconColor = Color.White,
+                    placeholderModifier = Modifier.padding(20.dp)
+                )
                 Box(
                     modifier = Modifier
                         .size(28.dp)
@@ -193,7 +182,7 @@ fun ReputationScreen(
                 Text(text = stringResource(R.string.reputationscreen_puntos_recientes_3), fontSize = 18.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
                 TextButton(onClick = { showFullHistory = !showFullHistory }) {
                     Text(
-                        text = if (showFullHistory) "Ocultar" else stringResource(R.string.reputationscreen_ver_historial_4),
+                        text = if (showFullHistory) stringResource(R.string.common_hide) else stringResource(R.string.reputationscreen_ver_historial_4),
                         color = Turquoise,
                         fontWeight = FontWeight.Bold
                     )
@@ -248,7 +237,7 @@ fun ReputationScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(40.dp))
+            Spacer(modifier = Modifier.height(100.dp))
         }
     }
 }

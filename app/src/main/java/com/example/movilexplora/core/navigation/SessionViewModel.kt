@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.movilexplora.data.model.UserSession
 import com.example.movilexplora.data.datastore.SessionDataStore
 import com.example.movilexplora.domain.model.enum.UserRole
+import com.example.movilexplora.domain.repository.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -22,7 +23,8 @@ sealed interface SessionState {
 
 @HiltViewModel
 class SessionViewModel @Inject constructor(
-    private val sessionDataStore: SessionDataStore
+    private val sessionDataStore: SessionDataStore,
+    private val userRepository: UserRepository
 ) : ViewModel() {
 
     // Flujo que representa el estado de la sesión
@@ -53,6 +55,12 @@ class SessionViewModel @Inject constructor(
         // Limpia la sesión del usuario en Data Store. Se utiliza viewModelScope para lanzar la corrutina
         viewModelScope.launch {
             sessionDataStore.clearSession()
+        }
+    }
+
+    fun updateFcmToken(userId: String, token: String) {
+        viewModelScope.launch {
+            userRepository.updateFcmToken(userId, token)
         }
     }
 }

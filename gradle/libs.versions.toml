@@ -1,5 +1,5 @@
 [versions]
-agp = "8.7.3"
+agp = "8.13.2"
 coreKtx = "1.15.0"
 retrofit = "2.11.0"
 generative-ai = "0.9.0"
@@ -29,6 +29,7 @@ kotlinxCoroutinesPlayServices = "1.10.1"
 cloudinary = "3.1.2"
 firebase-bom = "33.9.0"
 google-services = "4.4.2"
+firebase-appdistribution = "5.2.1"
 credentials = "1.5.0-rc01"
 googleid = "1.1.1"
 playServicesAuth = "21.3.0"
@@ -95,4 +96,5 @@ kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "ko
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
+firebase-appdistribution = { id = "com.google.firebase.appdistribution", version.ref = "firebase-appdistribution" }
 google-gms-google-services = { id = "com.google.gms.google-services", version.ref = "google-services" }

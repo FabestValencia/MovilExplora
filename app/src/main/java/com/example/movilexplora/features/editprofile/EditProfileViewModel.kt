@@ -57,16 +57,19 @@ class EditProfileViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            sessionDataStore.sessionFlow.collect { session ->
-                if (session != null) {
-                    val user = userRepository.findById(session.userId)
-                    if (user != null) {
-                        if (name.value.isEmpty()) name.onChange(user.name)
-                        if (email.value.isEmpty()) email.onChange(user.email)
-                        if (location.value.isEmpty()) location.onChange(user.city)
-                        if (description.value.isEmpty()) description.onChange(user.address)
-                        _photoUrl.value = user.profilePictureUrl
-                    }
+            kotlinx.coroutines.flow.combine(
+                sessionDataStore.sessionFlow,
+                userRepository.users
+            ) { session, users ->
+                val userId = session?.userId
+                users.find { it.id == userId }
+            }.collect { user ->
+                if (user != null) {
+                    if (name.value.isEmpty()) name.onChange(user.name)
+                    if (email.value.isEmpty()) email.onChange(user.email)
+                    if (location.value.isEmpty()) location.onChange(user.city)
+                    if (description.value.isEmpty()) description.onChange(user.address)
+                    _photoUrl.value = user.profilePictureUrl
                 }
             }
         }

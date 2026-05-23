@@ -18,6 +18,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
+import com.example.movilexplora.R
 import com.example.movilexplora.ui.theme.Turquoise
 import com.example.movilexplora.ui.theme.GrayText
 import com.example.movilexplora.ui.theme.getTranslatedCategoryName
@@ -67,13 +69,13 @@ fun FilterBottomSheet(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "Filtros",
+                    text = stringResource(R.string.feedscreen_filtrar_2),
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onBackground
                 )
                 TextButton(onClick = { state = FilterState() }) {
-                    Text(text = "Limpiar", color = Turquoise, fontSize = 14.sp)
+                    Text(text = stringResource(R.string.filter_clear), color = Turquoise, fontSize = 14.sp)
                 }
             }
 
@@ -85,7 +87,7 @@ fun FilterBottomSheet(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(text = "Distancia", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
+                Text(text = stringResource(R.string.filter_distance), fontSize = 18.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
                 Text(text = "${state.distance.roundToInt()} km", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Turquoise)
             }
             
@@ -105,16 +107,16 @@ fun FilterBottomSheet(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text(text = "1 km", fontSize = 12.sp, color = GrayText.copy(alpha = 0.5f))
-                Text(text = "50 km", fontSize = 12.sp, color = GrayText.copy(alpha = 0.5f))
+                Text(text = stringResource(R.string.filter_distance_min), fontSize = 12.sp, color = GrayText.copy(alpha = 0.5f))
+                Text(text = stringResource(R.string.filter_distance_max), fontSize = 12.sp, color = GrayText.copy(alpha = 0.5f))
             }
 
             Spacer(modifier = Modifier.height(24.dp))
 
             // Category Section
-            Text(text = "Categoría", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
+            Text(text = stringResource(R.string.createpostscreen_categor_a_4), fontSize = 16.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
             Text(
-                text = "Seleccione la categoría que mejor describa el lugar.",
+                text = stringResource(R.string.createpostscreen_select_the_category_that_best_5),
                 fontSize = 12.sp,
                 color = GrayText.copy(alpha = 0.5f),
                 modifier = Modifier.padding(vertical = 4.dp)
@@ -135,7 +137,7 @@ fun FilterBottomSheet(
             Spacer(modifier = Modifier.height(24.dp))
 
             // Price Range Section
-            Text(text = "Rango de Precios", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
+            Text(text = stringResource(R.string.createpostscreen_price_range_7), fontSize = 16.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
             Spacer(modifier = Modifier.height(16.dp))
             
             Row(
@@ -167,7 +169,7 @@ fun FilterBottomSheet(
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
-                        text = "Aplicar Filtros",
+                        text = stringResource(R.string.filter_apply),
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color.White

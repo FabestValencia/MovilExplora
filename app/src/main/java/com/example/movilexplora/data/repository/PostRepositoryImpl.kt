@@ -71,11 +71,11 @@ class PostRepositoryImpl @Inject constructor(
         val queries = mutableListOf<com.google.firebase.firestore.Query>()
 
         if (session.role == com.example.movilexplora.domain.model.enum.UserRole.ADMIN) {
-            // Admin escucha todo para moderación
+            // Admin escucha to-do para moderación
             queries.add(collection)
         } else {
             // Usuario normal escucha:
-            // 1. Todo lo verificado (de cualquier autor)
+            // 1. To-do lo verificado (de cualquier autor)
             queries.add(collection.whereEqualTo("status", PostStatus.VERIFICADO.name))
             // 2. Sus propias publicaciones (cualquier estado, para ver rechazadas/pendientes)
             queries.add(collection.whereEqualTo("creatorId", session.userId))

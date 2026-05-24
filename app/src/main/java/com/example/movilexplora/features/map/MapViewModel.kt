@@ -111,7 +111,7 @@ class MapViewModel @Inject constructor(
         val filtered = features.filter { feature ->
             val matchesFilter = when {
                 filter == nearbyLabel || filter.isEmpty() -> {
-                    // El mapa ahora muestra TODO, pero podemos ordenarlos si es "Cercanos"
+                    // El mapa ahora muestra TO-DO, pero podemos ordenarlos si es "Cercanos"
                     true
                 }
                 filter == inCityLabel -> {

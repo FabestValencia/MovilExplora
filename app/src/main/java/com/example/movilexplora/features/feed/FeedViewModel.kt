@@ -136,7 +136,7 @@ class FeedViewModel @Inject constructor(
                 val calcDistance = calculateDistanceKm(userLoc.first, userLoc.second, postLocation.first, postLocation.second)
                 calcDistance <= filters.distance
             } else {
-                true // No hay ubicación -> no filtramos por distancia, mostramos todo lo verificado
+                true // No hay ubicación -> no filtramos por distancia, mostramos to-do lo verificado
             }
             
             val matchesSearch = query.isBlank() || post.title.contains(query, ignoreCase = true)

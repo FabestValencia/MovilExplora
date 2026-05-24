@@ -67,16 +67,17 @@ fun ProfileScreen(
 
     if (showDeleteDialog) {
         DeleteAccountDialog(
-            onDismiss = { },
+            onDismiss = { showDeleteDialog = false },
             onConfirm = {
                 viewModel.deleteAccount()
+                showDeleteDialog = false
             }
         )
     }
     
     if (eventToDeleteId != null) {
         DeleteEventDialog(
-            onDismiss = { },
+            onDismiss = { eventToDeleteId = null },
             onConfirm = {
                 viewModel.deleteEvent(eventToDeleteId!!)
                 eventToDeleteId = null
@@ -86,7 +87,7 @@ fun ProfileScreen(
 
     if (postToDeleteId != null) {
         DeletePostDialog(
-            onDismiss = { },
+            onDismiss = { postToDeleteId = null },
             onConfirm = {
                 viewModel.deletePost(postToDeleteId!!)
                 postToDeleteId = null
@@ -98,7 +99,7 @@ fun ProfileScreen(
         RejectionReasonDialog(
             title = postForRejectionReason!!.title,
             reason = postForRejectionReason!!.rejectionReason ?: stringResource(R.string.no_description),
-            onDismiss = { }
+            onDismiss = { postForRejectionReason = null }
         )
     }
 
@@ -106,7 +107,7 @@ fun ProfileScreen(
         RejectionReasonDialog(
             title = eventForRejectionReason!!.title,
             reason = eventForRejectionReason!!.rejectionReason ?: stringResource(R.string.no_description),
-            onDismiss = { }
+            onDismiss = { eventForRejectionReason = null }
         )
     }
 

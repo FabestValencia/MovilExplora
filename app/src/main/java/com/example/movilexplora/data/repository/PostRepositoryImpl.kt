@@ -16,6 +16,8 @@ import com.example.movilexplora.data.remote.model.PostRemote
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import androidx.paging.map
@@ -33,10 +35,13 @@ class PostRepositoryImpl @Inject constructor(
     private val commentDao: CommentDao,
     private val likeDao: LikeDao,
     private val postDao: PostDao,
-    private val firestore: FirebaseFirestore
+    private val firestore: FirebaseFirestore,
+    private val sessionDataStore: com.example.movilexplora.data.datastore.SessionDataStore
 ) : PostRepository {
     private val collection = firestore.collection("posts")
     private val scope = CoroutineScope(Dispatchers.IO)
+    private var syncJob: kotlinx.coroutines.Job? = null
+    private val activeListeners = mutableListOf<com.google.firebase.firestore.ListenerRegistration>()
 
     init {
         // Regla de Negocio: Limpiar caché local al iniciar para evitar datos "quemados"
@@ -50,26 +55,66 @@ class PostRepositoryImpl @Inject constructor(
             }
         }
 
-        // Sincronizar posts desde Firestore de forma eficiente
-        collection.addSnapshotListener { snapshot, error ->
-            if (error != null) return@addSnapshotListener
-            
-            snapshot?.documentChanges?.forEach { change ->
-                val post = change.document.toObject(Post::class.java).apply { id = change.document.id }
-                scope.launch {
-                    when (change.type) {
-                        com.google.firebase.firestore.DocumentChange.Type.ADDED,
-                        com.google.firebase.firestore.DocumentChange.Type.MODIFIED -> {
-                            postDao.insertPost(post.toEntity())
-                            // Sincronizar comentarios para este post
-                            syncComments(post.id)
-                        }
-                        com.google.firebase.firestore.DocumentChange.Type.REMOVED -> {
-                            postDao.deletePost(post.id)
+        // Observar la sesión para ajustar los listeners en tiempo real
+        sessionDataStore.sessionFlow.onEach { session ->
+            setupRealtimeSync(session)
+        }.launchIn(scope)
+    }
+
+    private fun setupRealtimeSync(session: com.example.movilexplora.data.model.UserSession?) {
+        // Limpiar listeners previos
+        activeListeners.forEach { it.remove() }
+        activeListeners.clear()
+
+        if (session == null) return
+
+        val queries = mutableListOf<com.google.firebase.firestore.Query>()
+
+        if (session.role == com.example.movilexplora.domain.model.enum.UserRole.ADMIN) {
+            // Admin escucha todo para moderación
+            queries.add(collection)
+        } else {
+            // Usuario normal escucha:
+            // 1. Todo lo verificado (de cualquier autor)
+            queries.add(collection.whereEqualTo("status", PostStatus.VERIFICADO.name))
+            // 2. Sus propias publicaciones (cualquier estado, para ver rechazadas/pendientes)
+            queries.add(collection.whereEqualTo("creatorId", session.userId))
+        }
+
+        queries.forEach { query ->
+            val listener = query.addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    android.util.Log.e("SYNC_ERROR", "Error sincronizando posts: ${error.message}")
+                    return@addSnapshotListener
+                }
+                
+                snapshot?.documentChanges?.forEach { change ->
+                    val post = change.document.toObject(Post::class.java).apply { id = change.document.id }
+                    scope.launch {
+                        when (change.type) {
+                            com.google.firebase.firestore.DocumentChange.Type.ADDED,
+                            com.google.firebase.firestore.DocumentChange.Type.MODIFIED -> {
+                                postDao.insertPost(post.toEntity())
+                                syncComments(post.id)
+                            }
+                            com.google.firebase.firestore.DocumentChange.Type.REMOVED -> {
+                                // Evitar borrar publicaciones propias si solo desaparecieron del filtro de "Verificados"
+                                if (session.role == com.example.movilexplora.domain.model.enum.UserRole.ADMIN || post.creatorId != session.userId) {
+                                    postDao.deletePost(post.id)
+                                } else {
+                                    // Si es nuestra, verificamos si realmente fue borrada de Firestore
+                                    // o si simplemente cambió de estado (ej. rechazada)
+                                    val exists = collection.document(post.id).get().await().exists()
+                                    if (!exists) {
+                                        postDao.deletePost(post.id)
+                                    }
+                                }
+                            }
                         }
                     }
                 }
             }
+            activeListeners.add(listener)
         }
     }
 

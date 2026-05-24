@@ -422,6 +422,13 @@ fun ModeratorItemDetailScreen(
                 Spacer(modifier = Modifier.height(24.dp))
 
                 Text(
+                    text = stringResource(R.string.createpostscreen_descripci_n_6),
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
                     text = item.description,
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,

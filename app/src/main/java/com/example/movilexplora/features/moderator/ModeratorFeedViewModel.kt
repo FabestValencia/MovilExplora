@@ -1,31 +1,19 @@
 package com.example.movilexplora.features.moderator
 
-import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
-
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.movilexplora.R
 import com.example.movilexplora.core.utils.NotificationHelper
 import com.example.movilexplora.core.utils.ResourceProvider
-import com.example.movilexplora.domain.model.VerificationItem
-import com.example.movilexplora.domain.model.VerificationType
-import com.example.movilexplora.domain.model.Notification
-import com.example.movilexplora.domain.model.NotificationType
-import com.example.movilexplora.domain.model.PostStatus
+import com.example.movilexplora.domain.model.*
 import com.example.movilexplora.domain.repository.PostRepository
 import com.example.movilexplora.domain.repository.EventRepository
 import com.example.movilexplora.domain.repository.UserRepository
 import com.example.movilexplora.domain.repository.NotificationRepository
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.firstOrNull
+import javax.inject.Inject
 
 data class ModeratorFeedState(
     val items: List<VerificationItem> = emptyList(),
@@ -46,22 +34,29 @@ class ModeratorFeedViewModel @Inject constructor(
     private val _state = MutableStateFlow(ModeratorFeedState())
     val state: StateFlow<ModeratorFeedState> = _state.asStateFlow()
     
-    // Store all items internally
     private var allItems: List<VerificationItem> = emptyList()
+    private val userNames = MutableStateFlow<Map<String, String>>(emptyMap())
 
     init {
         _state.update { it.copy(selectedFilter = resources.getString(R.string.filter_all)) }
+        observePendingItems()
+    }
 
+    private fun observePendingItems() {
         combine(
             postRepository.getPosts(),
-            eventRepository.getEvents()
-        ) { posts, events ->
-            val pendingPosts = posts.filter { it.status == PostStatus.PENDIENTE }.map { post ->
+            eventRepository.getEvents(),
+            userNames
+        ) { posts, events, names ->
+            val pendingPosts = posts.filter { it.status == PostStatus.PENDIENTE && !it.isDeleted }.map { post ->
+                val userName = names[post.creatorId]
+                val authorDisplay = if (userName != null) "${post.creatorId} ($userName)" else post.creatorId
+                
                 VerificationItem(
                     id = "POST_${post.id}",
                     title = post.title,
-                    author = post.creatorId, // We'll use ID or fetch name on demand
-                    authorAvatarUrl = null,
+                    author = authorDisplay,
+                    authorAvatarUrl = null, // Placeholder or fetch if needed
                     timeAgo = resources.getString(R.string.notification_time_recent), 
                     description = post.description.ifEmpty { resources.getString(R.string.no_description) },
                     imageUrl = post.imageUrl,
@@ -75,19 +70,14 @@ class ModeratorFeedViewModel @Inject constructor(
                 )
             }
             
-            val pendingEvents = events.filter { it.status == PostStatus.PENDIENTE }.map { event ->
-                val publishDate = try {
-                    val timeInMillis = event.id.toLong()
-                    val formatter = java.text.SimpleDateFormat("dd/MM/yyyy HH:mm", java.util.Locale.getDefault())
-                    formatter.format(java.util.Date(timeInMillis))
-                } catch (e: Exception) {
-                    resources.getString(R.string.unknown)
-                }
+            val pendingEvents = events.filter { it.status == PostStatus.PENDIENTE && !it.isDeleted }.map { event ->
+                val userName = names[event.creatorId]
+                val authorDisplay = if (userName != null) "${event.creatorId} ($userName)" else event.creatorId
 
                 VerificationItem(
                     id = "EVENT_${event.id}",
                     title = event.title,
-                    author = event.creatorId,
+                    author = authorDisplay,
                     authorAvatarUrl = null,
                     timeAgo = resources.getString(R.string.notification_time_recent),
                     description = event.description,
@@ -96,38 +86,61 @@ class ModeratorFeedViewModel @Inject constructor(
                     badgeText = resources.getString(R.string.new_event),
                     category = event.category,
                     location = event.location,
-                    price = resources.getString(R.string.price_free), // Assuming events are free or price not stored yet
+                    price = resources.getString(R.string.price_free),
                     latitude = event.latitude,
                     longitude = event.longitude
                 )
             }
             
-            allItems = pendingPosts + pendingEvents
+            // Trigger background fetch for unknown user IDs
+            val allCreatorIds = (posts.map { it.creatorId } + events.map { it.creatorId }).distinct()
+            fetchMissingUserNames(allCreatorIds)
+
+            pendingPosts + pendingEvents
+        }.onEach { items ->
+            allItems = items
             refreshState()
         }.launchIn(viewModelScope)
     }
+
+    private fun fetchMissingUserNames(ids: List<String>) {
+        val currentNames = userNames.value
+        val missingIds = ids.filter { it !in currentNames }
+        
+        if (missingIds.isNotEmpty()) {
+            viewModelScope.launch {
+                val newNames = mutableMapOf<String, String>()
+                missingIds.forEach { id ->
+                    val user = userRepository.findById(id)
+                    user?.let { newNames[id] = it.name }
+                }
+                if (newNames.isNotEmpty()) {
+                    userNames.update { it + newNames }
+                }
+            }
+        }
+    }
     
     private fun refreshState() {
-        // Calculate counts
-        val counts = mutableMapOf(
-            resources.getString(R.string.filter_all) to allItems.size,
-            resources.getString(R.string.filter_locations) to allItems.count { it.type == VerificationType.LOCATION },
-            resources.getString(R.string.filter_events) to allItems.count { it.type == VerificationType.EVENT }
+        val filterAll = resources.getString(R.string.filter_all)
+        val filterLocations = resources.getString(R.string.filter_locations)
+        val filterEvents = resources.getString(R.string.filter_events)
+
+        val counts = mapOf(
+            filterAll to allItems.size,
+            filterLocations to allItems.count { it.type == VerificationType.LOCATION },
+            filterEvents to allItems.count { it.type == VerificationType.EVENT }
         )
         
-        // Filter items based on selected filter
         val currentFilter = _state.value.selectedFilter
         var filteredItems = when (currentFilter) {
-            resources.getString(R.string.filter_locations) -> allItems.filter { it.type == VerificationType.LOCATION }
-            resources.getString(R.string.filter_events) -> allItems.filter { it.type == VerificationType.EVENT }
+            filterLocations -> allItems.filter { it.type == VerificationType.LOCATION }
+            filterEvents -> allItems.filter { it.type == VerificationType.EVENT }
             else -> allItems
         }
         
-        // Sort items
-        filteredItems = if (_state.value.sortByRecent) {
-            filteredItems // Assuming default list is mostly "newest first" logic from IDs or times.
-        } else {
-            filteredItems.reversed()
+        if (!_state.value.sortByRecent) {
+            filteredItems = filteredItems.reversed()
         }
 
         _state.update {
@@ -152,10 +165,6 @@ class ModeratorFeedViewModel @Inject constructor(
         updateStatus(itemId, PostStatus.VERIFICADO)
     }
 
-    fun approveItem(itemId: String) {
-        updateStatus(itemId, PostStatus.VERIFICADO)
-    }
-
     fun rejectItem(itemId: String, reason: String) {
         updateStatus(itemId, PostStatus.RECHAZADO, reason)
     }
@@ -164,65 +173,42 @@ class ModeratorFeedViewModel @Inject constructor(
         viewModelScope.launch {
             if (itemId.startsWith("POST_")) {
                 val realId = itemId.removePrefix("POST_")
-                val postToUpdate = postRepository.getPosts().firstOrNull()?.find { it.id == realId }
+                val postToUpdate = postRepository.getPosts().first().find { it.id == realId }
                 postRepository.updatePostStatus(realId, status, reason)
                 
                 if (postToUpdate != null) {
-                    val title = if (status == PostStatus.VERIFICADO) resources.getString(R.string.notification_approved_title) else resources.getString(R.string.notification_rejected_title)
-                    val body = if (status == PostStatus.VERIFICADO) 
-                        resources.getString(R.string.notification_approved_desc, postToUpdate.title)
-                        else resources.getString(R.string.notification_rejected_desc, postToUpdate.title)
-                    
-                    // Push notification
-                    notificationHelper.showStatusNotification(title, body)
-
-                    // Persist notification for screen
-                    notificationRepository.addNotification(
-                        userId = postToUpdate.creatorId,
-                        notification = Notification(
-                            type = NotificationType.NEW_PLACE,
-                            title = title,
-                            description = body,
-                            time = resources.getString(R.string.notification_time_recent),
-                            isNew = true
-                        )
-                    )
-
-                    if (status == PostStatus.VERIFICADO) {
-                        userRepository.addPoints(postToUpdate.creatorId, 50)
-                    }
+                    notifyUser(postToUpdate.creatorId, postToUpdate.title, status)
+                    if (status == PostStatus.VERIFICADO) userRepository.addPoints(postToUpdate.creatorId, 50)
                 }
             } else if (itemId.startsWith("EVENT_")) {
                 val realId = itemId.removePrefix("EVENT_")
-                val eventToUpdate = eventRepository.getEvents().firstOrNull()?.find { it.id == realId }
+                val eventToUpdate = eventRepository.getEvents().first().find { it.id == realId }
                 eventRepository.updateEventStatus(realId, status, reason)
 
                 if (eventToUpdate != null) {
-                    val title = if (status == PostStatus.VERIFICADO) resources.getString(R.string.notification_approved_title) else resources.getString(R.string.notification_rejected_title)
-                    val body = if (status == PostStatus.VERIFICADO)
-                        resources.getString(R.string.notification_approved_desc, eventToUpdate.title)
-                        else resources.getString(R.string.notification_rejected_desc, eventToUpdate.title)
-                    
-                    // Push notification
-                    notificationHelper.showStatusNotification(title, body)
-
-                    // Persist notification
-                    notificationRepository.addNotification(
-                        userId = eventToUpdate.creatorId,
-                        notification = Notification(
-                            type = NotificationType.NEW_PLACE,
-                            title = title,
-                            description = body,
-                            time = resources.getString(R.string.notification_time_recent),
-                            isNew = true
-                        )
-                    )
-
-                    if (status == PostStatus.VERIFICADO) {
-                        userRepository.addPoints(eventToUpdate.creatorId, 50)
-                    }
+                    notifyUser(eventToUpdate.creatorId, eventToUpdate.title, status)
+                    if (status == PostStatus.VERIFICADO) userRepository.addPoints(eventToUpdate.creatorId, 50)
                 }
             }
         }
+    }
+
+    private suspend fun notifyUser(userId: String, title: String, status: PostStatus) {
+        val notifyTitle = if (status == PostStatus.VERIFICADO) resources.getString(R.string.notification_approved_title) else resources.getString(R.string.notification_rejected_title)
+        val body = if (status == PostStatus.VERIFICADO) 
+            resources.getString(R.string.notification_approved_desc, title)
+            else resources.getString(R.string.notification_rejected_desc, title)
+        
+        notificationHelper.showStatusNotification(notifyTitle, body)
+        notificationRepository.addNotification(
+            userId = userId,
+            notification = Notification(
+                type = NotificationType.NEW_PLACE,
+                title = notifyTitle,
+                description = body,
+                time = resources.getString(R.string.notification_time_recent),
+                isNew = true
+            )
+        )
     }
 }

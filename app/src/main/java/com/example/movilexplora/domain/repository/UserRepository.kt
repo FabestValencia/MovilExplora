@@ -4,7 +4,7 @@ import kotlinx.coroutines.flow.Flow
 
 interface UserRepository {
     fun observeUser(id: String): Flow<com.example.movilexplora.domain.model.User?>
-    suspend fun save(user: com.example.movilexplora.domain.model.User)
+    suspend fun save(user: com.example.movilexplora.domain.model.User): String
     suspend fun findById(id: String): com.example.movilexplora.domain.model.User?
     suspend fun login(email: String, password: String): com.example.movilexplora.domain.model.User?
     suspend fun loginWithGoogle(idToken: String): com.example.movilexplora.domain.model.User?
@@ -12,4 +12,6 @@ interface UserRepository {
     suspend fun sendPasswordResetEmail(email: String)
     suspend fun updateFcmToken(userId: String, token: String)
     suspend fun softDeleteUser(userId: String)
+    suspend fun verifyCode(userId: String, code: String): com.example.movilexplora.domain.model.User?
+    suspend fun resendVerificationCode(userId: String)
 }

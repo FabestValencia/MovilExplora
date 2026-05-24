@@ -8,7 +8,6 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import com.example.movilexplora.core.component.DropdownMenu
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Visibility
@@ -28,13 +27,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.movilexplora.R
+import com.example.movilexplora.core.component.DropdownMenu
 import com.example.movilexplora.core.utils.RequestResult
 import com.example.movilexplora.core.utils.ValidatedField
 import com.example.movilexplora.ui.theme.GrayText
 import com.example.movilexplora.ui.theme.Turquoise
-
-import com.example.movilexplora.core.component.DropdownMenu
-import androidx.compose.material.icons.filled.Home
+import com.example.movilexplora.features.onboarding.OnboardingViewModel
+import com.example.movilexplora.features.onboarding.PermissionType
+import com.example.movilexplora.core.component.OnboardingPermissionDialog
 
 @Composable
 fun ConfirmAlertDialog(
@@ -65,16 +65,55 @@ fun ConfirmAlertDialog(
 fun RegisterScreen(
     onNavigateBack: () -> Unit,
     onNavigateToLogin: () -> Unit,
-    viewModel: RegisterViewModel = hiltViewModel()
+    onNavigateToVerifyCode: (String) -> Unit,
+    viewModel: RegisterViewModel = hiltViewModel(),
+    onboardingViewModel: OnboardingViewModel = hiltViewModel()
 ) {
+    val context = androidx.compose.ui.platform.LocalContext.current
     val registerResult by viewModel.registerResult.collectAsState()
+    val locationPermissionDenied by viewModel.locationPermissionDenied.collectAsState()
+    val onboardingState by onboardingViewModel.state.collectAsState()
+    
     var showConfirmDialog by remember { mutableStateOf(false) }
+
+    val fusedLocationClient = remember { com.google.android.gms.location.LocationServices.getFusedLocationProviderClient(context) }
+
+    val gpsLabel = stringResource(R.string.register_gps_city_label)
+    val locationPermissionLauncher = androidx.activity.compose.rememberLauncherForActivityResult(
+        androidx.activity.result.contract.ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
+        if (permissions.values.any { it }) {
+            try {
+                fusedLocationClient.lastLocation.addOnSuccessListener { location ->
+                    location?.let { 
+                        viewModel.updateLocation(it.latitude, it.longitude)
+                        viewModel.city.onChange(gpsLabel)
+                    }
+                }
+            } catch (_: SecurityException) {}
+        } else {
+            viewModel.onLocationPermissionDenied()
+        }
+    }
+
+    val triggerLocationRequest = {
+        val permissions = arrayOf(
+            android.Manifest.permission.ACCESS_FINE_LOCATION,
+            android.Manifest.permission.ACCESS_COARSE_LOCATION
+        )
+        locationPermissionLauncher.launch(permissions)
+    }
 
     LaunchedEffect(registerResult) {
         when (registerResult) {
             is RequestResult.Success -> {
+                val uid = (registerResult as RequestResult.Success).data as? String
+                if (uid != null) {
+                    onNavigateToVerifyCode(uid)
+                } else {
+                    onNavigateToLogin()
+                }
                 viewModel.resetRegisterResult()
-                onNavigateToLogin()
             }
             is RequestResult.Failure -> {
                 // Handle error if needed
@@ -93,6 +132,23 @@ fun RegisterScreen(
             title = stringResource(R.string.register_confirm_title),
             text = stringResource(R.string.register_confirm_msg)
         )
+    }
+
+    // Permission Dialog
+    onboardingState.showPermissionDialog?.let { permissionType ->
+        if (permissionType == PermissionType.LOCATION) {
+            OnboardingPermissionDialog(
+                permissionType = permissionType,
+                onChoiceMade = { always ->
+                    onboardingViewModel.onPermissionChoice(permissionType, always)
+                    triggerLocationRequest()
+                },
+                onDismiss = {
+                    onboardingViewModel.dismissPermissionDialog()
+                    viewModel.onLocationPermissionDenied()
+                }
+            )
+        }
     }
 
     Scaffold(
@@ -136,25 +192,59 @@ fun RegisterScreen(
 
             RegisterField(label = stringResource(R.string.register_name_label), placeholder = stringResource(R.string.register_name_placeholder), field = viewModel.nombre)
             
-            // Location Selection Button
-            Text(
-                text = stringResource(R.string.createpostscreen_ubicaci_n_8),
-                fontSize = 14.sp,
-                color = GrayText.copy(alpha = 0.8f),
-                modifier = Modifier.padding(start = 4.dp, bottom = 4.dp, top = 8.dp)
-            )
-            OutlinedButton(
-                onClick = { /* TODO: Open Map Selector and call viewModel.updateLocation */ },
-                modifier = Modifier.fillMaxWidth().height(56.dp),
-                shape = RoundedCornerShape(24.dp),
-                border = BorderStroke(1.dp, Color.LightGray.copy(alpha = 0.5f)),
-                colors = ButtonDefaults.outlinedButtonColors(containerColor = Color(0xFFF7F8F9))
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(imageVector = Icons.Default.LocationOn, contentDescription = null, tint = Turquoise)
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(text = stringResource(R.string.map_selector_title), color = GrayText)
+            // GPS Location Section
+            if (!locationPermissionDenied) {
+                Text(
+                    text = stringResource(R.string.createpostscreen_ubicaci_n_8),
+                    fontSize = 14.sp,
+                    color = GrayText.copy(alpha = 0.8f),
+                    modifier = Modifier.padding(start = 4.dp, bottom = 4.dp, top = 8.dp)
+                )
+                OutlinedButton(
+                    onClick = {
+                        val permissions = arrayOf(
+                            android.Manifest.permission.ACCESS_FINE_LOCATION,
+                            android.Manifest.permission.ACCESS_COARSE_LOCATION
+                        )
+                        val isGranted = permissions.all { 
+                            androidx.core.content.ContextCompat.checkSelfPermission(context, it) == android.content.pm.PackageManager.PERMISSION_GRANTED 
+                        }
+
+                        if (isGranted) {
+                            triggerLocationRequest()
+                        } else {
+                            onboardingViewModel.checkAndShowPermissionOnboarding(PermissionType.LOCATION) {
+                                triggerLocationRequest()
+                            }
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth().height(56.dp),
+                    shape = RoundedCornerShape(24.dp),
+                    border = BorderStroke(1.dp, if (viewModel.city.value == gpsLabel) Turquoise else Color.LightGray.copy(alpha = 0.5f)),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        containerColor = if (viewModel.city.value == gpsLabel) Turquoise.copy(alpha = 0.1f) else Color.Transparent
+                    )
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.Default.LocationOn, 
+                            contentDescription = null, 
+                            tint = if (viewModel.city.value == gpsLabel) Turquoise else GrayText
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = if (viewModel.city.value == gpsLabel) stringResource(R.string.register_location_detected) else stringResource(R.string.register_use_gps), 
+                            color = if (viewModel.city.value == gpsLabel) Turquoise else GrayText
+                        )
+                    }
                 }
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = stringResource(R.string.register_or_choose_manual),
+                    fontSize = 12.sp,
+                    color = GrayText.copy(alpha = 0.5f),
+                    modifier = Modifier.padding(start = 4.dp)
+                )
             }
 
             DropdownMenu(
@@ -218,10 +308,9 @@ fun RegisterField(
             placeholder = { Text(text = placeholder, color = GrayText.copy(alpha = 0.5f)) },
             shape = RoundedCornerShape(24.dp),
             colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = Turquoise,
-                unfocusedBorderColor = Color.LightGray.copy(alpha = 0.5f),
-                focusedContainerColor = Color(0xFFF7F8F9),
-                unfocusedContainerColor = Color(0xFFF7F8F9)
+                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                unfocusedBorderColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
+                cursorColor = Turquoise
             ),
             visualTransformation = if (isPassword && !passwordVisible) PasswordVisualTransformation() else VisualTransformation.None,
             trailingIcon = {

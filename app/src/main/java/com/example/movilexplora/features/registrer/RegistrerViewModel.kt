@@ -58,12 +58,21 @@ class RegisterViewModel @Inject constructor(
         if (value.isEmpty()) "Selecciona una ciudad" else null
     }
 
+    private val _locationPermissionDenied = MutableStateFlow(false)
+    val locationPermissionDenied: StateFlow<Boolean> = _locationPermissionDenied.asStateFlow()
+
+    fun onLocationPermissionDenied() {
+        _locationPermissionDenied.value = true
+        // If permission is denied, city becomes mandatory.
+    }
+
     private val _latitude = MutableStateFlow<Double?>(null)
     private val _longitude = MutableStateFlow<Double?>(null)
 
     fun updateLocation(lat: Double, lon: Double) {
         _latitude.value = lat
         _longitude.value = lon
+        _locationPermissionDenied.value = false // Successfully got location
     }
 
     private val _registerResult = MutableStateFlow<RequestResult?>(null)
@@ -92,12 +101,13 @@ class RegisterViewModel @Inject constructor(
                     longitude = _longitude.value ?: 0.0
                 )
 
-                _registerResult.value = runCatching {
+                runCatching {
                     userRepository.save(newUser)
-                }.fold(
-                    onSuccess = { RequestResult.Success(resources.getString(R.string.register_success_verify)) },
-                    onFailure = { RequestResult.Failure(it.message ?: "Error al registrar") }
-                )
+                }.onSuccess { uid ->
+                    _registerResult.value = RequestResult.Success(resources.getString(R.string.register_success_verify), uid)
+                }.onFailure {
+                    _registerResult.value = RequestResult.Failure(it.message ?: "Error al registrar")
+                }
             }
         }
     }

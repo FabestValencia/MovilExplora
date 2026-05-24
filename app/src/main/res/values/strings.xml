@@ -11,6 +11,9 @@
     <string name="login_password_label">Password</string>
     <string name="login_forgot_password">Forgot password?</string>
     <string name="login_button">Log In</string>
+    <string name="login_dont_have_account">Don\'t have an account?</string>
+    <string name="login_register_now">Sign up now</string>
+    <string name="login_google_no_account">No linked account found. Please register and verify your email first.</string>
     <string name="login_moderator">Moderator</string>
     <string name="login_continue_with_google">Continue with Google</string>
 
@@ -21,6 +24,7 @@
     <string name="error_password_short">Password must be at least 6 characters</string>
     <string name="login_success">Login successful</string>
     <string name="login_failure">Invalid credentials</string>
+    <string name="fill_all_fields">Please fill in all mandatory fields</string>
     <string name="login_cancelled">Login cancelled</string>
     <string name="login_error_unverified">Your account is not verified. Please check your email to activate it.</string>
 
@@ -80,6 +84,10 @@
     <string name="error_location_empty">Location is required</string>
     <string name="register_success">Registration successful</string>
     <string name="register_success_verify">Registration successful. A verification email has been sent. Please activate it before logging in.</string>
+    <string name="register_use_gps">Use my GPS location</string>
+    <string name="register_location_detected">Location detected ✓</string>
+    <string name="register_or_choose_manual">Or choose a city manually if you prefer:</string>
+    <string name="register_gps_city_label">My GPS Location</string>
     <string name="register_failure">Registration error</string>
 
     <string name="badgesscreen_sigue_explorando_para_complet_0">Keep exploring to complete your collection!</string>
@@ -114,6 +122,8 @@
     <string name="eventdetailscreen_acerca_de_este_evento_2">About this event</string>
     <string name="eventdetailscreen_ubicaci_n_3">Location</string>
     <string name="eventdetailscreen_back_4">Back</string>
+    <string name="event_detail_date_time">Date and Time</string>
+    <string name="event_expired_label">Finished</string>
     <string name="createediteventscreen_a_adir_imagen_del_evento_0">Add event image</string>
     <string name="createediteventscreen_formato_jpg_o_png__m_x__5mb_1">JPG or PNG format, max. 5MB</string>
     <string name="createediteventscreen_ubicaci_n_2">Location</string>
@@ -226,12 +236,12 @@
     <string name="statisticsscreen_back_3">Back</string>
     <string name="successscreen_tu_contrase_a_ha_sido_restable_0">Your password has been reset successfully. You can now log in with your new password.</string>
     <string name="successscreen_volver_al_inicio_1">Back to Home</string>
-    <string name="verificationcodescreen_verificar_c_digo_0">Verify Code</string>
-    <string name="verificationcodescreen_verificar_c_digo_1">Verify Code</string>
-    <string name="verificationcodescreen_introduce_el_c_digo_de_6_d_git_2">Enter the 6-digit code sent to your email to recover your password.</string>
-    <string name="verificationcodescreen_no_recibiste_el_c_digo_3">Did not receive the code?</string>
-    <string name="verificationcodescreen_reenviar_c_digo_4">Resend code</string>
-    <string name="verificationcodescreen_verificar_c_digo_5">Verify Code</string>
+    <string name="verificationcodescreen_verificar_c_digo_0">Verify Email</string>
+    <string name="verificationcodescreen_verificar_c_digo_1">Verify Email</string>
+    <string name="verificationcodescreen_introduce_el_c_digo_de_6_d_git_2">We have sent a verification link to your email address. Please click on the link to activate your account.</string>
+    <string name="verificationcodescreen_no_recibiste_el_c_digo_3">Didn\'t receive the email?</string>
+    <string name="verificationcodescreen_reenviar_c_digo_4">Resend verification email</string>
+    <string name="verificationcodescreen_verificar_c_digo_5">I have already verified my email</string>
     <string name="verificationcodescreen_back_6">Back</string>
 
     <!-- Edit Profile Screen -->
@@ -353,13 +363,23 @@
     <string name="reputation_max_level">Max Level</string>
 
     <!-- Notifications -->
-    <string name="notification_approved_title">Publicación aprobada</string>
+    <string name="notification_approved_title">¡Publicación Aprobada!</string>
     <string name="notification_approved_desc">Tu publicación \"%1$s\" ha sido verificada y ya es visible para todos.</string>
     <string name="notification_pending_title">Publicación en revisión</string>
     <string name="notification_pending_desc">Tu publicación \"%1$s\" está siendo revisada por nuestro equipo.</string>
     <string name="notification_rejected_title">Publicación rechazada</string>
-    <string name="notification_rejected_desc">Lo sentimos, tu publicación \"%1$s\" no cumple con nuestras guías.</string>
-    <string name="notification_time_recent">Recent</string>
+    <string name="notification_rejected_desc">Lo sentimos, tu publicación \"%1$s\" no pudo ser aprobada.</string>
+    <string name="notification_comment_title">Nuevo comentario</string>
+    <string name="notification_comment_desc">%1$s comentó en \"%2$s\"</string>
+    <string name="notification_like_title">Nuevo me interesa</string>
+    <string name="notification_like_desc">A %1$s le interesa tu publicación \"%2$s\"</string>
+    <string name="notification_first_event_title">¡Primer Evento!</string>
+    <string name="notification_first_event_desc">Has publicado tu primer evento. ¡Sigue así!</string>
+    <string name="notification_level_up_title">¡Subiste de Nivel!</string>
+    <string name="notification_level_up_desc">Felicidades, ahora eres %1$s. Sigue explorando para subir más.</string>
+    <string name="notification_achievement_unlocked_title">¡Logro Desbloqueado!</string>
+    <string name="notification_achievement_unlocked_desc">Has desbloqueado: %1$s</string>
+    <string name="notification_time_recent">Reciente</string>
     <string name="notification_time_pending">Pending</string>
     <string name="notification_achievement_title">New achievements!</string>
     <string name="notification_achievement_desc">Keep sharing your favorite places to level up.</string>
@@ -405,8 +425,8 @@
     <string name="error_confirm_password_empty">Please confirm your password</string>
     <string name="error_password_mismatch">Passwords do not match</string>
     <string name="reset_password_success">Password reset successfully</string>
-    <string name="verification_code_success">Code verified successfully</string>
-    <string name="verification_code_invalid">Incorrect code</string>
+    <string name="verification_code_success">Account verified successfully</string>
+    <string name="verification_code_invalid">Account not verified yet. Please click the link in your email.</string>
     <string name="error_post_title_empty">Title is required</string>
     <string name="error_post_description_empty">Description is required</string>
     <string name="location_not_specified">Location not specified</string>

@@ -59,7 +59,10 @@ import com.example.movilexplora.core.navigation.Success
 import com.example.movilexplora.core.navigation.ThemeViewModel
 import com.example.movilexplora.core.navigation.VerificationCode
 import com.example.movilexplora.data.model.UserSession
+import com.example.movilexplora.domain.model.User
 import com.example.movilexplora.domain.model.enum.UserRole
+import com.example.movilexplora.domain.repository.EventRepository
+import com.example.movilexplora.domain.repository.PostRepository
 import com.example.movilexplora.domain.repository.UserRepository
 import com.example.movilexplora.features.badges.BadgesScreen
 import com.example.movilexplora.features.createpost.CreatePostScreen
@@ -89,6 +92,9 @@ import com.example.movilexplora.features.verificationcode.VerificationCodeScreen
 import com.example.movilexplora.ui.theme.MovilExploraTheme
 import com.google.firebase.messaging.FirebaseMessaging
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -96,6 +102,12 @@ class MainActivity : ComponentActivity() {
 
     @Inject
     lateinit var userRepository: UserRepository
+    
+    @Inject
+    lateinit var postRepository: PostRepository
+    
+    @Inject
+    lateinit var eventRepository: EventRepository
 
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -108,6 +120,18 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
+        // Regla de Negocio: Limpiar caché local al iniciar el proceso de la app
+        // para asegurar que siempre se obtengan datos frescos de Firestore.
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                postRepository.clearCache()
+                eventRepository.clearCache()
+                android.util.Log.d("CACHE_CLEANUP", "Base de datos local (Room) limpiada al iniciar app.")
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
 
         askNotificationPermission()
         getFcmToken()
@@ -167,6 +191,11 @@ fun AppNavigation(
                     sessionViewModel.updateFcmToken(userId, token)
                 }
             }
+        } else if (sessionState is SessionState.NotAuthenticated) {
+            // Si el estado es No Autenticado, nos aseguramos de limpiar
+            // cualquier residuo local para evitar que la app intente entrar a Inicio.
+            sessionViewModel.logout()
+            android.util.Log.d("AUTH_DEBUG", "Estado no autenticado. Sesiones locales limpiadas.")
         }
     }
 
@@ -181,7 +210,7 @@ fun AppNavigation(
                     CircularProgressIndicator()
                 }
             }
-            is SessionState.NotAuthenticated -> AuthNavigation()
+            is SessionState.NotAuthenticated -> AuthNavigation(sessionViewModel)
             is SessionState.Authenticated -> MainNavigation(
                 session = state.session,
                 onLogout = sessionViewModel::logout
@@ -191,7 +220,9 @@ fun AppNavigation(
 }
 
 @Composable
-private fun AuthNavigation() {
+private fun AuthNavigation(
+    sessionViewModel: SessionViewModel
+) {
     val navController = rememberNavController()
 
     NavHost(navController = navController, startDestination = Home) {
@@ -205,25 +236,32 @@ private fun AuthNavigation() {
             LoginScreen(
                 onNavigateBack = { navController.popBackStack() },
                 onNavigateToForgotPassword = { navController.navigate(ForgotPassword) },
+                onNavigateToVerifyCode = { uid -> navController.navigate(VerificationCode(uid)) },
+                onNavigateToRegister = { navController.navigate(Register) },
                 onNavigateToModerator = { navController.navigate(Moderator) }
             )
         }
         composable<Register> {
             RegisterScreen(
                 onNavigateBack = { navController.popBackStack() },
-                onNavigateToLogin = { navController.navigate(Login) }
+                onNavigateToLogin = { navController.navigate(Login) },
+                onNavigateToVerifyCode = { uid -> navController.navigate(VerificationCode(uid)) }
             )
         }
         composable<ForgotPassword> {
             ForgotPasswordScreen(
                 onNavigateBack = { navController.popBackStack() },
-                onNavigateToVerifyCode = { navController.navigate(VerificationCode) }
+                onNavigateToVerifyCode = { /* Handle if needed, though ForgotPassword might have its own flow */ }
             )
         }
-        composable<VerificationCode> {
+        composable<VerificationCode> { backStackEntry ->
+            val args = backStackEntry.toRoute<VerificationCode>()
             VerificationCodeScreen(
+                userId = args.userId,
                 onNavigateBack = { navController.popBackStack() },
-                onVerifySuccess = { navController.navigate(ResetPassword) }
+                onVerifySuccess = { user ->
+                    sessionViewModel.login(user.id, user.userRole)
+                }
             )
         }
         composable<ResetPassword> {
@@ -315,7 +353,8 @@ private fun MainNavigation(
                 val args = backStackEntry.toRoute<EventDetail>()
                 EventDetailScreen(
                     eventId = args.eventId,
-                    onNavigateBack = { navController.popBackStack() }
+                    onNavigateBack = { navController.popBackStack() },
+                    onNavigateToEdit = { id -> navController.navigate(CreateEditEvent(id)) }
                 )
             }
             composable<EditProfile> {

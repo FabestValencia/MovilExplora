@@ -1,6 +1,7 @@
 package com.example.movilexplora.features.statistics
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -8,11 +9,14 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import androidx.lifecycle.viewModelScope
 import com.example.movilexplora.R
 import com.example.movilexplora.core.utils.ResourceProvider
 import com.example.movilexplora.data.datastore.SessionDataStore
+import com.example.movilexplora.domain.repository.EventRepository
 import com.example.movilexplora.domain.repository.PostRepository
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Locale
 import javax.inject.Inject
 
 data class ActivityItemModel(
@@ -46,10 +50,13 @@ data class StatisticsState(
 class StatisticsViewModel @Inject constructor(
     private val sessionDataStore: SessionDataStore,
     private val postRepository: PostRepository,
+    private val eventRepository: EventRepository,
     private val resourceProvider: ResourceProvider
 ) : ViewModel() {
     private val _state = MutableStateFlow(StatisticsState())
     val state: StateFlow<StatisticsState> = _state.asStateFlow()
+
+    private val dateFormatter = SimpleDateFormat("d/M/yyyy", Locale.getDefault())
 
     init {
         loadStatistics()
@@ -59,6 +66,7 @@ class StatisticsViewModel @Inject constructor(
         viewModelScope.launch {
             val userId = sessionDataStore.sessionFlow.firstOrNull()?.userId ?: return@launch
             val userPosts = postRepository.getPosts().firstOrNull()?.filter { it.creatorId == userId } ?: emptyList()
+            val userEvents = eventRepository.getEvents().firstOrNull()?.filter { it.creatorId == userId } ?: emptyList()
 
             var activeCount = 0
             var finishedCount = 0
@@ -66,17 +74,15 @@ class StatisticsViewModel @Inject constructor(
             var rejectedCount = 0
 
             val recentActivities = mutableListOf<ActivityItemModel>()
+            val currentTime = Calendar.getInstance().time
 
+            // Procesar posts
             userPosts.forEach { post ->
                 val statusText: String
                 when (post.status.name) {
-                    "ACTIVO", "VERIFICADO" -> {
+                    "VERIFICADO" -> {
                         activeCount++
                         statusText = resourceProvider.getString(R.string.stat_recent_approved, post.title)
-                    }
-                    "FINALIZADO" -> {
-                        finishedCount++
-                        statusText = resourceProvider.getString(R.string.stat_recent_rejected, post.title) // or generic finished logic
                     }
                     "PENDIENTE" -> {
                         pendingCount++
@@ -90,7 +96,41 @@ class StatisticsViewModel @Inject constructor(
                         statusText = resourceProvider.getString(R.string.stat_recent_created, post.title)
                     }
                 }
+                recentActivities.add(ActivityItemModel(statusText, resourceProvider.getString(R.string.stat_time_recent)))
+            }
+
+            // Procesar eventos
+            userEvents.forEach { event ->
+                val statusText: String
                 
+                val isExpired = try {
+                    val endDate = dateFormatter.parse(event.endDate)
+                    endDate != null && endDate.before(currentTime)
+                } catch (_: Exception) {
+                    false
+                }
+
+                when (event.status.name) {
+                    "VERIFICADO" -> {
+                        if (isExpired) {
+                            finishedCount++
+                        } else {
+                            activeCount++
+                        }
+                        statusText = resourceProvider.getString(R.string.stat_recent_approved, event.title)
+                    }
+                    "PENDIENTE" -> {
+                        pendingCount++
+                        statusText = resourceProvider.getString(R.string.stat_recent_created, event.title)
+                    }
+                    "RECHAZADO" -> {
+                        rejectedCount++
+                        statusText = resourceProvider.getString(R.string.stat_recent_rejected, event.title)
+                    }
+                    else -> {
+                        statusText = resourceProvider.getString(R.string.stat_recent_created, event.title)
+                    }
+                }
                 recentActivities.add(ActivityItemModel(statusText, resourceProvider.getString(R.string.stat_time_recent)))
             }
 
@@ -103,7 +143,7 @@ class StatisticsViewModel @Inject constructor(
                     pendingPosts = pendingCount,
                     rejectedPosts = rejectedCount,
                     totalMonthPosts = total,
-                    recentActivities = recentActivities.takeLast(5).reversed(),
+                    recentActivities = recentActivities.takeLast(10).reversed(),
                     activePostsChange = if (activeCount > 0) resourceProvider.getString(R.string.percent_zero) else resourceProvider.getString(R.string.percent_zero_neutral),
                     isActivePostsPositive = true,
                     finishedPostsChange = if (finishedCount > 0) resourceProvider.getString(R.string.percent_zero) else resourceProvider.getString(R.string.percent_zero_neutral),

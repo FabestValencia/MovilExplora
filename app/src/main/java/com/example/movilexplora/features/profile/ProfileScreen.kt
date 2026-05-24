@@ -67,17 +67,16 @@ fun ProfileScreen(
 
     if (showDeleteDialog) {
         DeleteAccountDialog(
-            onDismiss = { showDeleteDialog = false },
+            onDismiss = { },
             onConfirm = {
                 viewModel.deleteAccount()
-                showDeleteDialog = false
             }
         )
     }
     
     if (eventToDeleteId != null) {
         DeleteEventDialog(
-            onDismiss = { eventToDeleteId = null },
+            onDismiss = { },
             onConfirm = {
                 viewModel.deleteEvent(eventToDeleteId!!)
                 eventToDeleteId = null
@@ -87,7 +86,7 @@ fun ProfileScreen(
 
     if (postToDeleteId != null) {
         DeletePostDialog(
-            onDismiss = { postToDeleteId = null },
+            onDismiss = { },
             onConfirm = {
                 viewModel.deletePost(postToDeleteId!!)
                 postToDeleteId = null
@@ -99,7 +98,7 @@ fun ProfileScreen(
         RejectionReasonDialog(
             title = postForRejectionReason!!.title,
             reason = postForRejectionReason!!.rejectionReason ?: stringResource(R.string.no_description),
-            onDismiss = { postForRejectionReason = null }
+            onDismiss = { }
         )
     }
 
@@ -107,7 +106,7 @@ fun ProfileScreen(
         RejectionReasonDialog(
             title = eventForRejectionReason!!.title,
             reason = eventForRejectionReason!!.rejectionReason ?: stringResource(R.string.no_description),
-            onDismiss = { eventForRejectionReason = null }
+            onDismiss = { }
         )
     }
 
@@ -352,7 +351,7 @@ fun ProfileScreen(
                         Spacer(modifier = Modifier.height(12.dp))
 
                         OutlinedButton(
-                            onClick = { showDeleteDialog = true },
+                            onClick = { },
                             modifier = Modifier.fillMaxWidth().height(56.dp),
                             shape = RoundedCornerShape(28.dp),
                             colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.Red),
@@ -563,7 +562,27 @@ fun DeleteEventDialog(onDismiss: () -> Unit, onConfirm: () -> Unit) {
 }
 
 @Composable
-fun MyEventCard(event: com.example.movilexplora.domain.model.Event, onEditClick: () -> Unit, onDeleteClick: () -> Unit, onCardClick: () -> Unit = {}) {
+fun MyEventCard(
+    event: com.example.movilexplora.domain.model.Event,
+    onEditClick: () -> Unit,
+    onDeleteClick: () -> Unit,
+    onCardClick: () -> Unit = {}
+) {
+    val statusColor = when (event.status) {
+        com.example.movilexplora.domain.model.PostStatus.VERIFICADO -> Color(0xFF4CAF50)
+        com.example.movilexplora.domain.model.PostStatus.PENDIENTE -> Color(0xFFFF9800)
+        com.example.movilexplora.domain.model.PostStatus.RECHAZADO -> Color(0xFFF44336)
+    }
+
+    val statusText = when (event.status) {
+        com.example.movilexplora.domain.model.PostStatus.VERIFICADO -> stringResource(R.string.eventsscreen_verificado_2)
+        com.example.movilexplora.domain.model.PostStatus.PENDIENTE -> stringResource(R.string.profile_stat_pending)
+        com.example.movilexplora.domain.model.PostStatus.RECHAZADO -> stringResource(R.string.profile_stat_rejected)
+    }
+
+    val isEditable = event.status == com.example.movilexplora.domain.model.PostStatus.PENDIENTE || 
+            event.status == com.example.movilexplora.domain.model.PostStatus.RECHAZADO
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -622,14 +641,14 @@ fun MyEventCard(event: com.example.movilexplora.domain.model.Event, onEditClick:
                     
                     Surface(
                         shape = RoundedCornerShape(8.dp),
-                        color = Turquoise.copy(alpha = 0.1f)
+                        color = statusColor.copy(alpha = 0.15f)
                     ) {
                         Text(
-                            text = event.category,
+                            text = statusText,
                             modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
                             fontSize = 10.sp,
                             fontWeight = FontWeight.Bold,
-                            color = Turquoise
+                            color = statusColor
                         )
                     }
                 }
@@ -658,13 +677,15 @@ fun MyEventCard(event: com.example.movilexplora.domain.model.Event, onEditClick:
                     horizontalArrangement = Arrangement.End,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    TextButton(
-                        onClick = onEditClick,
-                        colors = ButtonDefaults.textButtonColors(contentColor = Turquoise)
-                    ) {
-                        Icon(Icons.Default.Edit, contentDescription = null, modifier = Modifier.size(18.dp))
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text(stringResource(R.string.profilescreen_edit_15))
+                    if (isEditable) {
+                        TextButton(
+                            onClick = onEditClick,
+                            colors = ButtonDefaults.textButtonColors(contentColor = Turquoise)
+                        ) {
+                            Icon(Icons.Default.Edit, contentDescription = null, modifier = Modifier.size(18.dp))
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(stringResource(R.string.profilescreen_edit_15))
+                        }
                     }
                     
                     Spacer(modifier = Modifier.width(8.dp))
@@ -1007,36 +1028,6 @@ fun MyPostCard(
                         Icon(Icons.Default.Delete, contentDescription = null, modifier = Modifier.size(18.dp))
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(stringResource(R.string.profilescreen_delete_18))
-                    }
-                }
-
-                // Si está rechazada y tiene motivo, mostrarlo
-                if (post.status == com.example.movilexplora.domain.model.PostStatus.RECHAZADO && !post.rejectionReason.isNullOrEmpty()) {
-                    Spacer(modifier = Modifier.height(12.dp))
-                    Surface(
-                        shape = RoundedCornerShape(12.dp),
-                        color = Color.Red.copy(alpha = 0.05f),
-                        border = BorderStroke(1.dp, Color.Red.copy(alpha = 0.15f)),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(12.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Warning,
-                                contentDescription = null,
-                                tint = Color.Red,
-                                modifier = Modifier.size(18.dp)
-                            )
-                            Spacer(modifier = Modifier.width(10.dp))
-                            Text(
-                                text = stringResource(R.string.profile_rejection_reason_format, post.rejectionReason),
-                                fontSize = 13.sp,
-                                color = Color.Red,
-                                fontWeight = FontWeight.Medium
-                            )
-                        }
                     }
                 }
             }

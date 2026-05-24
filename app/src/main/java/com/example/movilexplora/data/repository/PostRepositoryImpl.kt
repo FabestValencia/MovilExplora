@@ -39,6 +39,17 @@ class PostRepositoryImpl @Inject constructor(
     private val scope = CoroutineScope(Dispatchers.IO)
 
     init {
+        // Regla de Negocio: Limpiar caché local al iniciar para evitar datos "quemados"
+        // y asegurar una sincronización fresca desde Firestore.
+        scope.launch {
+            try {
+                postDao.clearAll()
+                android.util.Log.d("CACHE_CLEANUP", "Caché de publicaciones limpiada al iniciar")
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+
         // Sincronizar posts desde Firestore de forma eficiente
         collection.addSnapshotListener { snapshot, error ->
             if (error != null) return@addSnapshotListener
@@ -50,10 +61,27 @@ class PostRepositoryImpl @Inject constructor(
                         com.google.firebase.firestore.DocumentChange.Type.ADDED,
                         com.google.firebase.firestore.DocumentChange.Type.MODIFIED -> {
                             postDao.insertPost(post.toEntity())
+                            // Sincronizar comentarios para este post
+                            syncComments(post.id)
                         }
                         com.google.firebase.firestore.DocumentChange.Type.REMOVED -> {
                             postDao.deletePost(post.id)
                         }
+                    }
+                }
+            }
+        }
+    }
+
+    private fun syncComments(postId: String) {
+        collection.document(postId).collection("comments").addSnapshotListener { snapshot, error ->
+            if (error != null) return@addSnapshotListener
+            snapshot?.documentChanges?.forEach { change ->
+                val comment = change.document.toObject(Comment::class.java).apply { id = change.document.id }
+                scope.launch {
+                    if (change.type == com.google.firebase.firestore.DocumentChange.Type.ADDED || 
+                        change.type == com.google.firebase.firestore.DocumentChange.Type.MODIFIED) {
+                        commentDao.insertComment(comment.toEntity())
                     }
                 }
             }
@@ -119,7 +147,9 @@ class PostRepositoryImpl @Inject constructor(
         }
 
     override suspend fun addComment(comment: Comment) {
-        commentDao.insertComment(comment.toEntity())
+        val commentRef = collection.document(comment.postId).collection("comments").document()
+        val commentToSave = comment.copy(id = commentRef.id)
+        commentRef.set(commentToSave).await()
     }
 
     override suspend fun toggleFavorite(postId: String, userId: String) {
@@ -145,5 +175,9 @@ class PostRepositoryImpl @Inject constructor(
 
     override suspend fun softDeletePost(postId: String) {
         collection.document(postId).update("isDeleted", true).await()
+    }
+
+    override suspend fun clearCache() {
+        postDao.clearAll()
     }
 }

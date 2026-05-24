@@ -10,10 +10,13 @@ import com.example.movilexplora.core.utils.NotificationHelper
 import com.example.movilexplora.core.utils.ResourceProvider
 import com.example.movilexplora.domain.model.VerificationItem
 import com.example.movilexplora.domain.model.VerificationType
+import com.example.movilexplora.domain.model.Notification
+import com.example.movilexplora.domain.model.NotificationType
 import com.example.movilexplora.domain.model.PostStatus
 import com.example.movilexplora.domain.repository.PostRepository
 import com.example.movilexplora.domain.repository.EventRepository
 import com.example.movilexplora.domain.repository.UserRepository
+import com.example.movilexplora.domain.repository.NotificationRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -36,6 +39,7 @@ class ModeratorFeedViewModel @Inject constructor(
     private val postRepository: PostRepository,
     private val eventRepository: EventRepository,
     private val userRepository: UserRepository,
+    private val notificationRepository: NotificationRepository,
     private val resources: ResourceProvider,
     private val notificationHelper: NotificationHelper
 ) : ViewModel() {
@@ -59,10 +63,15 @@ class ModeratorFeedViewModel @Inject constructor(
                     author = post.creatorId, // We'll use ID or fetch name on demand
                     authorAvatarUrl = null,
                     timeAgo = resources.getString(R.string.notification_time_recent), 
-                    description = "${post.location} - ${post.category}\n${resources.getString(R.string.price_label)} ${post.price}\n\n${resources.getString(R.string.description_label)}\n${post.description.ifEmpty { resources.getString(R.string.no_description) }}",
+                    description = post.description.ifEmpty { resources.getString(R.string.no_description) },
                     imageUrl = post.imageUrl,
                     type = VerificationType.LOCATION,
-                    badgeText = resources.getString(R.string.new_location)
+                    badgeText = resources.getString(R.string.new_location),
+                    category = post.category,
+                    location = post.location,
+                    price = post.price,
+                    latitude = post.latitude,
+                    longitude = post.longitude
                 )
             }
             
@@ -81,10 +90,15 @@ class ModeratorFeedViewModel @Inject constructor(
                     author = event.creatorId,
                     authorAvatarUrl = null,
                     timeAgo = resources.getString(R.string.notification_time_recent),
-                    description = "${event.date} • ${event.endDate.ifBlank { resources.getString(R.string.tbd) }}\n${resources.getString(R.string.published_label)} $publishDate\n${event.location}\n\n${event.description}",
+                    description = event.description,
                     imageUrl = event.imageUrl,
                     type = VerificationType.EVENT,
-                    badgeText = resources.getString(R.string.new_event)
+                    badgeText = resources.getString(R.string.new_event),
+                    category = event.category,
+                    location = event.location,
+                    price = resources.getString(R.string.price_free), // Assuming events are free or price not stored yet
+                    latitude = event.latitude,
+                    longitude = event.longitude
                 )
             }
             
@@ -98,7 +112,6 @@ class ModeratorFeedViewModel @Inject constructor(
         val counts = mutableMapOf(
             resources.getString(R.string.filter_all) to allItems.size,
             resources.getString(R.string.filter_locations) to allItems.count { it.type == VerificationType.LOCATION },
-            resources.getString(R.string.filter_reviews) to allItems.count { it.type == VerificationType.REVIEW || it.type == VerificationType.PHOTO }, 
             resources.getString(R.string.filter_events) to allItems.count { it.type == VerificationType.EVENT }
         )
         
@@ -106,7 +119,6 @@ class ModeratorFeedViewModel @Inject constructor(
         val currentFilter = _state.value.selectedFilter
         var filteredItems = when (currentFilter) {
             resources.getString(R.string.filter_locations) -> allItems.filter { it.type == VerificationType.LOCATION }
-            resources.getString(R.string.filter_reviews) -> allItems.filter { it.type == VerificationType.REVIEW || it.type == VerificationType.PHOTO }
             resources.getString(R.string.filter_events) -> allItems.filter { it.type == VerificationType.EVENT }
             else -> allItems
         }
@@ -156,12 +168,25 @@ class ModeratorFeedViewModel @Inject constructor(
                 postRepository.updatePostStatus(realId, status, reason)
                 
                 if (postToUpdate != null) {
-                    val title = if (status == PostStatus.VERIFICADO) "¡Lugar Aprobado!" else "Lugar Rechazado"
+                    val title = if (status == PostStatus.VERIFICADO) resources.getString(R.string.notification_approved_title) else resources.getString(R.string.notification_rejected_title)
                     val body = if (status == PostStatus.VERIFICADO) 
-                        "Tu publicación \"${postToUpdate.title}\" ha sido verificada." 
-                        else "Tu publicación \"${postToUpdate.title}\" no pudo ser aprobada."
+                        resources.getString(R.string.notification_approved_desc, postToUpdate.title)
+                        else resources.getString(R.string.notification_rejected_desc, postToUpdate.title)
                     
+                    // Push notification
                     notificationHelper.showStatusNotification(title, body)
+
+                    // Persist notification for screen
+                    notificationRepository.addNotification(
+                        userId = postToUpdate.creatorId,
+                        notification = Notification(
+                            type = NotificationType.NEW_PLACE,
+                            title = title,
+                            description = body,
+                            time = resources.getString(R.string.notification_time_recent),
+                            isNew = true
+                        )
+                    )
 
                     if (status == PostStatus.VERIFICADO) {
                         userRepository.addPoints(postToUpdate.creatorId, 50)
@@ -173,12 +198,29 @@ class ModeratorFeedViewModel @Inject constructor(
                 eventRepository.updateEventStatus(realId, status, reason)
 
                 if (eventToUpdate != null) {
-                    val title = if (status == PostStatus.VERIFICADO) "¡Evento Aprobado!" else "Evento Rechazado"
+                    val title = if (status == PostStatus.VERIFICADO) resources.getString(R.string.notification_approved_title) else resources.getString(R.string.notification_rejected_title)
                     val body = if (status == PostStatus.VERIFICADO)
-                        "Tu evento \"${eventToUpdate.title}\" ha sido verificado."
-                        else "Tu evento \"${eventToUpdate.title}\" no pudo ser aprobado."
+                        resources.getString(R.string.notification_approved_desc, eventToUpdate.title)
+                        else resources.getString(R.string.notification_rejected_desc, eventToUpdate.title)
                     
+                    // Push notification
                     notificationHelper.showStatusNotification(title, body)
+
+                    // Persist notification
+                    notificationRepository.addNotification(
+                        userId = eventToUpdate.creatorId,
+                        notification = Notification(
+                            type = NotificationType.NEW_PLACE,
+                            title = title,
+                            description = body,
+                            time = resources.getString(R.string.notification_time_recent),
+                            isNew = true
+                        )
+                    )
+
+                    if (status == PostStatus.VERIFICADO) {
+                        userRepository.addPoints(eventToUpdate.creatorId, 50)
+                    }
                 }
             }
         }

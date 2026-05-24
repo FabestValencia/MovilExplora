@@ -588,15 +588,16 @@ fun EditFieldCustom(
             shape = RoundedCornerShape(12.dp),
             colors = OutlinedTextFieldDefaults.colors(
                 focusedBorderColor = MaterialTheme.colorScheme.primary,
-                unfocusedBorderColor = MaterialTheme.colorScheme.primary,
+                unfocusedBorderColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
                 focusedContainerColor = Color.Transparent,
-                unfocusedContainerColor = Color.Transparent
+                unfocusedContainerColor = Color.Transparent,
+                cursorColor = Turquoise
             ),
             isError = error != null,
             keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = keyboardType),
             singleLine = !isTextArea,
             trailingIcon = if (icon != null) {
-                { Icon(imageVector = icon, contentDescription = null, tint = MaterialTheme.colorScheme.onBackground) }
+                { Icon(imageVector = icon, contentDescription = null, tint = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)) }
             } else null
         )
         // Sobrescribir el borde superior para poner el texto flotando fuera de OutlinedTextField por defecto.

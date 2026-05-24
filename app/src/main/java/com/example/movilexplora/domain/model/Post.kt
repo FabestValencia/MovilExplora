@@ -1,5 +1,8 @@
 package com.example.movilexplora.domain.model
 
+import com.google.firebase.firestore.Exclude
+import com.google.firebase.firestore.PropertyName
+
 enum class PostStatus {
     PENDIENTE,
     VERIFICADO,
@@ -22,10 +25,27 @@ data class Post(
     val distance: Float = 5f,
     val creatorId: String = "",
     val rejectionReason: String? = null,
-    val isDeleted: Boolean = false
+    @get:PropertyName("isDeleted") @set:PropertyName("isDeleted") var isDeleted: Boolean = false
 ) {
-    val isVerified: Boolean get() = status == PostStatus.VERIFICADO
+    @PropertyName("deleted")
+    fun setDeletedFromFirestore(value: Boolean) { this.isDeleted = value }
+
+    @get:Exclude
+    @set:Exclude
+    var isVerified: Boolean
+        get() = status == PostStatus.VERIFICADO
+        set(_) {}
+
+    @PropertyName("verified")
+    fun setVerifiedFromFirestore(value: Boolean) { /* Calculado por status */ }
 
     // Deprecated old property for backward compatibility where needed briefly.
-    val isFavorite: Boolean get() = likedBy.isNotEmpty()
+    @get:Exclude
+    @set:Exclude
+    var isFavorite: Boolean
+        get() = likedBy.isNotEmpty()
+        set(_) {}
+
+    @PropertyName("favorite")
+    fun setFavoriteFromFirestore(value: Boolean) { /* Calculado por likedBy */ }
 }

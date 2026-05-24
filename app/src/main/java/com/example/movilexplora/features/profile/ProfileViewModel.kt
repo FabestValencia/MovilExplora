@@ -8,10 +8,13 @@ import com.example.movilexplora.domain.model.Achievement
 import com.example.movilexplora.domain.model.Event
 import com.example.movilexplora.domain.model.ReputationLevel
 import com.example.movilexplora.domain.model.UserProfile
+import com.example.movilexplora.domain.model.Notification
+import com.example.movilexplora.domain.model.NotificationType
 import com.example.movilexplora.data.datastore.SessionDataStore
 import com.example.movilexplora.domain.repository.UserRepository
 import com.example.movilexplora.domain.repository.PostRepository
 import com.example.movilexplora.domain.repository.EventRepository
+import com.example.movilexplora.domain.repository.NotificationRepository
 import androidx.lifecycle.viewModelScope
 import com.example.movilexplora.core.utils.ResourceProvider
 import com.example.movilexplora.R
@@ -21,6 +24,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.first
 
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
@@ -28,6 +32,7 @@ class ProfileViewModel @Inject constructor(
     private val userRepository: UserRepository,
     private val postRepository: PostRepository,
     private val eventRepository: EventRepository,
+    private val notificationRepository: NotificationRepository,
     private val resourceProvider: ResourceProvider
 ) : ViewModel() {
     private val _userProfile = MutableStateFlow<UserProfile?>(null)
@@ -85,11 +90,15 @@ class ProfileViewModel @Inject constructor(
         val userPostsList = allPosts.filter { it.creatorId == user.id }
         _userPosts.value = userPostsList
 
+        val userEventsList = allEvents.filter { it.creatorId == user.id }
+        _userEvents.value = userEventsList
+
         var activeCount = 0
         var finishedCount = 0
         var pendingCount = 0
         var rejectedCount = 0
 
+        // Contar posts
         userPostsList.forEach { post ->
             when (post.status.name) {
                 "VERIFICADO" -> activeCount++
@@ -98,8 +107,14 @@ class ProfileViewModel @Inject constructor(
             }
         }
 
-        val userEventsList = allEvents.filter { it.creatorId == user.id }
-        _userEvents.value = userEventsList
+        // Contar eventos
+        userEventsList.forEach { event ->
+            when (event.status.name) {
+                "VERIFICADO" -> activeCount++
+                "PENDIENTE" -> pendingCount++
+                "RECHAZADO" -> rejectedCount++
+            }
+        }
 
         val actualPoints = user.points
         val (calculatedLevel, calcTarget) = when {
@@ -107,6 +122,37 @@ class ProfileViewModel @Inject constructor(
             actualPoints < 500 -> Pair(ReputationLevel.EXPLORADOR, 500)
             actualPoints < 1000 -> Pair(ReputationLevel.AVENTURERO, 1000)
             else -> Pair(ReputationLevel.EMBAJADOR, 2000)
+        }
+
+        val totalContributions = userPostsList.size + userEventsList.size
+
+        val newAchievements = listOf(
+            Achievement(resourceProvider.getString(R.string.achievement_1_title), resourceProvider.getString(R.string.achievement_1_desc), "celebration", totalContributions >= 1),
+            Achievement(resourceProvider.getString(R.string.achievement_2_title), resourceProvider.getString(R.string.achievement_2_desc), "verified", totalContributions >= 10),
+            Achievement(resourceProvider.getString(R.string.achievement_3_title), resourceProvider.getString(R.string.achievement_3_desc), "map", activeCount >= 5),
+            Achievement(resourceProvider.getString(R.string.achievement_4_title), resourceProvider.getString(R.string.achievement_4_desc), "stars", totalContributions >= 20)
+        )
+
+        // Detección de logros recién desbloqueados
+        val previousAchievements = _userProfile.value?.achievements
+        if (previousAchievements != null) {
+            newAchievements.forEachIndexed { index, achievement ->
+                if (achievement.isUnlocked && !previousAchievements[index].isUnlocked) {
+                    // Notificar logro
+                    viewModelScope.launch {
+                        notificationRepository.addNotification(
+                            userId = user.id,
+                            notification = Notification(
+                                type = NotificationType.ACHIEVEMENT,
+                                title = resourceProvider.getString(R.string.notification_achievement_unlocked_title),
+                                description = resourceProvider.getString(R.string.notification_achievement_unlocked_desc, achievement.name),
+                                time = resourceProvider.getString(R.string.notification_time_recent),
+                                isNew = true
+                            )
+                        )
+                    }
+                }
+            }
         }
 
         _userProfile.value = UserProfile(
@@ -121,12 +167,7 @@ class ProfileViewModel @Inject constructor(
             currentXp = actualPoints,
             maxXp = calcTarget,
             reputationLevel = calculatedLevel,
-            achievements = listOf(
-                Achievement(resourceProvider.getString(R.string.achievement_1_title), resourceProvider.getString(R.string.achievement_1_desc), "celebration", userPostsList.size >= 1),
-                Achievement(resourceProvider.getString(R.string.achievement_2_title), resourceProvider.getString(R.string.achievement_2_desc), "verified", userPostsList.size >= 10),
-                Achievement(resourceProvider.getString(R.string.achievement_3_title), resourceProvider.getString(R.string.achievement_3_desc), "map", activeCount >= 5),
-                Achievement(resourceProvider.getString(R.string.achievement_4_title), resourceProvider.getString(R.string.achievement_4_desc), "stars", userPostsList.size >= 20)
-            )
+            achievements = newAchievements
         )
     }
 
@@ -141,14 +182,14 @@ class ProfileViewModel @Inject constructor(
     }
 
     fun deleteEvent(eventId: String) {
-        _userEvents.update { events ->
-            events.filterNot { it.id == eventId }
+        viewModelScope.launch {
+            eventRepository.deleteEvent(eventId)
         }
     }
 
     fun deletePost(postId: String) {
-        _userPosts.update { posts ->
-            posts.filterNot { it.id == postId }
+        viewModelScope.launch {
+            postRepository.softDeletePost(postId)
         }
     }
 }

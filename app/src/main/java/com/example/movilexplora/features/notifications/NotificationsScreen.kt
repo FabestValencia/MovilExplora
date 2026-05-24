@@ -180,6 +180,7 @@ fun NotificationItem(notification: Notification) {
                 NotificationType.COMMENT -> Icons.AutoMirrored.Filled.Chat
                 NotificationType.NEARBY_POINTS -> Icons.Default.Explore
                 NotificationType.ACHIEVEMENT -> Icons.Default.StarBorder
+                NotificationType.LIKE -> Icons.Default.Favorite
             }
             Icon(
                 imageVector = icon,

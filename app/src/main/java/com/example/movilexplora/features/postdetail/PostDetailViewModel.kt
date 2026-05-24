@@ -10,8 +10,12 @@ import com.example.movilexplora.core.utils.ResourceProvider
 import com.example.movilexplora.domain.model.Post
 import com.example.movilexplora.domain.model.PostStatus
 import com.example.movilexplora.domain.model.Comment
+import com.example.movilexplora.domain.model.Notification
+import com.example.movilexplora.domain.model.NotificationType
 import com.example.movilexplora.domain.repository.PostRepository
 import com.example.movilexplora.domain.repository.UserRepository
+import com.example.movilexplora.domain.repository.NotificationRepository
+import com.example.movilexplora.core.utils.NotificationHelper
 import com.example.movilexplora.data.datastore.SessionDataStore
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -30,6 +34,8 @@ class PostDetailViewModel @Inject constructor(
     private val postRepository: PostRepository,
     private val sessionDataStore: SessionDataStore,
     private val userRepository: UserRepository,
+    private val notificationRepository: NotificationRepository,
+    private val notificationHelper: NotificationHelper,
     private val resources: ResourceProvider
 ) : ViewModel() {
     private val _state = MutableStateFlow(PostDetailState())
@@ -80,6 +86,29 @@ class PostDetailViewModel @Inject constructor(
             )
             postRepository.addComment(newComment)
             userRepository.addPoints(currentUserId, 10) // 10 points for commenting
+
+            // Notify post creator
+            _state.value.post?.let { post ->
+                if (post.creatorId != currentUserId) {
+                    val title = resources.getString(R.string.notification_comment_title)
+                    val body = resources.getString(R.string.notification_comment_desc, currentUserName, post.title)
+                    
+                    // Push (as per requirement: push for comments and status)
+                    notificationHelper.showStatusNotification(title, body)
+
+                    // Persist
+                    notificationRepository.addNotification(
+                        userId = post.creatorId,
+                        notification = Notification(
+                            type = NotificationType.COMMENT,
+                            title = title,
+                            description = body,
+                            time = resources.getString(R.string.notification_time_recent),
+                            isNew = true
+                        )
+                    )
+                }
+            }
         }
     }
 
@@ -89,8 +118,24 @@ class PostDetailViewModel @Inject constructor(
             if (currentPost != null) {
                 val wasLiked = currentPost.likedBy.contains(currentUserId)
                 postRepository.toggleFavorite(postId, currentUserId)
+                
                 if (!wasLiked && currentPost.creatorId != currentUserId) {
-                    userRepository.addPoints(currentPost.creatorId, 5) // 5 points to creator if it's a new like
+                    userRepository.addPoints(currentPost.creatorId, 5) // 5 points to creator
+                    
+                    // Notify (Only Screen notification for Likes as per requirement)
+                    val user = userRepository.findById(currentUserId)
+                    val userName = user?.name ?: resources.getString(R.string.guest_user_name)
+                    
+                    notificationRepository.addNotification(
+                        userId = currentPost.creatorId,
+                        notification = Notification(
+                            type = NotificationType.LIKE,
+                            title = resources.getString(R.string.notification_like_title),
+                            description = resources.getString(R.string.notification_like_desc, userName, currentPost.title),
+                            time = resources.getString(R.string.notification_time_recent),
+                            isNew = true
+                        )
+                    )
                 }
             }
         }

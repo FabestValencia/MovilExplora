@@ -128,7 +128,8 @@ fun PostDetailScreen(
             } else {
                 BottomActionButtons(
                     isFavorite = viewModel.isFavorite(state.post),
-                    onToggleFavorite = { viewModel.toggleFavorite(postId) }
+                    onToggleFavorite = { viewModel.toggleFavorite(postId) },
+                    onMarkVisited = { viewModel.markAsVisited() }
                 )
             }
         }
@@ -408,7 +409,8 @@ fun CommentItem(comment: Comment) {
 @Composable
 fun BottomActionButtons(
     isFavorite: Boolean = false,
-    onToggleFavorite: () -> Unit = {}
+    onToggleFavorite: () -> Unit = {},
+    onMarkVisited: () -> Unit = {}
 ) {
     // Add internal state for visual toggle of "Visited" until functionality is hooked up
     var isVisited by remember { mutableStateOf(false) }
@@ -448,7 +450,10 @@ fun BottomActionButtons(
         }
 
         Button(
-            onClick = { isVisited = !isVisited },
+            onClick = { 
+                isVisited = !isVisited
+                if (isVisited) onMarkVisited()
+            },
             modifier = Modifier
                 .weight(1f)
                 .height(56.dp),
@@ -488,7 +493,7 @@ fun AdminActionButtons(
 
     if (showRejectDialog) {
         AlertDialog(
-            onDismissRequest = { showRejectDialog = false },
+            onDismissRequest = { },
             title = {
                 Text(text = stringResource(R.string.reject_reason_title), fontWeight = FontWeight.Bold)
             },
@@ -505,14 +510,13 @@ fun AdminActionButtons(
                 TextButton(
                     onClick = {
                         onReject(rejectReason)
-                        showRejectDialog = false
                     }
                 ) {
                     Text(text = stringResource(R.string.common_ok), color = Color.Red)
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showRejectDialog = false }) {
+                TextButton(onClick = { }) {
                     Text(stringResource(R.string.cancel_button))
                 }
             }
@@ -526,7 +530,7 @@ fun AdminActionButtons(
             .background(MaterialTheme.colorScheme.background)
     ) {
         Button(
-            onClick = { showRejectDialog = true },
+            onClick = { },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(56.dp),

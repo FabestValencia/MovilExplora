@@ -3,11 +3,13 @@ package com.example.movilexplora.core.di
 import com.example.movilexplora.data.repository.PostRepositoryImpl
 import com.example.movilexplora.data.repository.UserRepositoryImpl
 import com.example.movilexplora.data.repository.EventRepositoryImpl
+import com.example.movilexplora.data.repository.NotificationRepositoryImpl
 import com.example.movilexplora.data.storage.CloudinaryImageRepository
 import com.example.movilexplora.domain.repository.PostRepository
 import com.example.movilexplora.domain.repository.UserRepository
 import com.example.movilexplora.domain.repository.EventRepository
 import com.example.movilexplora.domain.repository.ImageRepository
+import com.example.movilexplora.domain.repository.NotificationRepository
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -41,4 +43,10 @@ abstract class RepositoryModule {
     abstract fun bindImageRepository(
         cloudinaryImageRepository: CloudinaryImageRepository
     ): ImageRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindNotificationRepository(
+        notificationRepositoryImpl: NotificationRepositoryImpl
+    ): NotificationRepository
 }

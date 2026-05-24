@@ -159,6 +159,7 @@ fun HeaderSection(searchQuery: String, onSearchQueryChange: (String) -> Unit, on
                 trailingIcon = {
                     IconButton(onClick = {
                         onSearchQueryChange("")
+                        isSearchActive = false
                     }) {
                         Icon(imageVector = Icons.Default.Close, contentDescription = "Cerrar", tint = MaterialTheme.colorScheme.onBackground)
                     }
@@ -180,7 +181,7 @@ fun HeaderSection(searchQuery: String, onSearchQueryChange: (String) -> Unit, on
                 IconButton(onClick = onMapClick) {
                     Icon(imageVector = Icons.Default.Map, contentDescription = stringResource(R.string.eventsscreen_map_5), tint = MaterialTheme.colorScheme.onBackground)
                 }
-                IconButton(onClick = { }) {
+                IconButton(onClick = { isSearchActive = true }) {
                     Icon(imageVector = Icons.Default.Search, contentDescription = stringResource(R.string.eventsscreen_search_6), tint = MaterialTheme.colorScheme.onBackground)
                 }
             }
@@ -203,23 +204,12 @@ fun EventCard(
     ) {
         Column {
             Box(modifier = Modifier.height(160.dp).fillMaxWidth().background(MaterialTheme.colorScheme.surfaceVariant)) {
-                // TODO: Eliminar este uso fijo de imageUrl una vez que se retome la integración
-                // real con imágenes en la nube o persistencia real de archivos en el dispositivo.
-                val mockImageUrl = if (event.id.hashCode() % 2 == 0) {
-                    "android.resource://com.example.movilexplora/drawable/circasia"
-                } else {
-                    "android.resource://com.example.movilexplora/drawable/salento"
-                }
-
                 AsyncImage(
-                    model = if (event.imageUrl.startsWith("http") || event.imageUrl.startsWith("content")) {
-                        event.imageUrl
-                    } else {
-                        mockImageUrl
-                    },
+                    model = event.imageUrl,
                     contentDescription = stringResource(R.string.common_event_image),
                     modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop
+                    contentScale = ContentScale.Crop,
+                    error = com.example.movilexplora.ui.theme.getCategoryIcon(event.category).let { null } // O un placeholder de error
                 )
 
                 val categoryColor = getCategoryColor(event.category)

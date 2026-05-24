@@ -13,7 +13,7 @@ import com.example.movilexplora.data.local.entity.LikeEntity
 import com.example.movilexplora.data.local.entity.PostEntity
 import com.example.movilexplora.data.local.entity.EventEntity
 
-@Database(entities = [UserEntity::class, CommentEntity::class, LikeEntity::class, PostEntity::class, EventEntity::class], version = 9, exportSchema = false)
+@Database(entities = [UserEntity::class, CommentEntity::class, LikeEntity::class, PostEntity::class, EventEntity::class], version = 10, exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun userDao(): UserDao
     abstract fun commentDao(): CommentDao

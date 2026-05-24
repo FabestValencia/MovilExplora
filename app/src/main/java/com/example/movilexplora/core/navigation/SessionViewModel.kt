@@ -5,7 +5,10 @@ import androidx.lifecycle.viewModelScope
 import com.example.movilexplora.data.model.UserSession
 import com.example.movilexplora.data.datastore.SessionDataStore
 import com.example.movilexplora.domain.model.enum.UserRole
+import com.example.movilexplora.domain.repository.EventRepository
+import com.example.movilexplora.domain.repository.PostRepository
 import com.example.movilexplora.domain.repository.UserRepository
+import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -24,16 +27,31 @@ sealed interface SessionState {
 @HiltViewModel
 class SessionViewModel @Inject constructor(
     private val sessionDataStore: SessionDataStore,
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val postRepository: PostRepository,
+    private val eventRepository: EventRepository,
+    private val auth: FirebaseAuth
 ) : ViewModel() {
 
     // Flujo que representa el estado de la sesión
     val sessionState: StateFlow<SessionState> = sessionDataStore.sessionFlow
         .map { session ->
-            // Mapea la sesión a un estado de sesión
-            if (session != null) {
+            val firebaseUser = auth.currentUser
+            
+            // Verificación rigurosa síncrona
+            val isStaff = session?.role == UserRole.ADMIN
+            
+            val isValid = session != null && 
+                         firebaseUser != null && 
+                         firebaseUser.uid == session.userId && 
+                         (firebaseUser.isEmailVerified || isStaff)
+
+            if (isValid) {
                 SessionState.Authenticated(session)
             } else {
+                // Si la sesión local existe pero no es válida según Firebase,
+                // no lanzamos corrutinas aquí. El MainActivity se encargará de la limpieza
+                // cuando detecte el estado NotAuthenticated.
                 SessionState.NotAuthenticated
             }
         }
@@ -52,9 +70,16 @@ class SessionViewModel @Inject constructor(
     }
 
     fun logout() {
-        // Limpia la sesión del usuario en Data Store. Se utiliza viewModelScope para lanzar la corrutina
+        // Limpia la sesión del usuario en Data Store y la caché local de posts/eventos
         viewModelScope.launch {
-            sessionDataStore.clearSession()
+            try {
+                sessionDataStore.clearSession()
+                postRepository.clearCache()
+                eventRepository.clearCache()
+                auth.signOut()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
         }
     }
 

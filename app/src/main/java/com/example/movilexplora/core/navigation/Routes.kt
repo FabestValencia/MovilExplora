@@ -15,7 +15,7 @@ object Register
 object ForgotPassword
 
 @Serializable
-object VerificationCode
+data class VerificationCode(val userId: String)
 
 @Serializable
 object ResetPassword

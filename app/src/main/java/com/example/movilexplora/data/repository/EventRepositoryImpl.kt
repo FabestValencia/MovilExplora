@@ -27,6 +27,17 @@ class EventRepositoryImpl @Inject constructor(
     private val scope = CoroutineScope(Dispatchers.IO)
 
     init {
+        // Regla de Negocio: Limpiar caché local al iniciar para evitar datos "quemados"
+        // y asegurar una sincronización fresca desde Firestore.
+        scope.launch {
+            try {
+                eventDao.clearAll()
+                android.util.Log.d("CACHE_CLEANUP", "Caché de eventos limpiada al iniciar")
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+
         // Sincronizar eventos desde Firestore de forma eficiente
         collection.addSnapshotListener { snapshot, error ->
             if (error != null) return@addSnapshotListener
@@ -49,7 +60,7 @@ class EventRepositoryImpl @Inject constructor(
     }
 
     override fun getEvents(): Flow<List<Event>> = eventDao.getAllEvents().map { entities ->
-        entities.map { it.toDomainModel() }
+        entities.map { it.toDomainModel() }.filter { !it.isDeleted }
     }
 
     override suspend fun addEvent(event: Event) {
@@ -66,5 +77,27 @@ class EventRepositoryImpl @Inject constructor(
         val updates = mutableMapOf<String, Any>("status" to status.name)
         rejectionReason?.let { updates["rejectionReason"] = it }
         collection.document(eventId).update(updates).await()
+    }
+
+    override suspend fun toggleFavorite(eventId: String, userId: String) {
+        val doc = collection.document(eventId).get().await()
+        val event = doc.toObject(Event::class.java)
+        event?.let {
+            val newList = it.likedBy.toMutableList()
+            if (newList.contains(userId)) {
+                newList.remove(userId)
+            } else {
+                newList.add(userId)
+            }
+            collection.document(eventId).update("likedBy", newList).await()
+        }
+    }
+
+    override suspend fun deleteEvent(eventId: String) {
+        collection.document(eventId).update("isDeleted", true).await()
+    }
+
+    override suspend fun clearCache() {
+        eventDao.clearAll()
     }
 }

@@ -4,69 +4,23 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Logout
-import androidx.compose.material.icons.filled.AccessTime
-import androidx.compose.material.icons.filled.CameraAlt
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.DarkMode
-import androidx.compose.material.icons.filled.Event
-import androidx.compose.material.icons.filled.FilterList
-import androidx.compose.material.icons.filled.History
-import androidx.compose.material.icons.filled.LightMode
-import androidx.compose.material.icons.filled.RateReview
-import androidx.compose.material.icons.filled.Storefront
-import androidx.compose.material.icons.filled.VerifiedUser
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.FilterChipDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -78,9 +32,20 @@ import com.example.movilexplora.R
 import com.example.movilexplora.core.component.ProfileImage
 import com.example.movilexplora.core.navigation.ThemeViewModel
 import com.example.movilexplora.domain.model.VerificationItem
+import com.example.movilexplora.features.eventdetail.DetailBadge
 import com.example.movilexplora.ui.theme.Turquoise
+import com.example.movilexplora.ui.theme.getCategoryColor
+import com.mapbox.geojson.Point
+import com.mapbox.maps.extension.compose.MapboxMap
+import com.mapbox.maps.extension.compose.animation.viewport.rememberMapViewportState
+import com.mapbox.maps.extension.compose.style.ColorValue
+import com.mapbox.maps.extension.compose.style.DoubleValue
+import com.mapbox.maps.extension.compose.style.layers.generated.CircleLayer
+import com.mapbox.maps.extension.compose.style.sources.GeoJSONData
+import com.mapbox.maps.extension.compose.style.sources.generated.rememberGeoJsonSourceState
+import com.mapbox.maps.extension.style.expressions.generated.Expression
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun ModeratorFeedScreen(
     onLogout: () -> Unit,
@@ -104,6 +69,8 @@ fun ModeratorFeedScreen(
     if (showRejectDialog && itemToReject != null) {
         AlertDialog(
             onDismissRequest = {
+                showRejectDialog = false
+                itemToReject = null
             },
             title = { Text(text = stringResource(R.string.reject_reason_title), fontWeight = FontWeight.Bold) },
             text = {
@@ -123,6 +90,7 @@ fun ModeratorFeedScreen(
                             itemToReject = null
                             rejectReason = ""
                             selectedItem = null
+                            showRejectDialog = false
                         }
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
@@ -134,6 +102,8 @@ fun ModeratorFeedScreen(
             dismissButton = {
                 TextButton(
                     onClick = {
+                        showRejectDialog = false
+                        itemToReject = null
                     }
                 ) {
                     Text(stringResource(R.string.common_cancel))
@@ -145,15 +115,14 @@ fun ModeratorFeedScreen(
     if (selectedItem != null) {
         ModeratorItemDetailScreen(
             item = selectedItem!!,
-            onBack = { },
+            onBack = { selectedItem = null },
             onVerify = {
                 viewModel.verifyItem(it)
-            },
-            onApprove = {
-                viewModel.approveItem(it)
+                selectedItem = null
             },
             onReject = {
                 itemToReject = it
+                showRejectDialog = true
             }
         )
         return
@@ -198,16 +167,13 @@ fun ModeratorFeedScreen(
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface)
             )
         },
-        containerColor = MaterialTheme.colorScheme.background,
-        contentWindowInsets = WindowInsets(0, 0, 0, 0)
+        containerColor = MaterialTheme.colorScheme.background
     ) { paddingValues ->
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .statusBarsPadding()
-                .padding(top = 64.dp) // Space for TopAppBar
-                .background(MaterialTheme.colorScheme.background), // Use theme background
+                .background(MaterialTheme.colorScheme.background),
             contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 32.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
@@ -272,7 +238,6 @@ fun ModeratorFeedScreen(
                 ) {
                     val filterAll = stringResource(R.string.filter_all)
                     val filterLocations = stringResource(R.string.filter_locations)
-                    val filterReviews = stringResource(R.string.filter_reviews)
                     val filterEvents = stringResource(R.string.filter_events)
                     
                     FilterChip(
@@ -294,13 +259,6 @@ fun ModeratorFeedScreen(
                         border = FilterChipDefaults.filterChipBorder(borderColor = Color.LightGray, enabled = true, selected = state.selectedFilter == filterLocations)
                     )
                     FilterChip(
-                        selected = state.selectedFilter == filterReviews,
-                        onClick = { viewModel.onFilterSelected(filterReviews) },
-                        label = { Text("$filterReviews (${state.counts[filterReviews]})") },
-                        shape = RoundedCornerShape(20.dp),
-                        border = FilterChipDefaults.filterChipBorder(borderColor = Color.LightGray, enabled = true, selected = state.selectedFilter == filterReviews)
-                    )
-                    FilterChip(
                         selected = state.selectedFilter == filterEvents,
                         onClick = { viewModel.onFilterSelected(filterEvents) },
                         label = { Text("$filterEvents (${state.counts[filterEvents] ?: 0})") },
@@ -316,11 +274,11 @@ fun ModeratorFeedScreen(
             ) { item ->
                 ModeratorItemCard(
                     item = item,
-                    onClick = { },
+                    onClick = { selectedItem = item },
                     onVerify = { viewModel.verifyItem(item.id) },
-                    onApprove = { viewModel.approveItem(item.id) },
                     onReject = { 
                         itemToReject = item.id
+                        showRejectDialog = true
                     }
                 )
             }
@@ -328,17 +286,16 @@ fun ModeratorFeedScreen(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun ModeratorItemDetailScreen(
     item: VerificationItem,
     onBack: () -> Unit,
     onVerify: (String) -> Unit,
-    onApprove: (String) -> Unit,
     onReject: (String) -> Unit
 ) {
     Scaffold(
         topBar = {
-            @OptIn(ExperimentalMaterial3Api::class)
             TopAppBar(
                 title = { Text(stringResource(R.string.eventdetailscreen_detalle_del_evento_0), fontWeight = FontWeight.Bold) },
                 navigationIcon = {
@@ -354,6 +311,7 @@ fun ModeratorItemDetailScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
+                .verticalScroll(rememberScrollState())
                 .background(MaterialTheme.colorScheme.background)
         ) {
             Box(modifier = Modifier.height(260.dp).fillMaxWidth()) {
@@ -364,7 +322,6 @@ fun ModeratorItemDetailScreen(
                         modifier = Modifier.fillMaxSize(),
                         contentScale = ContentScale.Crop
                     )
-                    // Optional gradient to make badge readable
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
@@ -375,10 +332,6 @@ fun ModeratorItemDetailScreen(
                                 )
                             )
                     )
-                } else {
-                    Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surfaceVariant)) {
-                        Text(stringResource(R.string.image_placeholder), color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.align(Alignment.Center))
-                    }
                 }
 
                 Surface(
@@ -403,14 +356,45 @@ fun ModeratorItemDetailScreen(
                 }
             }
 
-            Column(modifier = Modifier.padding(20.dp).weight(1f)) {
+            Column(modifier = Modifier.padding(20.dp)) {
                 Text(
                     text = item.title,
                     style = MaterialTheme.typography.headlineMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onBackground
                 )
-                Spacer(modifier = Modifier.height(8.dp))
+                
+                Spacer(modifier = Modifier.height(12.dp))
+
+                FlowRow(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    val categoryCol = getCategoryColor(item.category)
+                    DetailBadge(
+                        text = item.category,
+                        containerColor = categoryCol.copy(alpha = 0.15f),
+                        contentColor = categoryCol
+                    )
+                    
+                    DetailBadge(
+                        text = item.price,
+                        icon = Icons.Default.Payments,
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                        contentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+
+                    DetailBadge(
+                        text = item.location,
+                        icon = Icons.Default.LocationOn,
+                        containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(24.dp))
+
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     ProfileImage(
                         imageUrl = item.authorAvatarUrl,
@@ -443,45 +427,93 @@ fun ModeratorItemDetailScreen(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     lineHeight = 24.sp
                 )
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // Map Section
+                Text(text = stringResource(R.string.eventdetailscreen_ubicaci_n_3), fontSize = 16.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
+                Spacer(modifier = Modifier.height(12.dp))
+                
+                val mapViewportState = rememberMapViewportState {
+                    setCameraOptions {
+                        center(Point.fromLngLat(item.longitude, item.latitude))
+                        zoom(14.0)
+                    }
+                }
+
+                // Asegurar que el mapa se mueva a las coordenadas de la publicación al cargar
+                LaunchedEffect(item.latitude, item.longitude) {
+                    mapViewportState.setCameraOptions {
+                        center(Point.fromLngLat(item.longitude, item.latitude))
+                        zoom(14.0)
+                    }
+                }
+
+                val itemLocationGeoJson = remember(item.latitude, item.longitude) {
+                    """
+                    {
+                      "type": "FeatureCollection",
+                      "features": [
+                        {
+                          "type": "Feature",
+                          "geometry": {
+                            "type": "Point",
+                            "coordinates": [${item.longitude}, ${item.latitude}]
+                          },
+                          "properties": {
+                            "title": "${item.title}",
+                            "category": "${item.category}"
+                          }
+                        }
+                      ]
+                    }
+                    """.trimIndent()
+                }
+
+                val sourceState = rememberGeoJsonSourceState {
+                    data = GeoJSONData(itemLocationGeoJson)
+                }
+
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(200.dp)
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(MaterialTheme.colorScheme.surfaceVariant)
+                ) {
+                    MapboxMap(
+                        modifier = Modifier.fillMaxSize(),
+                        mapViewportState = mapViewportState
+                    ) {
+                        CircleLayer(
+                            sourceState = sourceState,
+                            layerId = "moderator-item-location-layer"
+                        ) {
+                            circleRadius = DoubleValue(10.0)
+                            circleColor = ColorValue(Expression.color(Turquoise.toArgb()))
+                            circleStrokeWidth = DoubleValue(2.0)
+                            circleStrokeColor = ColorValue(Expression.color(Color.White.toArgb()))
+                        }
+                    }
+                }
+                
+                Spacer(modifier = Modifier.height(32.dp))
             }
 
-            // Actions at bottom
             Surface(
                 color = MaterialTheme.colorScheme.surface,
                 shadowElevation = 8.dp
             ) {
                 Row(modifier = Modifier.fillMaxWidth().padding(16.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    if (item.type == com.example.movilexplora.domain.model.VerificationType.EVENT) {
-                        Button(
-                            onClick = { onApprove(item.id) },
-                            modifier = Modifier.weight(1f).height(48.dp),
-                            shape = RoundedCornerShape(24.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
-                        ) {
-                            Icon(imageVector = Icons.Default.Check, contentDescription = null, modifier = Modifier.size(18.dp))
-                            Text(stringResource(R.string.approve_action), fontWeight = FontWeight.Bold, fontSize = 12.sp, maxLines = 1)
-                        }
-
-                        Button(
-                            onClick = { onVerify(item.id) },
-                            modifier = Modifier.weight(1f).height(48.dp),
-                            shape = RoundedCornerShape(24.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = Turquoise)
-                        ) {
-                            Icon(imageVector = Icons.Default.VerifiedUser, contentDescription = null, modifier = Modifier.size(18.dp))
-                            Text(stringResource(R.string.verify_action), fontWeight = FontWeight.Bold, fontSize = 12.sp, maxLines = 1)
-                        }
-                    } else {
-                        Button(
-                            onClick = { onVerify(item.id) },
-                            modifier = Modifier.weight(1f).height(48.dp),
-                            shape = RoundedCornerShape(24.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = Turquoise)
-                        ) {
-                            Icon(imageVector = Icons.Default.Check, contentDescription = null, modifier = Modifier.size(18.dp))
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(stringResource(R.string.verify_action), fontWeight = FontWeight.Bold)
-                        }
+                    Button(
+                        onClick = { onVerify(item.id) },
+                        modifier = Modifier.weight(1f).height(48.dp),
+                        shape = RoundedCornerShape(24.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = Turquoise)
+                    ) {
+                        Icon(imageVector = Icons.Default.Check, contentDescription = null, modifier = Modifier.size(18.dp))
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(stringResource(R.string.verify_action), fontWeight = FontWeight.Bold)
                     }
 
                     OutlinedButton(
@@ -507,13 +539,12 @@ fun ModeratorItemCard(
     item: VerificationItem,
     onClick: () -> Unit,
     onVerify: () -> Unit,
-    onApprove: () -> Unit,
     onReject: () -> Unit
 ) {
     Card(
         onClick = onClick,
         shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant), // Use surface variant
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         modifier = Modifier.fillMaxWidth()
     ) {
@@ -526,13 +557,8 @@ fun ModeratorItemCard(
                         modifier = Modifier.fillMaxSize(),
                         contentScale = ContentScale.Crop
                     )
-                } else {
-                    Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surfaceVariant)) {
-                        Text(stringResource(R.string.image_placeholder), color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.align(Alignment.Center))
-                    }
                 }
                 
-                // Badge
                 Surface(
                     modifier = Modifier.padding(12.dp),
                     shape = RoundedCornerShape(8.dp),
@@ -548,12 +574,7 @@ fun ModeratorItemCard(
                             com.example.movilexplora.domain.model.VerificationType.REVIEW -> Icons.Default.RateReview
                             com.example.movilexplora.domain.model.VerificationType.EVENT -> Icons.Default.Event
                         }
-                        Icon(
-                            imageVector = icon,
-                            contentDescription = null,
-                            tint = Color.White,
-                            modifier = Modifier.size(14.dp)
-                        )
+                        Icon(imageVector = icon, contentDescription = null, tint = Color.White, modifier = Modifier.size(14.dp))
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(text = item.badgeText, color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                     }
@@ -581,70 +602,30 @@ fun ModeratorItemCard(
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                     )
                 }
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(imageVector = Icons.Default.AccessTime, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f), modifier = Modifier.size(14.dp))
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(
-                        text = item.timeAgo, 
-                        style = MaterialTheme.typography.bodySmall, 
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
-                    )
-                }
                 
                 Spacer(modifier = Modifier.height(12.dp))
-                Text(
-                    text = item.description,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
-                    lineHeight = 18.sp
-                )
-                
-                Spacer(modifier = Modifier.height(20.dp))
                 
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    if (item.type == com.example.movilexplora.domain.model.VerificationType.EVENT) {
-                        Button(
-                            onClick = onApprove,
-                            modifier = Modifier.weight(1f).height(48.dp),
-                            shape = RoundedCornerShape(24.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
-                        ) {
-                            Icon(imageVector = Icons.Default.Check, contentDescription = null, modifier = Modifier.size(18.dp))
-                            // Small text or no text if too cramped? Let's try text.
-                            Text(stringResource(R.string.approve_action), fontWeight = FontWeight.Bold, fontSize = 12.sp, maxLines = 1)
-                        }
-
-                        Button(
-                            onClick = onVerify,
-                            modifier = Modifier.weight(1f).height(48.dp),
-                            shape = RoundedCornerShape(24.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = Turquoise)
-                        ) {
-                            Icon(imageVector = Icons.Default.VerifiedUser, contentDescription = null, modifier = Modifier.size(18.dp))
-                            Text(stringResource(R.string.verify_action), fontWeight = FontWeight.Bold, fontSize = 12.sp, maxLines = 1)
-                        }
-                    } else {
-                        Button(
-                            onClick = onVerify,
-                            modifier = Modifier.weight(1f).height(48.dp),
-                            shape = RoundedCornerShape(24.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = Turquoise)
-                        ) {
-                            Icon(imageVector = Icons.Default.Check, contentDescription = null, modifier = Modifier.size(18.dp))
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(stringResource(R.string.verify_action), fontWeight = FontWeight.Bold)
-                        }
+                    Button(
+                        onClick = onVerify,
+                        modifier = Modifier.weight(1f).height(48.dp),
+                        shape = RoundedCornerShape(24.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = Turquoise)
+                    ) {
+                        Icon(imageVector = Icons.Default.Check, contentDescription = null, modifier = Modifier.size(18.dp))
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(stringResource(R.string.verify_action), fontWeight = FontWeight.Bold)
                     }
 
                     OutlinedButton(
-                        onClick = onReject,
+                        onClick = { onReject() },
                         modifier = Modifier.weight(1f).height(48.dp),
                         shape = RoundedCornerShape(24.dp),
                         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
                         colors = ButtonDefaults.outlinedButtonColors(contentColor = Turquoise)
                     ) {
                         Icon(imageVector = Icons.Default.Close, contentDescription = null, modifier = Modifier.size(18.dp))
-                        Spacer(modifier = Modifier.width(8.dp)) // Add spacer if not event (more space) or small spacer?
+                        Spacer(modifier = Modifier.width(8.dp))
                         Text(stringResource(R.string.reject_action), fontWeight = FontWeight.Bold, fontSize = 12.sp, maxLines = 1)
                     }
                 }

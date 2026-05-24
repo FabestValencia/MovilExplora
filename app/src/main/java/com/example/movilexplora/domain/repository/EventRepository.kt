@@ -6,4 +6,7 @@ interface EventRepository {
     suspend fun addEvent(event: Event)
     suspend fun updateEvent(event: Event)
     suspend fun updateEventStatus(eventId: String, status: com.example.movilexplora.domain.model.PostStatus, rejectionReason: String? = null)
+    suspend fun toggleFavorite(eventId: String, userId: String)
+    suspend fun deleteEvent(eventId: String)
+    suspend fun clearCache()
 }

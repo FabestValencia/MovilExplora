@@ -1,6 +1,10 @@
 package com.example.movilexplora.features.login
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -23,6 +27,7 @@ import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -74,6 +79,8 @@ import kotlinx.coroutines.launch
 fun LoginScreen(
     onNavigateBack: () -> Unit,
     onNavigateToForgotPassword: () -> Unit,
+    onNavigateToVerifyCode: (String) -> Unit,
+    onNavigateToRegister: () -> Unit, // Nueva navegación
     onNavigateToModerator: () -> Unit = {},
     viewModel: LoginViewModel = hiltViewModel(),
 ) {
@@ -89,6 +96,7 @@ fun LoginScreen(
         val googleIdOption: GetGoogleIdOption = GetGoogleIdOption.Builder()
             .setFilterByAuthorizedAccounts(false)
             .setServerClientId(BuildConfig.GOOGLE_WEB_CLIENT_ID)
+            .setAutoSelectEnabled(false) // Forzar selector para evitar fallos silenciosos
             .build()
 
         val request: GetCredentialRequest = GetCredentialRequest.Builder()
@@ -97,19 +105,28 @@ fun LoginScreen(
 
         scope.launch {
             try {
+                android.util.Log.d("GOOGLE_AUTH", "Iniciando GetCredential...")
                 val result = credentialManager.getCredential(
                     request = request,
                     context = context
                 )
                 val credential = result.credential
-                if (credential is GoogleIdTokenCredential) {
-                    viewModel.loginWithGoogle(credential.idToken)
+                android.util.Log.d("GOOGLE_AUTH", "Credencial recibida: ${credential.type}")
+                
+                // Corrección: Extraer el token correctamente desde el Bundle de datos
+                if (credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL) {
+                    val googleIdTokenCredential = GoogleIdTokenCredential.createFrom(credential.data)
+                    android.util.Log.d("GOOGLE_AUTH", "Token extraído con éxito")
+                    viewModel.loginWithGoogle(googleIdTokenCredential.idToken)
+                } else {
+                    android.util.Log.e("GOOGLE_AUTH", "Tipo de credencial no esperado: ${credential.type}")
+                    snackbarHostState.showSnackbar("Error: Tipo de cuenta no compatible")
                 }
             } catch (e: Exception) {
+                android.util.Log.e("GOOGLE_AUTH", "Error en getCredential: ${e.message}")
                 if (e !is androidx.credentials.exceptions.GetCredentialCancellationException) {
-                    snackbarHostState.showSnackbar(e.message ?: context.getString(R.string.login_failure))
-                } else {
-                    snackbarHostState.showSnackbar(context.getString(R.string.login_cancelled))
+                    val message = e.message ?: context.getString(R.string.login_failure)
+                    snackbarHostState.showSnackbar(message)
                 }
             }
         }
@@ -117,19 +134,45 @@ fun LoginScreen(
 
     LaunchedEffect(loginResult) {
         loginResult?.let { result ->
+            android.util.Log.d("LOGIN_DEBUG", "loginResult actualizado: $result")
             when (result) {
                 is RequestResult.Success -> {
                     snackbarHostState.showSnackbar(result.message)
                     viewModel.resetLoginResult()
                 }
                 is RequestResult.Failure -> {
-                    snackbarHostState.showSnackbar(result.errorMessage)
+                    when {
+                        result.errorMessage == "CUENTA_NO_EXISTE" -> {
+                            android.util.Log.d("LOGIN_DEBUG", "Navegando a registro porque la cuenta no existe")
+                            scope.launch {
+                                snackbarHostState.showSnackbar(context.getString(R.string.login_google_no_account))
+                                onNavigateToRegister()
+                            }
+                        }
+                        result.errorMessage.startsWith("CUENTA_NO_VERIFICADA:") -> {
+                            val uid = result.errorMessage.substringAfter(":")
+                            android.util.Log.d("LOGIN_DEBUG", "Navegando a verificación para UID: $uid")
+                            onNavigateToVerifyCode(uid)
+                        }
+                        else -> {
+                            snackbarHostState.showSnackbar(result.errorMessage)
+                        }
+                    }
                     viewModel.resetLoginResult()
                 }
                 is RequestResult.Loading -> {
-                    // TODO mas adelante mostrar un indicador de carga en la UI en lugar de snackbar
+                    android.util.Log.d("LOGIN_DEBUG", "Estado: Cargando...")
                 }
             }
+        }
+    }
+
+    if (loginResult is RequestResult.Loading) {
+        Box(
+            modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.5f)).clickable(enabled = false) {},
+            contentAlignment = Alignment.Center
+        ) {
+            CircularProgressIndicator(color = Turquoise)
         }
     }
 
@@ -304,7 +347,29 @@ fun LoginScreen(
                 )
             }
 
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(16.dp))
+
+            TextButton(
+                onClick = onNavigateToRegister,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Row(horizontalArrangement = Arrangement.Center) {
+                    Text(
+                        text = stringResource(R.string.login_dont_have_account),
+                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
+                        fontSize = 14.sp
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(
+                        text = stringResource(R.string.login_register_now),
+                        color = Turquoise,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
 
             HorizontalDivider(
                 modifier = Modifier.fillMaxWidth(),

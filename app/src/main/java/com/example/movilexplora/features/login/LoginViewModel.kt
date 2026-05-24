@@ -1,70 +1,75 @@
 package com.example.movilexplora.features.login
 
-import android.util.Patterns
+import android.content.Context
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.example.movilexplora.R
 import com.example.movilexplora.core.utils.RequestResult
-import com.example.movilexplora.core.utils.ResourceProvider
-import com.example.movilexplora.core.utils.ValidatedField
 import com.example.movilexplora.data.datastore.SessionDataStore
 import com.example.movilexplora.domain.repository.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @HiltViewModel
 class LoginViewModel @Inject constructor(
     private val userRepository: UserRepository,
     private val sessionDataStore: SessionDataStore,
-    private val resources: ResourceProvider
+    @ApplicationContext private val context: Context
 ) : ViewModel() {
-    val email = ValidatedField("") { value ->
-        when {
-            value.isEmpty() -> resources.getString(R.string.error_email_empty)
-            !Patterns.EMAIL_ADDRESS.matcher(value).matches() -> resources.getString(R.string.error_email_invalid)
-            else -> null
+
+    // Clase interna para manejar el estado de cada campo (Email y Password)
+    class FieldState(initialValue: String = "") {
+        var value by mutableStateOf(initialValue)
+        var error by mutableStateOf<String?>(null)
+        fun onChange(newValue: String) {
+            value = newValue
+            error = null
         }
     }
 
-    val password = ValidatedField("") { value ->
-        when {
-            value.isEmpty() -> resources.getString(R.string.error_password_empty)
-            value.length < 6 -> resources.getString(R.string.error_password_short)
-            else -> null
-        }
-    }
-
-    val isFormValid: Boolean
-    get() = email.isValid && password.isValid
+    val email = FieldState()
+    val password = FieldState()
 
     private val _loginResult = MutableStateFlow<RequestResult?>(null)
     val loginResult: StateFlow<RequestResult?> = _loginResult.asStateFlow()
 
+    // Propiedad para habilitar/deshabilitar el botón de login
+    val isFormValid: Boolean
+        get() = email.value.isNotBlank() && password.value.isNotBlank() && email.error == null && password.error == null
+
     fun login() {
-        if (isFormValid) {
-            viewModelScope.launch {
-                _loginResult.value = RequestResult.Loading
-                
-                runCatching {
-                    userRepository.login(email.value, password.value)
-                }.onSuccess { user ->
-                    if (user != null) {
-                        // Save session in DataStore
-                        sessionDataStore.saveSession(userId = user.id, role = user.userRole)
-                        _loginResult.value = RequestResult.Success(resources.getString(R.string.login_success))
-                    } else {
-                        _loginResult.value = RequestResult.Failure(resources.getString(R.string.login_failure))
-                    }
-                }.onFailure {
-                    _loginResult.value = RequestResult.Failure(it.message ?: "Error al iniciar sesión")
+        if (!isFormValid) return
+
+        viewModelScope.launch {
+            _loginResult.value = RequestResult.Loading
+            
+            runCatching {
+                userRepository.login(email.value, password.value)
+            }.onSuccess { user ->
+                if (user != null && user.id != "1") {
+                    sessionDataStore.saveSession(userId = user.id, role = user.userRole)
+                    _loginResult.value = RequestResult.Success(context.getString(R.string.login_success))
+                } else {
+                    _loginResult.value = RequestResult.Failure(context.getString(R.string.login_failure))
                 }
+            }.onFailure {
+                val message = if (it.message?.contains("no user record") == true || it.message?.contains("INVALID_LOGIN_CREDENTIALS") == true) {
+                    "La cuenta no existe o las credenciales son incorrectas."
+                } else if (it.message?.startsWith("CUENTA_NO_VERIFICADA") == true) {
+                    it.message!!
+                } else {
+                    it.message ?: "Error al iniciar sesión"
+                }
+                android.util.Log.e("LOGIN_ERROR", "Fallo en login: ${it.message}")
+                _loginResult.value = RequestResult.Failure(message)
             }
         }
     }
@@ -75,14 +80,18 @@ class LoginViewModel @Inject constructor(
             runCatching {
                 userRepository.loginWithGoogle(idToken)
             }.onSuccess { user ->
-                if (user != null) {
+                if (user != null && user.id != "1") {
                     sessionDataStore.saveSession(userId = user.id, role = user.userRole)
-                    _loginResult.value = RequestResult.Success(resources.getString(R.string.login_success))
+                    _loginResult.value = RequestResult.Success(context.getString(R.string.login_success))
                 } else {
                     _loginResult.value = RequestResult.Failure("Error al autenticar con Google")
                 }
             }.onFailure {
-                _loginResult.value = RequestResult.Failure(it.message ?: "Error en autenticación Google")
+                val message = when (it.message) {
+                    "CUENTA_NO_EXISTE" -> "CUENTA_NO_EXISTE"
+                    else -> it.message ?: "Error en autenticación Google"
+                }
+                _loginResult.value = RequestResult.Failure(message)
             }
         }
     }

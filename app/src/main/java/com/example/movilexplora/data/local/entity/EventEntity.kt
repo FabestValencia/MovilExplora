@@ -23,7 +23,8 @@ data class EventEntity(
     val longitude: Double,
     val creatorId: String,
     val status: String,
-    val rejectionReason: String?
+    val rejectionReason: String?,
+    val isDeleted: Boolean = false
 )
 
 fun EventEntity.toDomainModel(): Event {
@@ -43,7 +44,8 @@ fun EventEntity.toDomainModel(): Event {
         longitude = longitude,
         creatorId = creatorId,
         status = PostStatus.valueOf(status),
-        rejectionReason = rejectionReason
+        rejectionReason = rejectionReason,
+        isDeleted = isDeleted
     )
 }
 
@@ -64,7 +66,8 @@ fun Event.toEntity(): EventEntity {
         longitude = longitude,
         creatorId = creatorId,
         status = status.name,
-        rejectionReason = rejectionReason
+        rejectionReason = rejectionReason,
+        isDeleted = isDeleted
     )
 }
 

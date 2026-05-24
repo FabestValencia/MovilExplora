@@ -266,6 +266,28 @@ fun CreateEditEventScreen(
     val showAiRecommendationDialog by viewModel.showAiRecommendationDialog.collectAsState()
     val pendingRecommendation by viewModel.pendingRecommendation.collectAsState()
     val aiRecommendationReason by viewModel.aiRecommendationReason.collectAsState()
+    val publishResult by viewModel.publishResult.collectAsState()
+    val selectedCategoryFromAi by viewModel.selectedCategoryFromAi.collectAsState()
+
+    LaunchedEffect(selectedCategoryFromAi) {
+        selectedCategoryFromAi?.let {
+            category = it
+            viewModel.clearCategoryFromAi()
+        }
+    }
+
+    LaunchedEffect(publishResult) {
+        when (publishResult) {
+            is com.example.movilexplora.core.utils.RequestResult.Success -> {
+                onSaveSuccess()
+                viewModel.resetResult()
+            }
+            is com.example.movilexplora.core.utils.RequestResult.Failure -> {
+                // Error toast can be added here if needed
+            }
+            else -> {}
+        }
+    }
 
     LaunchedEffect(isEditing, eventId) {
         if (isEditing) {
@@ -281,6 +303,15 @@ fun CreateEditEventScreen(
             category = event.category
             startDate = event.date
             endDate = event.endDate
+            lat = event.latitude
+            lon = event.longitude
+            
+            // Mover la cámara a la ubicación del evento cargado
+            mapViewportState.setCameraOptions {
+                center(Point.fromLngLat(event.longitude, event.latitude))
+                zoom(14.0)
+            }
+
             if (event.imageUrl.isNotEmpty()) {
                 try {
                     imageUri = event.imageUrl.toUri()
@@ -562,24 +593,24 @@ fun CreateEditEventScreen(
             Text(text = stringResource(R.string.createediteventscreen_elige_la_categor_a_que_mejor_d_5), fontSize = 12.sp, color = GrayText.copy(alpha = 0.5f))
             Spacer(modifier = Modifier.height(12.dp))
             
-            data class CategoryData(val name: String, val desc: String)
+            data class CategoryData(val key: String, val name: String, val desc: String)
             
             val categories = listOf(
-                CategoryData("Gastronomía", stringResource(R.string.cat_gastronomy_desc_event)),
-                CategoryData("Cultura", stringResource(R.string.cat_culture_desc_event)),
-                CategoryData("Naturaleza", stringResource(R.string.cat_nature_desc_event)),
-                CategoryData("Entretenimiento", stringResource(R.string.cat_entertainment_desc_event)),
-                CategoryData("Historia", stringResource(R.string.cat_history_desc_event))
+                CategoryData("Gastronomia", "Gastronomía", stringResource(R.string.cat_gastronomy_desc_event)),
+                CategoryData("Cultura", "Cultura", stringResource(R.string.cat_culture_desc_event)),
+                CategoryData("Naturaleza", "Naturaleza", stringResource(R.string.cat_nature_desc_event)),
+                CategoryData("Entretenimiento", "Entretenimiento", stringResource(R.string.cat_entertainment_desc_event)),
+                CategoryData("Historia", "Historia", stringResource(R.string.cat_history_desc_event))
             )
 
             categories.forEach { cat ->
                 CategorySelectableItem(
                     name = cat.name,
                     description = cat.desc,
-                    icon = getCategoryIcon(cat.name),
-                    iconColor = getCategoryColor(cat.name),
-                    isSelected = category == cat.name,
-                    onSelect = { category = cat.name }
+                    icon = getCategoryIcon(cat.key),
+                    iconColor = getCategoryColor(cat.key),
+                    isSelected = category == cat.key,
+                    onSelect = { category = cat.key }
                 )
             }
             Spacer(modifier = Modifier.height(12.dp))
@@ -623,12 +654,13 @@ fun CreateEditEventScreen(
                         category = category,
                         startDate = startDate,
                         endDate = endDate,
-                        imageUrl = imageUri?.toString() ?: ""
+                        imageUri = imageUri,
+                        latitude = lat ?: 0.0,
+                        longitude = lon ?: 0.0
                     )
-                    onSaveSuccess()
                 },
                 modifier = Modifier.fillMaxWidth().height(56.dp),
-                enabled = title.isNotBlank() && startDate.isNotBlank() && endDate.isNotBlank(), // Validación
+                enabled = title.isNotBlank() && startDate.isNotBlank() && endDate.isNotBlank() && imageUri != null && publishResult !is com.example.movilexplora.core.utils.RequestResult.Loading,
                 shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Turquoise,
@@ -636,14 +668,18 @@ fun CreateEditEventScreen(
                     disabledContentColor = Color.White.copy(alpha = 0.5f)
                 )
             ) {
-                Icon(imageVector = Icons.AutoMirrored.Outlined.Send, contentDescription = null, tint = if (title.isNotBlank() && startDate.isNotBlank() && endDate.isNotBlank()) Color.White else Color.White.copy(alpha = 0.5f))
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = if (isEditing) stringResource(R.string.common_save_changes) else stringResource(R.string.events_publish_event),
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White
-                )
+                if (publishResult is com.example.movilexplora.core.utils.RequestResult.Loading) {
+                    CircularProgressIndicator(modifier = Modifier.size(24.dp), color = Color.White, strokeWidth = 2.dp)
+                } else {
+                    Icon(imageVector = Icons.AutoMirrored.Outlined.Send, contentDescription = null, tint = Color.White)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = if (isEditing) stringResource(R.string.common_save_changes) else stringResource(R.string.events_publish_event),
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
+                }
             }
             
             Spacer(modifier = Modifier.height(32.dp))
@@ -705,12 +741,10 @@ fun EventInputField(
             modifier = modifier.fillMaxWidth(),
             shape = RoundedCornerShape(12.dp),
             colors = OutlinedTextFieldDefaults.colors(
-                focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
-                unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
-                disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant,
-                focusedBorderColor = Turquoise,
-                unfocusedBorderColor = Color.Transparent,
-                disabledBorderColor = Color.Transparent,
+                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                unfocusedBorderColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
+                cursorColor = Turquoise,
+                disabledBorderColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
                 disabledTextColor = MaterialTheme.colorScheme.onBackground,
                 disabledPlaceholderColor = Color(0xFFA0AAB4)
             )

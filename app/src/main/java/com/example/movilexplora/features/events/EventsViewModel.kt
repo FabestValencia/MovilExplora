@@ -22,6 +22,10 @@ import com.example.movilexplora.data.local.dao.LikeDao
 import com.example.movilexplora.data.local.entity.LikeEntity
 import com.example.movilexplora.domain.repository.EventRepository
 
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Locale
+
 data class EventsState(
     val events: List<Event> = emptyList(),
     val selectedFilter: String = "",
@@ -41,6 +45,8 @@ class EventsViewModel @Inject constructor(
     private val _currentUserId = MutableStateFlow("guest")
     val currentUserId: StateFlow<String> = _currentUserId.asStateFlow()
 
+    private val dateFormatter = SimpleDateFormat("d/M/yyyy", Locale.getDefault())
+
     init {
         _state.update { it.copy(selectedFilter = resources.getString(R.string.filter_all)) }
 
@@ -51,19 +57,45 @@ class EventsViewModel @Inject constructor(
         viewModelScope.launch {
             combine(eventRepository.getEvents(), likeDao.getAllEventLikes(), _state) { events, likes, currentState ->
                 val query = currentState.searchQuery
-                val currentId = _currentUserId.value
+                val currentTime = atStartOfDay(Calendar.getInstance().time)
+
                 events.map { event ->
                     val eventLikes = likes.filter { it.itemId == event.id }.map { it.userId }
                     event.copy(likedBy = eventLikes)
                 }.filter { event ->
-                    val matchesVisibility = event.status == PostStatus.VERIFICADO || event.creatorId == currentId
+                    // Regla de Negocio: Rango de fechas
+                    val isWithinDateRange = try {
+                        val start = dateFormatter.parse(event.date)
+                        val end = dateFormatter.parse(event.endDate)
+                        
+                        start != null && end != null && 
+                        !currentTime.before(start) && !currentTime.after(end)
+                    } catch (e: Exception) {
+                        true 
+                    }
+
+                    if (event.isDeleted) return@filter false
+
+                    // Regla de Negocio: SOLO VERIFICADOS y EN RANGO DE FECHAS
+                    val isVisible = event.status == PostStatus.VERIFICADO && isWithinDateRange
                     val matchesSearch = query.isBlank() || event.title.contains(query, ignoreCase = true)
-                    matchesVisibility && matchesSearch
+                    
+                    isVisible && matchesSearch
                 }.sortedByDescending { it.likedBy.size }
             }.collect { combinedEvents ->
                 _state.value = _state.value.copy(events = combinedEvents)
             }
         }
+    }
+
+    private fun atStartOfDay(date: java.util.Date): java.util.Date {
+        val calendar = Calendar.getInstance()
+        calendar.time = date
+        calendar.set(Calendar.HOUR_OF_DAY, 0)
+        calendar.set(Calendar.MINUTE, 0)
+        calendar.set(Calendar.SECOND, 0)
+        calendar.set(Calendar.MILLISECOND, 0)
+        return calendar.time
     }
 
     fun toggleFavorite(eventId: String) {
